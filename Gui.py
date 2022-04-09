@@ -18,6 +18,18 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
 
+# Arbeiten mit Farben Brushes etc
+
+        ocean_brush = QtGui.QBrush("red", QtCore.Qt.BrushStyle.BDiagPattern)
+        country_pen = QtGui.QPen("grey")
+        country_pen.setWidthF(0.5)
+        land_brush = QtGui.QBrush("green", QtCore.Qt.BrushStyle.SolidPattern)
+
+############
+
+
+
+
         # Hier müssen die Koordinaten geändert werden
         scene = QtWidgets.QGraphicsScene()#-180, -90, 360, 180
 
@@ -39,11 +51,14 @@ class MainWindow(QtWidgets.QMainWindow):
                 qpolygon = QtGui.QPolygonF()
                 for x, y in polygon:
                     qpolygon.append(QtCore.QPointF(x, y))
-                scene.addPolygon(qpolygon)
+                scene.addPolygon(qpolygon, pen=country_pen, brush=land_brush)
+        scene.setBackgroundBrush(ocean_brush)
+
 
         germany_map = QtWidgets.QGraphicsView()
         germany_map.setScene(scene)
         germany_map.scale(1, -1)
+        germany_map.setRenderHint(QtGui.QPainter.Antialiasing)
 
 ######################
 
