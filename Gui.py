@@ -12,7 +12,23 @@ def convert_txt_to_json(filename):
     coordinates_json = coordinates.to_json(orient = 'split')
 
     return coordinates_json
+###############################################################
+class WorldMap(QtWidgets.QGraphicsView):
+    def __init__(self):
+        super().__init__()
+        self.setMinimumSize(360, 180)
 
+    def resizeEvent(self, event):
+        scene_size = self.sceneRect()
+        dx = (self.width()-4)/scene_size.width()
+        dy = (self.height()-4)/scene_size.height()
+        self.setTransform(QtGui.QTransform.fromScale(dx, -dy))
+
+    def sizeHint(self):
+        return QtCore.QSize(360*2, 180*2)
+
+
+###############################################################
 # Klasse um das Main Window zu erstellen
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -31,7 +47,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
         # Hier müssen die Koordinaten geändert werden
-        scene = QtWidgets.QGraphicsScene()#-180, -90, 360, 180
+        scene = QtWidgets.QGraphicsScene(-180, -90, 360, 180)
 
 ######## Experiment
 
@@ -44,20 +60,23 @@ class MainWindow(QtWidgets.QMainWindow):
 
 ###################
 
+        europe_map_data = self.load_map_data()
+
         # Hier gehts weiter, jetzt muss die Karte gemalt werden (Koordinaten für die Deutschlandkarte werden benötigt)
-        map_data = self.load_map_data()
-        for bundesland, polygons in map_data.items():
-            for polygon in polygons:
-                qpolygon = QtGui.QPolygonF()
-                for x, y in polygon:
-                    qpolygon.append(QtCore.QPointF(x, y))
-                scene.addPolygon(qpolygon, pen=country_pen, brush=land_brush)
+        for country, polygons in europe_map_data.items():
+            if country == 'Germany':
+                for polygon in polygons:
+                    qpolygon = QtGui.QPolygonF()
+                    for x,y in polygon:
+                        qpolygon.append(QtCore.QPointF((x-14)*5,(y-56)*5)) 
+                    scene.addPolygon(qpolygon, pen = country_pen,brush = land_brush)
+                    
         scene.setBackgroundBrush(ocean_brush)
 
 
-        germany_map = QtWidgets.QGraphicsView()
+        germany_map = WorldMap()
         germany_map.setScene(scene)
-        germany_map.scale(1, -1)
+        germany_map.scale(10, -10)
         germany_map.setRenderHint(QtGui.QPainter.Antialiasing)
 
 ######################
@@ -73,7 +92,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     # Hier soll später die JSON Datei mit der Deutschlandkarte geladen werden
     def load_map_data(self):
-        with open('germany.json') as file:
+        with open('countries.json') as file:
             
             germany_coordinates = json.load(file)
 
