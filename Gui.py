@@ -1,7 +1,7 @@
 import pandas
 import sys
 import json
-#import os
+import os
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 from PySide6 import QtGui
@@ -15,8 +15,8 @@ from PySide6 import QtGui
 
 ###############################################################
 # Train Stations und Koordinaten laden
-#path_of_stations = os.path.dirname(__file__) + '/' + 'train_station.csv'
-#train_stations = pandas.read_csv(path_of_stations)
+path_of_stations = os.path.dirname(__file__) + '/' + 'train_station.csv'
+train_stations = pandas.read_csv(path_of_stations)
 
 ################################################################
 ###################
