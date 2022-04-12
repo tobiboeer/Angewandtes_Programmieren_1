@@ -34,8 +34,9 @@ class MainWindow(QtWidgets.QMainWindow):
         map_data = self.load_map_data()
         
         test = map_data['features'][0]['geometry']
-        #print(test)
+        print(test)
         test2 = QtGui.QPolygonF()
+
         # for country, polygons in map_data.items():
         #     for polygon in polygons:
         #         qpolygon = QtGui.QPolygonF()
