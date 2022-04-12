@@ -1,19 +1,28 @@
 import pandas
 import sys
 import json
+#import os
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 from PySide6 import QtGui
-
-# Funktion, der eine txt Datei übergeben werden kann und die daraus eine JSON Datei (nur mit den Koordinaten) macht
-def convert_txt_to_json(filename):
-    stops_longdistance = pandas.read_csv(filename)
-    coordinates = stops_longdistance.iloc[:,[2,3]]
-    coordinates_json = coordinates.to_json(orient = 'split')
-
-    return coordinates_json
 ###############################################################
-class WorldMap(QtWidgets.QGraphicsView):
+# Funktion, der eine txt Datei übergeben werden kann und die daraus eine JSON Datei (nur mit den Koordinaten) macht
+#def convert_txt_to_json(filename):
+#    stops_longdistance = pandas.read_csv(filename)
+#    #coordinates = stops_longdistance.iloc[] #:,[2,3]
+#    coordinates_json = stops_longdistance.to_json(orient = 'split')
+#    return coordinates_json
+
+###############################################################
+# Train Stations und Koordinaten laden
+#path_of_stations = os.path.dirname(__file__) + '/' + 'train_station.csv'
+#train_stations = pandas.read_csv(path_of_stations)
+
+################################################################
+###################
+
+# Klasse für die Deutschlandkarte
+class GermanyMap(QtWidgets.QGraphicsView):
     def __init__(self):
         super().__init__()
         self.setMinimumSize(360, 180)
@@ -36,34 +45,23 @@ class MainWindow(QtWidgets.QMainWindow):
 
 # Arbeiten mit Farben Brushes etc
 
-        ocean_brush = QtGui.QBrush("red", QtCore.Qt.BrushStyle.BDiagPattern)
+        ocean_brush = QtGui.QBrush("lightblue", QtCore.Qt.BrushStyle.BDiagPattern)
         country_pen = QtGui.QPen("grey")
         country_pen.setWidthF(0.5)
-        land_brush = QtGui.QBrush("green", QtCore.Qt.BrushStyle.SolidPattern)
+        land_brush = QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern)
 
-############
-
-
+        point_pen = QtGui.QPen("red")
+        point_pen.setWidthF(1.0)
+#########
 
 
         # Hier müssen die Koordinaten geändert werden
         scene = QtWidgets.QGraphicsScene(-180, -90, 360, 180)
 
-######## Experiment
-
-       # x = convert_txt_to_json('stops.txt')
-       # print(x)
-
-       #stations_data = convert_txt_to_json('stops.txt')
-       #for index, points in stations_data.items():
-    
-
-###################
-
-        europe_map_data = self.load_map_data()
+        germany_map_data = self.load_map_data()
 
         # Hier gehts weiter, jetzt muss die Karte gemalt werden (Koordinaten für die Deutschlandkarte werden benötigt)
-        for country, polygons in europe_map_data.items():
+        for country, polygons in germany_map_data.items():
             if country == 'Germany':
                 for polygon in polygons:
                     qpolygon = QtGui.QPolygonF()
@@ -73,8 +71,21 @@ class MainWindow(QtWidgets.QMainWindow):
                     
         scene.setBackgroundBrush(ocean_brush)
 
+################################################################
+# Train Stations zeichnen
+        #stations_map_data = convert_txt_to_json('train_station.csv')
+    #    stations_map_data = json.loads(stations_map_data)
 
-        germany_map = WorldMap()
+    #    for test, test2 in stations_map_data.items():
+    #        for test3 in test2:
+    #            test4 = QtGui.QPolygonF()  
+    #            for x,y in test3:
+    #                test4.append(QtCore.QPointF(x, y)) 
+    #            scene.addPolygon(test4, pen = point_pen)
+
+###############################################################
+
+        germany_map = GermanyMap()
         germany_map.setScene(scene)
         germany_map.scale(10, -10)
         germany_map.setRenderHint(QtGui.QPainter.Antialiasing)
