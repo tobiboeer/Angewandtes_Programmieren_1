@@ -17,8 +17,12 @@ from PySide6 import QtGui
 # Train Stations und Koordinaten laden
 path_of_stations = os.path.dirname(__file__) + '/' + 'train_station.csv'
 train_stations = pandas.read_csv(path_of_stations)
-x_coords = train_stations['stop_lat']
-print(x_coords)
+coordinates = train_stations.filter(['stop_lat','stop_lon'])  #'stop_name',
+coordinates_list = coordinates.values.tolist()
+
+#x_coords = train_stations['stop_lat']
+#y_coords = train_stations['stop_lon']
+#print(x_coords)
 
 ################################################################
 ###################
