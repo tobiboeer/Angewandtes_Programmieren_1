@@ -2,6 +2,7 @@ import pandas
 import sys
 import json
 import os
+import matplotlib.pyplot as plt
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 from PySide6 import QtGui
@@ -19,6 +20,10 @@ path_of_stations = os.path.dirname(__file__) + '/' + 'train_station.csv'
 train_stations = pandas.read_csv(path_of_stations)
 coordinates = train_stations.filter(['stop_lat','stop_lon'])  #'stop_name',
 coordinates_list = coordinates.values.tolist()
+
+x, y = zip(*coordinates_list)
+plt.scatter(y, x)
+plt.show()
 
 #x_coords = train_stations['stop_lat']
 #y_coords = train_stations['stop_lon']
