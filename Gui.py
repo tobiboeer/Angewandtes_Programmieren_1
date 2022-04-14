@@ -22,6 +22,9 @@ coordinates = train_stations.filter(['stop_lat','stop_lon'])  #'stop_name',
 coordinates_list = coordinates.values.tolist()
 
 x, y = zip(*coordinates_list)
+
+#print(x)
+
 plt.scatter(y, x)
 plt.show()
 
