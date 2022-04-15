@@ -25,8 +25,8 @@ x, y = zip(*coordinates_list)
 
 #print(x)
 
-plt.scatter(y, x)
-plt.show()
+#plt.scatter(y, x)
+#plt.show()
 
 #x_coords = train_stations['stop_lat']
 #y_coords = train_stations['stop_lon']
@@ -87,15 +87,20 @@ class MainWindow(QtWidgets.QMainWindow):
 
 ################################################################
 # Train Stations zeichnen
-        #stations_map_data = convert_txt_to_json('train_station.csv')
-    #    stations_map_data = json.loads(stations_map_data)
+        # for polygon in coordinates_list:
+        #     for polygon in polygons:
+        #         qpolygon = QtGui.QPolygonF()
+        #         for x,y in polygon:
+        #             qpolygon.append(QtCore.QPointF(x,y)) 
+        #         scene.addPolygon(qpolygon, pen=point_pen)  
 
-    #    for test, test2 in stations_map_data.items():
-    #        for test3 in test2:
-    #            test4 = QtGui.QPolygonF()  
-    #            for x,y in test3:
-    #                test4.append(QtCore.QPointF(x, y)) 
-    #            scene.addPolygon(test4, pen = point_pen)
+        for x,y in coordinates_list:
+            qpolygon = QtGui.QPolygonF()
+            qpolygon.append(QtCore.QPointF(x,y)) 
+        scene.addPolygon(qpolygon, pen=point_pen)   
+            
+            
+        #scene.setBackgroundBrush(ocean_brush)
 
 ###############################################################
 
