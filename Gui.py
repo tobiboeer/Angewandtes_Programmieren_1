@@ -21,19 +21,13 @@ train_stations = pandas.read_csv(path_of_stations)
 coordinates = train_stations.filter(['stop_lat','stop_lon'])  #'stop_name',
 coordinates_list = coordinates.values.tolist()
 
-x, y = zip(*coordinates_list)
-
-#print(x)
-
-#plt.scatter(y, x)
-#plt.show()
+#x, y = zip(*coordinates_list)
 
 #x_coords = train_stations['stop_lat']
 #y_coords = train_stations['stop_lon']
-#print(x_coords)
+
 
 ################################################################
-###################
 
 # Klasse für die Deutschlandkarte
 class GermanyMap(QtWidgets.QGraphicsView):
@@ -50,14 +44,15 @@ class GermanyMap(QtWidgets.QGraphicsView):
     def sizeHint(self):
         return QtCore.QSize(360*2, 180*2)
 
-
 ###############################################################
 # Klasse um das Main Window zu erstellen
-class MainWindow(QtWidgets.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):     
+
+# Deutschlandkarte
     def __init__(self):
         super().__init__()
 
-# Arbeiten mit Farben Brushes etc
+        # Arbeiten mit Farben Brushes etc
 
         ocean_brush = QtGui.QBrush("lightblue", QtCore.Qt.BrushStyle.BDiagPattern)
         country_pen = QtGui.QPen("grey")
@@ -65,8 +60,7 @@ class MainWindow(QtWidgets.QMainWindow):
         land_brush = QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern)
 
         point_pen = QtGui.QPen("red")
-        point_pen.setWidthF(1.0)
-#########
+        point_pen.setWidthF(0.5)
 
 
         # Hier müssen die Koordinaten geändert werden
@@ -86,21 +80,17 @@ class MainWindow(QtWidgets.QMainWindow):
         scene.setBackgroundBrush(ocean_brush)
 
 ################################################################
-# Train Stations zeichnen
-        # for polygon in coordinates_list:
-        #     for polygon in polygons:
-        #         qpolygon = QtGui.QPolygonF()
-        #         for x,y in polygon:
-        #             qpolygon.append(QtCore.QPointF(x,y)) 
-        #         scene.addPolygon(qpolygon, pen=point_pen)  
-        qpolygon2 = QtGui.QPolygonF()
+# Train Stations zeichnen  
+        
+        qpoints = QtGui.QPolygonF()
         for x,y in coordinates_list:
             
-            qpolygon2.append(QtCore.QPointF(x,y)) 
-        scene.addPolygon(qpolygon2, pen=point_pen)   
-            
-            
-        #scene.setBackgroundBrush(ocean_brush)
+            #qpoints.append(QtCore.QPointF((y-14)*5,(x-56)*5))
+            wide = 1
+            high = 1
+            # x und y sind vertauscht, weil in der Datei Längen und Breitengrade andersherum sind, als in der Map
+            scene.addEllipse((y-14)*5,(x-56)*5, wide, high, pen=point_pen)    
+       
 
 ###############################################################
 
@@ -128,7 +118,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         return germany_coordinates
 
-
+################################
 
   
 
