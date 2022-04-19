@@ -93,11 +93,11 @@ class MainWindow(QtWidgets.QMainWindow):
         #         for x,y in polygon:
         #             qpolygon.append(QtCore.QPointF(x,y)) 
         #         scene.addPolygon(qpolygon, pen=point_pen)  
-
+        qpolygon2 = QtGui.QPolygonF()
         for x,y in coordinates_list:
-            qpolygon = QtGui.QPolygonF()
-            qpolygon.append(QtCore.QPointF(x,y)) 
-        scene.addPolygon(qpolygon, pen=point_pen)   
+            
+            qpolygon2.append(QtCore.QPointF(x,y)) 
+        scene.addPolygon(qpolygon2, pen=point_pen)   
             
             
         #scene.setBackgroundBrush(ocean_brush)
