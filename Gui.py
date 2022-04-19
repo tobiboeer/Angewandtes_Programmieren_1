@@ -35,6 +35,37 @@ class GermanyMap(QtWidgets.QGraphicsView):
         super().__init__()
         self.setMinimumSize(360, 180)
 
+#################################################################
+# Zoom hinzufügen
+# https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
+
+        self.zoom = 0
+        self._empty = True
+        self._scene = QtWidgets.QGraphicsScene(self)
+        #self._photo = QtWidgets.QGraphicsPixmapItem()
+        #self._scene.addItem(self._photo)
+        self.setScene(self._scene)
+        self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
+        self.setResizeAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
+        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
+
+    def wheelEvent(self, event):
+        if event.angleDelta().y() > 0:
+            factor = 1.25
+            self.zoom += 1
+        else:
+            factor = 0.9
+            self.zoom -= 1
+        if self.zoom > 0:
+            self.scale(factor, factor)
+        elif self.zoom == 0:
+            self.fitInView(self.sceneRect())
+        else:
+            self.zoom = 0
+
+########################################################################
     def resizeEvent(self, event):
         scene_size = self.sceneRect()
         dx = (self.width()-4)/scene_size.width()
@@ -82,14 +113,10 @@ class MainWindow(QtWidgets.QMainWindow):
 ################################################################
 # Train Stations zeichnen  
         
-        qpoints = QtGui.QPolygonF()
         for x,y in coordinates_list:
-            
-            #qpoints.append(QtCore.QPointF((y-14)*5,(x-56)*5))
-            wide = 1
-            high = 1
+
             # x und y sind vertauscht, weil in der Datei Längen und Breitengrade andersherum sind, als in der Map
-            scene.addEllipse((y-14)*5,(x-56)*5, wide, high, pen=point_pen)    
+            scene.addEllipse((y-14)*5,(x-56)*5, 1, 1, pen=point_pen)    
        
 
 ###############################################################
