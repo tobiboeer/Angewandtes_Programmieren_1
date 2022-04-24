@@ -31,9 +31,13 @@ coordinates_list = coordinates.values.tolist()
 
 # Klasse für die Deutschlandkarte
 class GermanyMap(QtWidgets.QGraphicsView):
+    #currentStation = QtCore.Signal(str)
+
     def __init__(self):
         super().__init__()
         self.setMinimumSize(360, 180)
+        self.setMouseTracking(True)
+        self.previous_item = None
 
 #################################################################
 # Zoom hinzufügen
@@ -64,6 +68,17 @@ class GermanyMap(QtWidgets.QGraphicsView):
             self.fitInView(self.sceneRect())
         else:
             self.zoom = 0
+########################################################################
+# Mouse Event hinzufügen
+    def mouseMoveEvent(self, event):
+            item = self.itemAt(event.pos())
+            if self.previous_item is not None:
+                self.previous_item.setBrush(QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern))
+                self.previous_item = None
+            if item is not None:
+                item.setBrush(QtGui.QBrush("green", QtCore.Qt.BrushStyle.SolidPattern))
+                self.previous_item = item
+                #self.currentStation.emit(item.station)
 
 ########################################################################
     def resizeEvent(self, event):
@@ -82,6 +97,8 @@ class MainWindow(QtWidgets.QMainWindow):
 # Deutschlandkarte
     def __init__(self):
         super().__init__()
+
+        #self.status_bar = self.statusBar()
 
         # Arbeiten mit Farben Brushes etc
 
@@ -116,8 +133,8 @@ class MainWindow(QtWidgets.QMainWindow):
         for x,y in coordinates_list:
 
             # x und y sind vertauscht, weil in der Datei Längen und Breitengrade andersherum sind, als in der Map
-            scene.addEllipse((y-14)*5,(x-56)*5, 1, 1, pen=point_pen)    
-       
+            ellipse_item = scene.addEllipse((y-14)*5,(x-56)*5, 1, 1, pen=point_pen)    
+            #ellipse_item.station = x
 
 ###############################################################
 
@@ -125,6 +142,7 @@ class MainWindow(QtWidgets.QMainWindow):
         germany_map.setScene(scene)
         germany_map.scale(10, -10)
         germany_map.setRenderHint(QtGui.QPainter.Antialiasing)
+        #germany_map.currentStation.connect(self.set_status_bar_message)
 
 ######################
 
@@ -146,6 +164,12 @@ class MainWindow(QtWidgets.QMainWindow):
         return germany_coordinates
 
 ################################
+    #@QtCore.Slot(str)
+    #def set_status_bar_message(self, message):
+        #self.status_bar.showMessage(message)
+
+
+#############################
 
   
 
