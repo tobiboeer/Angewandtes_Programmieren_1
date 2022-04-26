@@ -33,56 +33,46 @@ class MainWindow(QtWidgets.QMainWindow):
 
         map_data = self.load_map_data()
         
-        test = map_data['features'][0]['geometry']
-        ########################################################
-        # print(test)
-        #test2 = QtGui.QPolygonF()
-
-        # for country, polygons in map_data.items():
-        #     for polygon in polygons:
-        #         qpolygon = QtGui.QPolygonF()
-        #         for x, y in polygon:
-        #             qpolygon.append(QtCore.QPointF(x, y))
-        #         scene.addPolygon(qpolygon, pen=country_pen, brush=land_brush)
-        # scene.setBackgroundBrush(ocean_brush)
-        ########################################################
-        # Fabians Sachen
-        test_list = test["coordinates"] 
-        test_list[0] = test_list[0][0]
-        #print(len(test_list))
-
-        #for k in test_list:
-            #print(k)
-            #print()
-            #print()
-
-        #print(len(test[0]))
-        test2 = QtGui.QPolygonF()
-
-        new_poli = []
-        for polygon in test_list:
-            for poli in polygon:
-                if len(poli) != 2:
-                    new_poli.append(poli)
-                    polygon.remove(poli)
-                    pass
+        #################################################
+        
+        for x in range(0,35):
+            deutschland_data = map_data['features'][x]['geometry']
+           # print(deutschland_data)
+           
             
+            
+            # for polygon in test_list:
+            #     qpolygon = QtGui.QPolygonF()
+            #     for x, y in polygon:
+            #         qpolygon.append(QtCore.QPointF(x, y))
+            #     scene.addPolygon(qpolygon, pen=country_pen, brush=land_brush)
+            # scene.setBackgroundBrush(ocean_brush)
+       
+        # Fabians Sachen
+            test_list = deutschland_data["coordinates"] 
+            test_list[0] = test_list[0][0]
 
-        for poli in new_poli:
-            test_list.append(poli)
+            new_poli = []
+            for polygon in test_list:
+                for poli in polygon:
+                    if len(poli) != 2:
+                        new_poli.append(poli)
+                        polygon.remove(poli)
+                        pass
+                
 
-        print(test_list)
+            for poli in new_poli:
+                test_list.append(poli)
 
 
-        for polygon in test_list:
-            qpolygon = QtGui.QPolygonF()
-            #for x_y , rout_id in enumerate(polygon):
-            for poli in polygon:
-                if len(poli) == 2:
-                    x,y = poli
-                    qpolygon.append(QtCore.QPointF((x - 10) * 14, (y- 55) *14))
-            scene.addPolygon(qpolygon, pen=country_pen, brush=land_brush)
-        scene.setBackgroundBrush(ocean_brush)
+            for polygon in test_list:
+                qpolygon = QtGui.QPolygonF()
+                for poli in polygon:
+                    if len(poli) == 2:
+                        x,y = poli
+                        qpolygon.append(QtCore.QPointF((x - 10) * 14, (y- 55) *14))
+                scene.addPolygon(qpolygon, pen=country_pen, brush=land_brush)
+            scene.setBackgroundBrush(ocean_brush)
         ########################################################
         world_map = WorldMap()
         world_map.setScene(scene)
