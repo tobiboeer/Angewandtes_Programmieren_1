@@ -2,7 +2,6 @@ import pandas
 import sys
 import json
 import os
-import matplotlib.pyplot as plt
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 from PySide6 import QtGui
@@ -16,8 +15,8 @@ from PySide6 import QtGui
 
 ###############################################################
 # Train Stations und Koordinaten laden
-path_of_stations = os.path.dirname(__file__) + '/' + 'train_station.csv'
-train_stations = pandas.read_csv(path_of_stations)
+path_of_stations = os.path.dirname(__file__) + '/' + 'stops.txt'
+train_stations = pandas.read_csv(path_of_stations, encoding='utf8')
 coordinates = train_stations.filter(['stop_lat','stop_lon'])  #'stop_name',
 coordinates_list = coordinates.values.tolist()
 
@@ -55,6 +54,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
 
+
     def wheelEvent(self, event):
         if event.angleDelta().y() > 0:
             factor = 1.25
@@ -73,7 +73,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
     def mouseMoveEvent(self, event):
             item = self.itemAt(event.pos())
             if self.previous_item is not None:
-                self.previous_item.setBrush(QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern))
+                self.previous_item.setBrush(QtGui.QBrush("red", QtCore.Qt.BrushStyle.SolidPattern))
                 self.previous_item = None
             if item is not None:
                 item.setBrush(QtGui.QBrush("green", QtCore.Qt.BrushStyle.SolidPattern))
@@ -108,7 +108,8 @@ class MainWindow(QtWidgets.QMainWindow):
         land_brush = QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern)
 
         point_pen = QtGui.QPen("red")
-        point_pen.setWidthF(0.5)
+        point_pen.setWidthF(0.05)
+        stop_brush = QtGui.QBrush("red", QtCore.Qt.BrushStyle.SolidPattern)
 
 
         # Hier müssen die Koordinaten geändert werden
@@ -133,7 +134,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for x,y in coordinates_list:
 
             # x und y sind vertauscht, weil in der Datei Längen und Breitengrade andersherum sind, als in der Map
-            ellipse_item = scene.addEllipse((y-14)*5,(x-56)*5, 1, 1, pen=point_pen)    
+            ellipse_item = scene.addEllipse((y-14)*5,(x-56)*5, 1, 1, pen=point_pen, brush=stop_brush)    
             #ellipse_item.station = x
 
 ###############################################################
