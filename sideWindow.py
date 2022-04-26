@@ -5,41 +5,42 @@ from PySide2 import QtCore
 from PySide2 import QtWidgets
 from PySide2 import QtGui
 
-# GUI - Tabelle mit Bahnhöfen
-# Interaktive GUI
 
 class sideWindow(QtWidgets.QMainWindow):
     """ Klasse für ein Seitliches Fensterbild, um die Route interaktiv zu machen."""
     def __init__(self):
-        """konstruktorklasse, die in der Klasse vorhanden sein muss."""
+        """ Konstruktorklasse, die in der Klasse vorhanden sein muss."""
         super().__init__()
         
-        """Deklarieren der Textfelder und Label für die interaktive GUI."""
-        textfield_destination = QtWidgets.QWidget()
-        textfield_start = QtWidgets.QWidget()
+        """ Deklarieren eines Layouts."""
+        layout = QtWidgets.QVBoxLayout()
+                
+        """ Deklarieren der Textfelder und Label für die interaktive GUI und anhängen der Widgets an
+        das Layout über 'addWidget'."""
+        label_textfield_date = QtWidgets.QLabel("Datum der Abfahrt:")
         textfield_date = QtWidgets.QDateEdit()
-        textfield_time = QtWidgets.QTimeEdit()
-        button_start = QtWidgets.QPushButton()
-        label_button_start = QtWidgets.QLabel("Startknopf")
-        label_textfield_date = QtWidgets.QLabel("Datum der Abfahrt")
-        label_textfield_time = QtWidgets.QLabel("Abfahrtszeit")
-        label_textfield_start = QtWidgets.QLabel("Abfahrbahnhof")
-        label_textfield_destination = QtWidgets.QLabel("Ankunftbahnhof")
-        
-        
-        """Deklarieren eines Layouts und verknüpfen zwischen den Widgets."""
-        layout = QtWidgets.QHBoxLayout()
-        layout.addWidget(textfield_destination)
-        layout.addWidget(textfield_start)
-        layout.addWidget(textfield_date)
-        layout.addWidget(textfield_time)
-        layout.addWidget(button_start)
-        layout.addWidget(label_button_start)
         layout.addWidget(label_textfield_date)
+        layout.addWidget(textfield_date)
+
+        label_textfield_time = QtWidgets.QLabel("Abfahrtszeit:")
+        textfield_time = QtWidgets.QTimeEdit()
         layout.addWidget(label_textfield_time)
-        layout.addWidget(label_textfield_start)
+        layout.addWidget(textfield_time)
+
+        textfield_destination = QtWidgets.QWidget()
+        label_textfield_destination = QtWidgets.QLabel("Ankunftbahnhof:")
         layout.addWidget(label_textfield_destination)
+        layout.addWidget(textfield_destination)
         
+        textfield_start = QtWidgets.QWidget()
+        label_textfield_start = QtWidgets.QLabel("Abfahrbahnhof:")
+        layout.addWidget(label_textfield_start) 
+        layout.addWidget(textfield_start)        
+       
+        button_start = QtWidgets.QPushButton("GO!")
+        layout.addWidget(button_start)
+
+        """ Zusammenfassen des Layouts und der Widgets auf dem Fensterinhalt."""
         window_content = QtWidgets.QWidget()
         window_content.setLayout(layout)
         self.setCentralWidget(window_content)
@@ -50,8 +51,6 @@ class sideWindow(QtWidgets.QMainWindow):
         stops_schienenverkehr = self.load_stops_schienenverkehr()
         stops_schienenregionalverkehr = self.load_stops_schienenregionalverkehr()
         stops_public_traffic = self.load_stops_public_traffic()
-
-    
         
     def load_stops_schienenverkehr(self):
         """ Laden der Bahnhöfe aus dem Schienenverkehr. """
