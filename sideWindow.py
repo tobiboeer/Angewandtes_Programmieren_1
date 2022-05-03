@@ -1,35 +1,9 @@
 import sys
 import json
-import pandas
+import pandas as pd
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 from PySide6 import QtGui
-
-#class tableModel(QtCore.QAbstractTableModel):
- #   """ Hier sollen die Tabellen mit den Ankunfts- und Abfahrtsbahnhöfen eingelesen und dargestellt werden."""
-  #  def __init__(self):
-   #     """ Notwendige Konstruktorfunktion."""
-    #    super().__init__()
-     #   
-      #  """ Zuweisen des verschiedenen Bahnverkehrs und einlesen der Daten. Über[stop_name] kommt man
-       # an die verschiedenen Haltestellen."""
-        #stops_schienenverkehr = pandas.read_csv("stops_schienenverkehr.csv")
-        #stops_schienenregionalverkehr = pandas.read_csv("stops_schienenregionalverkehr.csv")
-#        stops_public_traffic = pandas.read_csv("stops_oeffentlicher_Nahverkehr.csv")
- #       
-  #  def rowCount(self,parent=None):
-   #     return 100
-    #    
-#    def columnCount(self, parent=None):
- #       return 2
-  #  
-   # def data(self,index, role = QtCore.Qt.DisplayRole):
-    #    if role != QtCore.Qt.DisplayRole:
-     #       return None
-      #  
-       # stations = self.stops_public_traffic.iloc[index.row(), index.column()]
-        #return str(stations)    
-    
     
 class interactivePlaner(QtWidgets.QMainWindow):
     """ Klasse für ein Seitliches Fensterbild, um die Route interaktiv zu machen."""
@@ -38,42 +12,76 @@ class interactivePlaner(QtWidgets.QMainWindow):
         """ Konstruktorklasse, die in der Klasse vorhanden sein muss."""
         
         super().__init__()
-        
-        """ Deklarieren eines Layouts."""
-        layout = QtWidgets.QVBoxLayout()
-        
-        """ Deklarieren eines Gruppenlayouts. funktion noch nicht verstanden.."""
-        group = QtWidgets.QGroupBox("Routenplaner")
-        
-        """ Deklarieren der Textfelder und Label für die interaktive GUI und anhängen der Widgets an
-        das Layout über 'addWidget'."""
-        textfield_start = QtWidgets.QTextEdit()
-        label_textfield_start = QtWidgets.QLabel("Abfahrbahnhof:")
-        layout.addWidget(label_textfield_start) 
-        layout.addWidget(textfield_start) 
+        self.gui_builder()
+        self.get_stations()
 
-        textfield_destination = QtWidgets.QTextEdit()
-        label_textfield_destination = QtWidgets.QLabel("Ankunftbahnhof:")
-        layout.addWidget(label_textfield_destination)
-        layout.addWidget(textfield_destination)
+    
+    def gui_builder(self):
+        """ Das ist die Funktion, mit der die GUI gebildet wird."""
+
         
-        label_textfield_date = QtWidgets.QLabel("Datum der Abfahrt:")
+        """ Deklarieren der Kombinationsboxen und Label für die interaktive GUI und anhängen der Widgets an
+        das Layout über 'addWidget'."""
+        # -------------- Comboboxen ------------------
+        combobox_style = QtWidgets.QComboBox()
+        combobox_style.setPlaceholderText("- Bahnart -")
+        combobox_style.addItems(["öffentlicher Nahverkehr", "Schienenregionalverkehr", "Schienenverkehr"])
+        
+        combobox_start = QtWidgets.QComboBox()
+        combobox_start.setPlaceholderText("- Startbahnhof wählen -")
+        combobox_start.addItems(self.get_stations())
+        
+        combobox_destination = QtWidgets.QComboBox()
+        combobox_destination.setPlaceholderText("- Zielbahnhof wählen -")
+        combobox_destination.addItems(self.get_stations())
+        
+        # -------------- Textfelder ----------------
         textfield_date = QtWidgets.QDateEdit()
+        textfield_time = QtWidgets.QTimeEdit()
+        textfield_allInfo = QtWidgets.QTextEdit()
+        
+        # -------------- Label  ------------------
+        label_combobox_style = QtWidgets.QLabel("Bahnverkehr:")
+        label_combobox_start = QtWidgets.QLabel("Abfahrbahnhof:")
+        label_combobox_destination = QtWidgets.QLabel("Ankunftbahnhof:")
+        label_textfield_date = QtWidgets.QLabel("Datum der Abfahrt:")
+        label_textfield_time = QtWidgets.QLabel("Abfahrtszeit:")
+        label_textfield_allInfo = QtWidgets.QLabel("Ausgewählte Informationen:")
+        
+        # -------------- Button ------------------
+        button_start = QtWidgets.QPushButton("Route planen")
+        
+        # -------------- Layout ------------------
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(label_combobox_style)
+        layout.addWidget(combobox_style)
+        layout.addWidget(label_combobox_start) 
+        layout.addWidget(combobox_start)
+        layout.addWidget(label_combobox_destination)
+        layout.addWidget(combobox_destination)
         layout.addWidget(label_textfield_date)
         layout.addWidget(textfield_date)
-
-        label_textfield_time = QtWidgets.QLabel("Abfahrtszeit:")
-        textfield_time = QtWidgets.QTimeEdit()
         layout.addWidget(label_textfield_time)
         layout.addWidget(textfield_time)
-        
-        button_start = QtWidgets.QPushButton("GO!")
+        layout.addWidget(label_textfield_allInfo)
+        layout.addWidget(textfield_allInfo)
         layout.addWidget(button_start)
         
         """ Zusammenfassen des Layouts und der Widgets auf dem Fensterinhalt."""
         window_content = QtWidgets.QWidget()
         window_content.setLayout(layout)
         self.setCentralWidget(window_content)
+    
+    
+    def get_stations(self):
+        """ Daten werden eingelesen und zurückgegeben."""
+        load_data = pd.read_csv("stops_schienenverkehr.csv")
+        stations = load_data["stop_name"]
+        return stations
+        
+        
+
+
 
 class mainSideWindow(QtWidgets.QMainWindow):
     """ Idee dieser Klasse ist ein Hauptfenster, welches mit dem oberen Abschnitt die Routenplanung 
