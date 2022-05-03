@@ -166,7 +166,7 @@ class MainWindow(QtWidgets.QMainWindow):
         germany_map.setScene(scene)
         germany_map.scale(10, -10)
         germany_map.setRenderHint(QtGui.QPainter.Antialiasing)
-        germany_map.currentStation.connect(self.set_status_bar_message)
+        germany_map.currentStation.connect(self.status_bar.showMessage)
 
 ######################
 
@@ -188,16 +188,8 @@ class MainWindow(QtWidgets.QMainWindow):
         states = data['features']
         return states
 
-################################
-    @QtCore.Slot(str)
-    def set_status_bar_message(self, message):
-        self.status_bar.showMessage(message)
-
-
-#############################
-
   
-
+##################################
 
 # Aufruf der Main Window Klasse und darstellen des Fensters
 if __name__ == "__main__":
