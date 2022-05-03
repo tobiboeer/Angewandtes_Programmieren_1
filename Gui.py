@@ -1,6 +1,6 @@
 import pandas
 import sys
-import json
+import geojson
 import os
 from PySide6 import QtCore
 from PySide6 import QtWidgets
@@ -34,7 +34,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
 
     def __init__(self):
         super().__init__()
-        self.setMinimumSize(360, 180)
+        self.setMinimumSize(140, 180)
         self.setMouseTracking(True)
         self.previous_item = None
 
@@ -45,14 +45,12 @@ class GermanyMap(QtWidgets.QGraphicsView):
         self.zoom = 0
         self._empty = True
         self._scene = QtWidgets.QGraphicsScene(self)
-        #self._photo = QtWidgets.QGraphicsPixmapItem()
-        #self._scene.addItem(self._photo)
         self.setScene(self._scene)
         self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
         self.setResizeAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
+        #self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
 
 
     def wheelEvent(self, event):
@@ -73,7 +71,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
     def mouseMoveEvent(self, event):
             item = self.itemAt(event.pos())
             if self.previous_item is not None:
-                self.previous_item.setBrush(QtGui.QBrush("red", QtCore.Qt.BrushStyle.SolidPattern))
+                self.previous_item.setBrush(QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern))
                 self.previous_item = None
             if item is not None:
                 item.setBrush(QtGui.QBrush("green", QtCore.Qt.BrushStyle.SolidPattern))
@@ -88,7 +86,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
         self.setTransform(QtGui.QTransform.fromScale(dx, -dy))
 
     def sizeHint(self):
-        return QtCore.QSize(360*2, 180*2)
+        return QtCore.QSize(140*4, 180*4)
 
 ###############################################################
 # Klasse um das Main Window zu erstellen
@@ -104,29 +102,39 @@ class MainWindow(QtWidgets.QMainWindow):
 
         ocean_brush = QtGui.QBrush("lightblue", QtCore.Qt.BrushStyle.BDiagPattern)
         country_pen = QtGui.QPen("grey")
-        country_pen.setWidthF(0.5)
+        country_pen.setWidthF(0.01)
         land_brush = QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern)
 
         point_pen = QtGui.QPen("red")
-        point_pen.setWidthF(0.05)
+        point_pen.setWidthF(0.5)
         stop_brush = QtGui.QBrush("red", QtCore.Qt.BrushStyle.SolidPattern)
 
 
         # Hier müssen die Koordinaten geändert werden
-        scene = QtWidgets.QGraphicsScene(-180, -90, 360, 180)
+        scene = QtWidgets.QGraphicsScene(5.8, 47.2, 9.3, 7.9) #5.8, 47.2, 9.3, 7.9
 
-        germany_map_data = self.load_map_data()
+################################################################
+# Zeichnen der Karte
 
-        # Hier gehts weiter, jetzt muss die Karte gemalt werden (Koordinaten für die Deutschlandkarte werden benötigt)
-        for country, polygons in germany_map_data.items():
-            if country == 'Germany':
-                for polygon in polygons:
+        states = self.load_map_data()
+
+        for state in states:
+            if state['geometry']['type'] == 'Polygon':
+                for polygon in state['geometry']['coordinates']:
                     qpolygon = QtGui.QPolygonF()
-                    for x,y in polygon:
-                        qpolygon.append(QtCore.QPointF((x-14)*5,(y-56)*5)) 
-                    scene.addPolygon(qpolygon, pen = country_pen,brush = land_brush)
-                    
-        scene.setBackgroundBrush(ocean_brush)
+                    for x, y in polygon:
+                        qpolygon.append(QtCore.QPointF(x, y))
+                    polygon_item = scene.addPolygon(qpolygon, pen=country_pen, brush=land_brush)
+
+            else:
+                for polygons in state['geometry']['coordinates']:
+                    for polygon in polygons:
+                        qpolygon = QtGui.QPolygonF()
+                        for x, y in polygon:
+                            qpolygon.append(QtCore.QPointF(x, y))
+                        polygon_item = scene.addPolygon(qpolygon, pen=country_pen, brush=land_brush)
+
+                    scene.setBackgroundBrush(ocean_brush)
 
 ################################################################
 # Train Stations zeichnen  
@@ -134,7 +142,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for x,y in coordinates_list:
 
             # x und y sind vertauscht, weil in der Datei Längen und Breitengrade andersherum sind, als in der Map
-            ellipse_item = scene.addEllipse((y-14)*5,(x-56)*5, 1, 1, pen=point_pen, brush=stop_brush)    
+            scene.addEllipse(y*4, x*4, 1, 1, pen=point_pen, brush=stop_brush)    #(y-14)*5,(x-56)*5, 1, 1, pen=point_pen, brush=stop_brush
             #ellipse_item.station = x
 
 ###############################################################
@@ -156,13 +164,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(window_content)
 
 
-    # Hier soll später die JSON Datei mit der Deutschlandkarte geladen werden
-    def load_map_data(self):
-        with open('countries.json') as file:
-            
-            germany_coordinates = json.load(file)
+    # Source:
+    # http://opendatalab.de/projects/geojson-utilities/
 
-        return germany_coordinates
+    def load_map_data(self):
+        with open('landkreise_simplify200.geojson') as f:
+            data = geojson.load(f)
+        states = data['features']
+        return states
 
 ################################
     #@QtCore.Slot(str)
