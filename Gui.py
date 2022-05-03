@@ -144,13 +144,21 @@ class MainWindow(QtWidgets.QMainWindow):
         train_stations = pandas.read_csv(path_of_stations, encoding='utf8')
         
         for one_station in train_stations.itertuples():
-            station_information = [[one_station.stop_lat, one_station.stop_lon]]
+            whole_station_information = [(one_station.stop_lat, one_station.stop_lon),one_station.stop_name]
+            station_information_coordinates = [[one_station.stop_lat, one_station.stop_lon]]
             
-            for y,x in station_information:
+            for y,x in station_information_coordinates:
                 width = 0.02
                 height = 0.02
                 point_item = scene.addEllipse(x,y,width,height, pen=point_pen, brush=point_brush)
-                #point_item.station = x
+                point_item.station = y,x
+
+                if point_item.station in whole_station_information:
+                    point_item.station = whole_station_information[1]
+                else:
+                    print('Kein Bahnhof ausgewählt.')
+                
+                
 
 ###############################################################
 
