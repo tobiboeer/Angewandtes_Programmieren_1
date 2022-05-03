@@ -14,16 +14,16 @@ from PySide6 import QtGui
 #    return coordinates_json
 
 ###############################################################
-# Train Stations und Koordinaten laden
-path_of_stations = os.path.dirname(__file__) + '/' + 'stops.txt'
-train_stations = pandas.read_csv(path_of_stations, encoding='utf8')
-coordinates = train_stations.filter(['stop_lat','stop_lon'])  #'stop_name',
-coordinates_list = coordinates.values.tolist()
+# # Train Stations und Koordinaten laden
+# path_of_stations = os.path.dirname(__file__) + '/' + 'stops.txt'
+# train_stations = pandas.read_csv(path_of_stations, encoding='utf8')
+# coordinates = train_stations.filter(['stop_lat','stop_lon'])  #'stop_name',
+# coordinates_list = coordinates.values.tolist()
 
-#x, y = zip(*coordinates_list)
+# #x, y = zip(*coordinates_list)
 
-#x_coords = train_stations['stop_lat']
-#y_coords = train_stations['stop_lon']
+# #x_coords = train_stations['stop_lat']
+# #y_coords = train_stations['stop_lon']
 
 
 ################################################################
@@ -106,8 +106,8 @@ class MainWindow(QtWidgets.QMainWindow):
         land_brush = QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern)
 
         point_pen = QtGui.QPen("red")
-        point_pen.setWidthF(0.5)
-        stop_brush = QtGui.QBrush("red", QtCore.Qt.BrushStyle.SolidPattern)
+        point_pen.setWidthF(0.05)
+        point_brush = QtGui.QBrush("red", QtCore.Qt.BrushStyle.SolidPattern)
 
 
         # Hier müssen die Koordinaten geändert werden
@@ -137,13 +137,18 @@ class MainWindow(QtWidgets.QMainWindow):
                     scene.setBackgroundBrush(ocean_brush)
 
 ################################################################
-# Train Stations zeichnen  
+# Train Stations laden und zeichnen  
+        path_of_stations = os.path.dirname(__file__) + '/' + 'stops.txt'
+        train_stations = pandas.read_csv(path_of_stations, encoding='utf8')
         
-        for x,y in coordinates_list:
+        for one_station in train_stations.itertuples():
+            station_information = [[one_station.stop_lat, one_station.stop_lon]]
+            
+            for y,x in station_information:
+                width = 0.02
+                height = 0.02
+                point = scene.addEllipse(x,y,width,height, pen=point_pen, brush=point_brush)
 
-            # x und y sind vertauscht, weil in der Datei Längen und Breitengrade andersherum sind, als in der Map
-            scene.addEllipse(y*4, x*4, 1, 1, pen=point_pen, brush=stop_brush)    #(y-14)*5,(x-56)*5, 1, 1, pen=point_pen, brush=stop_brush
-            #ellipse_item.station = x
 
 ###############################################################
 
