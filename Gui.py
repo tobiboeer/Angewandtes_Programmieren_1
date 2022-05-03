@@ -30,7 +30,7 @@ from PySide6 import QtGui
 
 # Klasse für die Deutschlandkarte
 class GermanyMap(QtWidgets.QGraphicsView):
-    #currentStation = QtCore.Signal(str)
+    currentStation = QtCore.Signal(str)
 
     def __init__(self):
         super().__init__()
@@ -76,7 +76,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
             if item is not None:
                 item.setBrush(QtGui.QBrush("green", QtCore.Qt.BrushStyle.SolidPattern))
                 self.previous_item = item
-                #self.currentStation.emit(item.station)
+                self.currentStation.emit(item.station)
 
 ########################################################################
     def resizeEvent(self, event):
@@ -96,10 +96,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
 
-        #self.status_bar = self.statusBar()
+        self.status_bar = self.statusBar()
 
         # Arbeiten mit Farben Brushes etc
-
         ocean_brush = QtGui.QBrush("lightblue", QtCore.Qt.BrushStyle.BDiagPattern)
         country_pen = QtGui.QPen("grey")
         country_pen.setWidthF(0.01)
@@ -125,7 +124,8 @@ class MainWindow(QtWidgets.QMainWindow):
                     for x, y in polygon:
                         qpolygon.append(QtCore.QPointF(x, y))
                     polygon_item = scene.addPolygon(qpolygon, pen=country_pen, brush=land_brush)
-
+                    polygon_item.station = state['properties']['GEN']
+                   
             else:
                 for polygons in state['geometry']['coordinates']:
                     for polygon in polygons:
@@ -133,6 +133,8 @@ class MainWindow(QtWidgets.QMainWindow):
                         for x, y in polygon:
                             qpolygon.append(QtCore.QPointF(x, y))
                         polygon_item = scene.addPolygon(qpolygon, pen=country_pen, brush=land_brush)
+                        polygon_item.station = state['properties']['GEN']
+                       
 
                     scene.setBackgroundBrush(ocean_brush)
 
@@ -147,8 +149,8 @@ class MainWindow(QtWidgets.QMainWindow):
             for y,x in station_information:
                 width = 0.02
                 height = 0.02
-                point = scene.addEllipse(x,y,width,height, pen=point_pen, brush=point_brush)
-
+                point_item = scene.addEllipse(x,y,width,height, pen=point_pen, brush=point_brush)
+                #point_item.station = x
 
 ###############################################################
 
@@ -156,7 +158,7 @@ class MainWindow(QtWidgets.QMainWindow):
         germany_map.setScene(scene)
         germany_map.scale(10, -10)
         germany_map.setRenderHint(QtGui.QPainter.Antialiasing)
-        #germany_map.currentStation.connect(self.set_status_bar_message)
+        germany_map.currentStation.connect(self.set_status_bar_message)
 
 ######################
 
@@ -173,15 +175,15 @@ class MainWindow(QtWidgets.QMainWindow):
     # http://opendatalab.de/projects/geojson-utilities/
 
     def load_map_data(self):
-        with open('landkreise_simplify200.geojson') as f:
+        with open('landkreise_simplify200.geojson',encoding='utf8') as f:
             data = geojson.load(f)
         states = data['features']
         return states
 
 ################################
-    #@QtCore.Slot(str)
-    #def set_status_bar_message(self, message):
-        #self.status_bar.showMessage(message)
+    @QtCore.Slot(str)
+    def set_status_bar_message(self, message):
+        self.status_bar.showMessage(message)
 
 
 #############################
