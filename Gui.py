@@ -1,3 +1,4 @@
+from pickle import TRUE
 import pandas
 import sys
 import geojson
@@ -5,28 +6,6 @@ import os
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 from PySide6 import QtGui
-###############################################################
-# Funktion, der eine txt Datei übergeben werden kann und die daraus eine JSON Datei (nur mit den Koordinaten) macht
-#def convert_txt_to_json(filename):
-#    stops_longdistance = pandas.read_csv(filename)
-#    #coordinates = stops_longdistance.iloc[] #:,[2,3]
-#    coordinates_json = stops_longdistance.to_json(orient = 'split')
-#    return coordinates_json
-
-###############################################################
-# # Train Stations und Koordinaten laden
-# path_of_stations = os.path.dirname(__file__) + '/' + 'stops.txt'
-# train_stations = pandas.read_csv(path_of_stations, encoding='utf8')
-# coordinates = train_stations.filter(['stop_lat','stop_lon'])  #'stop_name',
-# coordinates_list = coordinates.values.tolist()
-
-# #x, y = zip(*coordinates_list)
-
-# #x_coords = train_stations['stop_lat']
-# #y_coords = train_stations['stop_lon']
-
-
-################################################################
 
 # Klasse für die Deutschlandkarte
 class GermanyMap(QtWidgets.QGraphicsView):
@@ -98,6 +77,19 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.status_bar = self.statusBar()
 
+        ##################
+        # Buttons erstellen
+        self.button_fern = QtWidgets.QPushButton("Fernverkehr")
+        self.button_nah = QtWidgets.QPushButton("Nahverkehr")
+        self.button_regional = QtWidgets.QPushButton("Regionalverkehr")
+
+        self.button_fern.clicked.connect(self.clickFunctionFern)
+        self.button_nah.clicked.connect(self.clickFunctionNah)
+        self.button_regional.clicked.connect(self.clickFunctionRegional)
+        
+
+        ##################
+
         # Arbeiten mit Farben Brushes etc
         ocean_brush = QtGui.QBrush("lightblue", QtCore.Qt.BrushStyle.BDiagPattern)
         country_pen = QtGui.QPen("grey")
@@ -139,26 +131,36 @@ class MainWindow(QtWidgets.QMainWindow):
                     scene.setBackgroundBrush(ocean_brush)
 
 ################################################################
-# Train Stations laden und zeichnen  
-        path_of_stations = os.path.dirname(__file__) + '/' + 'stops.txt'
-        train_stations = pandas.read_csv(path_of_stations, encoding='utf8')
-        
-        for one_station in train_stations.itertuples():
-            whole_station_information = [(one_station.stop_lat, one_station.stop_lon),one_station.stop_name]
-            station_information_coordinates = [[one_station.stop_lat, one_station.stop_lon]]
+# Train Stations laden und zeichnen
+      
+        case = 1
+           
+        if case == 1:
+            path_of_stations = os.path.dirname(__file__) + '/' + 'stops.txt'
+            train_stations = pandas.read_csv(path_of_stations, encoding='utf8')
             
-            for y,x in station_information_coordinates:
-                width = 0.02
-                height = 0.02
-                point_item = scene.addEllipse(x,y,width,height, pen=point_pen, brush=point_brush)
-                point_item.station = y,x
+            for one_station in train_stations.itertuples():
+                whole_station_information = [(one_station.stop_lat, one_station.stop_lon),one_station.stop_name]
+                station_information_coordinates = [[one_station.stop_lat, one_station.stop_lon]]
+                
+                for y,x in station_information_coordinates:
+                    width = 0.02
+                    height = 0.02
+                    point_item = scene.addEllipse(x,y,width,height, pen=point_pen, brush=point_brush)
+                    point_item.station = y,x
 
-                if point_item.station in whole_station_information:
-                    point_item.station = whole_station_information[1]
-                else:
-                    print('Kein Bahnhof ausgewählt.')
+                    if point_item.station in whole_station_information:
+                        point_item.station = whole_station_information[1]
+                    else:
+                        print('Kein Bahnhof ausgewählt.')
+        elif case == 2:
+            print('Fehler')
+        elif case == 3:
+            print('Fehler')
+        else:
+            print('Fehler')
                 
-                
+           
 
 ###############################################################
 
@@ -173,6 +175,9 @@ class MainWindow(QtWidgets.QMainWindow):
         # Layout gestalten
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(germany_map)
+        layout.addWidget(self.button_fern)
+        layout.addWidget(self.button_nah)
+        layout.addWidget(self.button_regional)
 
         window_content = QtWidgets.QWidget()
         window_content.setLayout(layout)
@@ -191,11 +196,24 @@ class MainWindow(QtWidgets.QMainWindow):
   
 ##################################
 
+    def clickFunctionFern(self):
+        print('Fernverkehr gedrückt')
+
+    def clickFunctionNah(self):
+        print('Nahverkehr gedrückt')
+
+    def clickFunctionRegional(self):
+        print('Regionalverkehr gedrückt')
+
+############################
+
+
 # Aufruf der Main Window Klasse und darstellen des Fensters
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
 
     window = MainWindow()
+    window.setWindowTitle("Deutsches Bahnnetz")
     window.show()
 
     sys.exit(app.exec())
