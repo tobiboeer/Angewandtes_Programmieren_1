@@ -1,4 +1,25 @@
-from pickle import TRUE
+"""Does everything related to the map.
+
+Classes:
+    GermanyMap: QGraphicsView
+        Contains the Graphicsscene of the map of Germany.
+
+    MainWindow: QMainWindow
+        Contains the main window of the program
+
+Date: May 2022
+
+Authors:
+    Fabian Kessener
+    Tobias Boeer
+    Timon Fass
+
+Version: 1.0
+
+Licence:
+    Hier die Licence hin
+"""
+
 import pandas
 import sys
 import geojson
@@ -9,17 +30,29 @@ from PySide6 import QtGui
 
 # Klasse für die Deutschlandkarte
 class GermanyMap(QtWidgets.QGraphicsView):
+    """Graphicsscene of the German map
+    
+    Methods:
+    
+        wheelEvent
+        mouseMoveEvent
+        resizeEvent
+        sizeHint
+    
+    
+    
+    """
     currentStation = QtCore.Signal(str)
 
     def __init__(self):
+        """
+        Creates a widget for the map.
+        """
         super().__init__()
         self.setMinimumSize(140, 180)
         self.setMouseTracking(True)
         self.previous_item = None
-
-#################################################################
-# Zoom hinzufügen
-# https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
+ 
 
         self.zoom = 0
         self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
@@ -29,6 +62,12 @@ class GermanyMap(QtWidgets.QGraphicsView):
 
 
     def wheelEvent(self, event):
+        """
+        Enables Zoom while using the mouse wheel.
+        According to:
+        https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
+        
+        """
         if event.angleDelta().y() > 0:
             factor = 1.25
             self.zoom += 1
@@ -41,17 +80,22 @@ class GermanyMap(QtWidgets.QGraphicsView):
             self.fitInView(self.sceneRect())
         else:
             self.zoom = 0
-########################################################################
-# Mouse Event hinzufügen
+
     def mouseMoveEvent(self, event):
-            item = self.itemAt(event.pos())
-            if self.previous_item is not None:
-                self.previous_item.setBrush(QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern))
-                self.previous_item = None
-            if item is not None:
-                item.setBrush(QtGui.QBrush("green", QtCore.Qt.BrushStyle.SolidPattern))
-                self.previous_item = item
-                self.currentStation.emit(item.station)
+        """
+        Is used to track the items touched by the mouse.
+        According to:
+        https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
+        
+        """
+        item = self.itemAt(event.pos())
+        if self.previous_item is not None:
+            self.previous_item.setBrush(QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern))
+            self.previous_item = None
+        if item is not None:
+            item.setBrush(QtGui.QBrush("green", QtCore.Qt.BrushStyle.SolidPattern))
+            self.previous_item = item
+            self.currentStation.emit(item.station)
 
 ########################################################################
     def resizeEvent(self, event):
@@ -173,7 +217,7 @@ class MainWindow(QtWidgets.QMainWindow):
 ##################################
     def make_base_scene(self):
 
-        self.scene = QtWidgets.QGraphicsScene(5.7, 47.3, 9.4, 8.0) 
+        self.scene = QtWidgets.QGraphicsScene(5.8, 47.3, 9.4, 7.9) 
 
         states = self.load_map_data()
 
