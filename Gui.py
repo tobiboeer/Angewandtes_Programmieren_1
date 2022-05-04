@@ -88,14 +88,25 @@ class GermanyMap(QtWidgets.QGraphicsView):
         https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
         
         """
+        
         item = self.itemAt(event.pos())
+
         if self.previous_item is not None:
-            self.previous_item.setBrush(QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern))
+            try:
+                self.previous_item.setBrush(QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern))
+            except:
+                pass
             self.previous_item = None
         if item is not None:
-            item.setBrush(QtGui.QBrush("green", QtCore.Qt.BrushStyle.SolidPattern))
+            try:
+                item.setBrush(QtGui.QBrush("green", QtCore.Qt.BrushStyle.SolidPattern))
+            except:
+                pass
             self.previous_item = item
-            self.currentStation.emit(item.station)
+            try:
+                self.currentStation.emit(item.station)
+            except:
+                pass
 
 ########################################################################
     def resizeEvent(self, event):
@@ -142,9 +153,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.point_pen.setWidthF(0.05)
         self.point_brush = QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern)
 
+        self.line_pen = QtGui.QPen("blue")
+        self.line_pen.setWidthF(0.01)
+
         
                  
-        self.drawRouteNetwork('stops_fern.txt')
+        self.drawRouteNetwork('stops_fern.txt','connections_fern.txt')
                 
            
 
@@ -163,10 +177,10 @@ class MainWindow(QtWidgets.QMainWindow):
 #########################################
 # Load Station Data
 
-    def drawRouteNetwork(self,filename):
+    def drawRouteNetwork(self,filename_stops,filename_routes):
         self.make_base_scene()
         self.scene.update()
-        path_of_stations = os.path.dirname(__file__) + '/' + filename
+        path_of_stations = os.path.dirname(__file__) + '/' + filename_stops
         train_stations = pandas.read_csv(path_of_stations, encoding='utf8')
             
         for one_station in train_stations.itertuples():
@@ -185,17 +199,20 @@ class MainWindow(QtWidgets.QMainWindow):
                     print('Kein Bahnhof ausgewählt.')
     ####################
     #ROUTEN
-        # path_of_routes = os.path.dirname(__file__) + '/' + 'connections.txt'
-        # routes = pandas.read_csv(path_of_routes, encoding='utf8')
+        path_of_routes = os.path.dirname(__file__) + '/' + filename_routes
+        routes = pandas.read_csv(path_of_routes, encoding='utf8')
         
-        # painterpath = QtGui.QPainterPath()
+        #painterpath = QtGui.QPainterPath()
 
-        # for start in routes.itertuples():
-        #     y,x = [start.Station1_lat, start.Station1_lon]
-        #     painterpath.moveTo(QtCore.QPointF(x,y))
-        #     y2,x2 = [start.Station2_lat, start.Station2_lon]
+        for start in routes.itertuples():
+            y1,x1 = [start.Station1_lat, start.Station1_lon]
+            
+            #painterpath.moveTo(QtCore.QPointF(x,y))
+            y2,x2 = [start.Station2_lat, start.Station2_lon]
+            self.scene.addLine(x1,y1,x2,y2, pen=self.line_pen)
+            
 
-        # for y,x in beginning:
+
         self.germany_map = GermanyMap() 
         self.germany_map.setScene(self.scene)
         self.germany_map.scale(10, -10)
@@ -245,18 +262,18 @@ class MainWindow(QtWidgets.QMainWindow):
        
 
 ################################################################
-
+## wenn ich die habe, müssen hier die connections umbenannt werden
 
     def clickFunctionFern(self):
-        self.drawRouteNetwork('stops_fern.txt')
+        self.drawRouteNetwork('stops_fern.txt','connections_fern.txt')
         
 
     def clickFunctionNah(self):
-        self.drawRouteNetwork('stops_nah.txt')
+        self.drawRouteNetwork('stops_nah.txt','connections_fern.txt')
         
 
     def clickFunctionRegional(self):
-        self.drawRouteNetwork('stops_regional.txt')
+        self.drawRouteNetwork('stops_regional.txt','connections_fern.txt')
 
 ################################################################
 
