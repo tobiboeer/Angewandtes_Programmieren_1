@@ -86,95 +86,45 @@ class MainWindow(QtWidgets.QMainWindow):
         self.button_fern.clicked.connect(self.clickFunctionFern)
         self.button_nah.clicked.connect(self.clickFunctionNah)
         self.button_regional.clicked.connect(self.clickFunctionRegional)
+
+        
         
 
         ##################
 
         # Arbeiten mit Farben Brushes etc
-        ocean_brush = QtGui.QBrush("lightblue", QtCore.Qt.BrushStyle.BDiagPattern)
-        country_pen = QtGui.QPen("grey")
-        country_pen.setWidthF(0.01)
-        land_brush = QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern)
+        self.ocean_brush = QtGui.QBrush("lightblue", QtCore.Qt.BrushStyle.BDiagPattern)
+        self.country_pen = QtGui.QPen("grey")
+        self.country_pen.setWidthF(0.01)
+        self.land_brush = QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern)
 
-        point_pen = QtGui.QPen("red")
-        point_pen.setWidthF(0.05)
-        point_brush = QtGui.QBrush("red", QtCore.Qt.BrushStyle.SolidPattern)
+        self.point_pen = QtGui.QPen("red")
+        self.point_pen.setWidthF(0.05)
+        self.point_brush = QtGui.QBrush("red", QtCore.Qt.BrushStyle.SolidPattern)
 
 
-        # Hier müssen die Koordinaten geändert werden
-        scene = QtWidgets.QGraphicsScene(5.8, 47.2, 9.3, 7.9) #5.8, 47.2, 9.3, 7.9
+        self.make_base_scene()
 
-################################################################
-# Zeichnen der Karte
-
-        states = self.load_map_data()
-
-        for state in states:
-            if state['geometry']['type'] == 'Polygon':
-                for polygon in state['geometry']['coordinates']:
-                    qpolygon = QtGui.QPolygonF()
-                    for x, y in polygon:
-                        qpolygon.append(QtCore.QPointF(x, y))
-                    polygon_item = scene.addPolygon(qpolygon, pen=country_pen, brush=land_brush)
-                    polygon_item.station = state['properties']['GEN']
-                   
-            else:
-                for polygons in state['geometry']['coordinates']:
-                    for polygon in polygons:
-                        qpolygon = QtGui.QPolygonF()
-                        for x, y in polygon:
-                            qpolygon.append(QtCore.QPointF(x, y))
-                        polygon_item = scene.addPolygon(qpolygon, pen=country_pen, brush=land_brush)
-                        polygon_item.station = state['properties']['GEN']
-                       
-
-                    scene.setBackgroundBrush(ocean_brush)
-
-################################################################
-# Train Stations laden und zeichnen
-      
-        case = 1
-           
-        if case == 1:
-            path_of_stations = os.path.dirname(__file__) + '/' + 'stops.txt'
-            train_stations = pandas.read_csv(path_of_stations, encoding='utf8')
-            
-            for one_station in train_stations.itertuples():
-                whole_station_information = [(one_station.stop_lat, one_station.stop_lon),one_station.stop_name]
-                station_information_coordinates = [[one_station.stop_lat, one_station.stop_lon]]
-                
-                for y,x in station_information_coordinates:
-                    width = 0.02
-                    height = 0.02
-                    point_item = scene.addEllipse(x,y,width,height, pen=point_pen, brush=point_brush)
-                    point_item.station = y,x
-
-                    if point_item.station in whole_station_information:
-                        point_item.station = whole_station_information[1]
-                    else:
-                        print('Kein Bahnhof ausgewählt.')
-        elif case == 2:
-            print('Fehler')
-        elif case == 3:
-            print('Fehler')
-        else:
-            print('Fehler')
+        
+                 
+        self.germany_map = GermanyMap()
+        self.methode('stops_fern.txt')
                 
            
 
 ###############################################################
+        
 
-        germany_map = GermanyMap()
-        germany_map.setScene(scene)
-        germany_map.scale(10, -10)
-        germany_map.setRenderHint(QtGui.QPainter.Antialiasing)
-        germany_map.currentStation.connect(self.status_bar.showMessage)
+        self.germany_map.setScene(self.scene)
+        self.germany_map.scale(10, -10)
+        self.germany_map.setRenderHint(QtGui.QPainter.Antialiasing)
+        self.germany_map.currentStation.connect(self.status_bar.showMessage)
 
 ######################
 
         # Layout gestalten
         layout = QtWidgets.QHBoxLayout()
-        layout.addWidget(germany_map)
+        layout.addWidget(self.germany_map)
         layout.addWidget(self.button_fern)
         layout.addWidget(self.button_nah)
         layout.addWidget(self.button_regional)
@@ -192,18 +142,77 @@ class MainWindow(QtWidgets.QMainWindow):
             data = geojson.load(f)
         states = data['features']
         return states
+#########################################
+# Load Station Data
 
-  
+    def methode(self,filename):
+        self.make_base_scene()
+        self.scene.update()
+        path_of_stations = os.path.dirname(__file__) + '/' + filename
+        train_stations = pandas.read_csv(path_of_stations, encoding='utf8')
+            
+        for one_station in train_stations.itertuples():
+            whole_station_information = [(one_station.stop_lat, one_station.stop_lon),one_station.stop_name]
+            station_information_coordinates = [[one_station.stop_lat, one_station.stop_lon]]
+                
+            for y,x in station_information_coordinates:
+                width = 0.02
+                height = 0.02
+                point_item = self.scene.addEllipse(x,y,width,height, pen=self.point_pen, brush=self.point_brush)
+                point_item.station = y,x
+
+                if point_item.station in whole_station_information:
+                    point_item.station = whole_station_information[1]
+                else:
+                    print('Kein Bahnhof ausgewählt.')
+
+        self.germany_map.setScene(self.scene)
 ##################################
+    def make_base_scene(self):
+
+
+        self.scene = QtWidgets.QGraphicsScene(5.7, 47.3, 9.4, 8.0) 
+
+
+
+        states = self.load_map_data()
+
+        for state in states:
+            if state['geometry']['type'] == 'Polygon':
+                for polygon in state['geometry']['coordinates']:
+                    qpolygon = QtGui.QPolygonF()
+                    for x, y in polygon:
+                        qpolygon.append(QtCore.QPointF(x, y))
+                    polygon_item = self.scene.addPolygon(qpolygon, pen=self.country_pen, brush=self.land_brush)
+                    polygon_item.station = state['properties']['GEN']
+                   
+            else:
+                for polygons in state['geometry']['coordinates']:
+                    for polygon in polygons:
+                        qpolygon = QtGui.QPolygonF()
+                        for x, y in polygon:
+                            qpolygon.append(QtCore.QPointF(x, y))
+                        polygon_item = self.scene.addPolygon(qpolygon, pen=self.country_pen, brush=self.land_brush)
+                        polygon_item.station = state['properties']['GEN']
+                       
+
+                    self.scene.setBackgroundBrush(self.ocean_brush)
+
+       
+
+################################################################
+
 
     def clickFunctionFern(self):
-        print('Fernverkehr gedrückt')
+        self.methode('stops_fern.txt')
+        
 
     def clickFunctionNah(self):
-        print('Nahverkehr gedrückt')
+        self.methode('stops_nah.txt')
+        
 
     def clickFunctionRegional(self):
-        print('Regionalverkehr gedrückt')
+        self.methode('stops_regional.txt')
 
 ############################
 
