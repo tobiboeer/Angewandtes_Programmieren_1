@@ -26,7 +26,6 @@ class GermanyMap(QtWidgets.QGraphicsView):
         self.setResizeAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
-        #self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
 
 
     def wheelEvent(self, event):
@@ -91,7 +90,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Arbeiten mit Farben Brushes etc
         self.ocean_brush = QtGui.QBrush("lightblue", QtCore.Qt.BrushStyle.BDiagPattern)
-        self.country_pen = QtGui.QPen("grey")
+        self.country_pen = QtGui.QPen("black")
         self.country_pen.setWidthF(0.01)
         self.land_brush = QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern)
 
@@ -99,50 +98,28 @@ class MainWindow(QtWidgets.QMainWindow):
         self.point_pen.setWidthF(0.05)
         self.point_brush = QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern)
 
-
-        self.make_base_scene()
-
         
                  
-        self.germany_map = GermanyMap()
-        self.methode('stops_fern.txt')
+        self.drawRouteNetwork('stops_fern.txt')
                 
            
 
 ###############################################################
-        
-
-        self.germany_map.setScene(self.scene)
-        self.germany_map.scale(10, -10)
-        self.germany_map.setRenderHint(QtGui.QPainter.Antialiasing)
-        self.germany_map.currentStation.connect(self.status_bar.showMessage)
-
-######################
-
-        # Layout gestalten
-        layout = QtWidgets.QHBoxLayout()
-        layout.addWidget(self.germany_map)
-        layout.addWidget(self.button_fern)
-        layout.addWidget(self.button_nah)
-        layout.addWidget(self.button_regional)
-
-        window_content = QtWidgets.QWidget()
-        window_content.setLayout(layout)
-        self.setCentralWidget(window_content)
 
 
     # Source:
     # http://opendatalab.de/projects/geojson-utilities/
 
     def load_map_data(self):
-        with open('landkreise_simplify200.geojson',encoding='utf8') as f:
+        path_to_map = os.path.dirname(__file__) + '/landkreise_simplify200.geojson'
+        with open(path_to_map,encoding='utf8') as f:
             data = geojson.load(f)
         states = data['features']
         return states
 #########################################
 # Load Station Data
 
-    def methode(self,filename):
+    def drawRouteNetwork(self,filename):
         self.make_base_scene()
         self.scene.update()
         path_of_stations = os.path.dirname(__file__) + '/' + filename
@@ -162,15 +139,41 @@ class MainWindow(QtWidgets.QMainWindow):
                     point_item.station = whole_station_information[1]
                 else:
                     print('Kein Bahnhof ausgewählt.')
+    ####################
+    #ROUTEN
+        # path_of_routes = os.path.dirname(__file__) + '/' + 'connections.txt'
+        # routes = pandas.read_csv(path_of_routes, encoding='utf8')
+        
+        # painterpath = QtGui.QPainterPath()
 
+        # for start in routes.itertuples():
+        #     y,x = [start.Station1_lat, start.Station1_lon]
+        #     painterpath.moveTo(QtCore.QPointF(x,y))
+        #     y2,x2 = [start.Station2_lat, start.Station2_lon]
+
+        # for y,x in beginning:
+        self.germany_map = GermanyMap() 
         self.germany_map.setScene(self.scene)
+        self.germany_map.scale(10, -10)
+        self.germany_map.setRenderHint(QtGui.QPainter.Antialiasing)
+        self.germany_map.currentStation.connect(self.status_bar.showMessage)
+
+######################
+
+        # Layout gestalten
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(self.germany_map)
+        layout.addWidget(self.button_fern)
+        layout.addWidget(self.button_nah)
+        layout.addWidget(self.button_regional)
+
+        window_content = QtWidgets.QWidget()
+        window_content.setLayout(layout)
+        self.setCentralWidget(window_content)
 ##################################
     def make_base_scene(self):
 
-
         self.scene = QtWidgets.QGraphicsScene(5.7, 47.3, 9.4, 8.0) 
-
-
 
         states = self.load_map_data()
 
@@ -201,15 +204,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def clickFunctionFern(self):
-        self.methode('stops_fern.txt')
+        self.drawRouteNetwork('stops_fern.txt')
         
 
     def clickFunctionNah(self):
-        self.methode('stops_nah.txt')
+        self.drawRouteNetwork('stops_nah.txt')
         
 
     def clickFunctionRegional(self):
-        self.methode('stops_regional.txt')
+        self.drawRouteNetwork('stops_regional.txt')
 
 ################################################################
 
