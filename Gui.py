@@ -19,7 +19,7 @@ Version: 1.0
 Licence:
     Hier die Licence hin
 """
-
+import math
 import pandas
 import sys
 import geojson
@@ -68,6 +68,9 @@ class GermanyMap(QtWidgets.QGraphicsView):
         https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
         
         """
+        # Falls wir nur Zoomen wollen, wenn CTRL+Mausrad betätigt wird
+        # Im Moment muss zum Zoomen an die gewünschte Stelle geklickt werden
+        #if event.modifiers() == QtCore.Qt.ControlModifier:
         if event.angleDelta().y() > 0:
             factor = 1.25
             self.zoom += 1
@@ -77,9 +80,10 @@ class GermanyMap(QtWidgets.QGraphicsView):
         if self.zoom > 0:
             self.scale(factor, factor)
         elif self.zoom == 0:
-            self.fitInView(self.sceneRect())
+            self.fitInView(self.sceneRect())  
         else:
             self.zoom = 0
+    
 
     def mouseMoveEvent(self, event):
         """
@@ -198,7 +202,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 else:
                     print('Kein Bahnhof ausgewählt.')
     ####################
-    #ROUTEN
+    # ROUTEN
         path_of_routes = os.path.dirname(__file__) + '/' + filename_routes
         routes = pandas.read_csv(path_of_routes, encoding='utf8')
         
