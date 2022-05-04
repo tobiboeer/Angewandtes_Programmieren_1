@@ -22,9 +22,6 @@ class GermanyMap(QtWidgets.QGraphicsView):
 # https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
 
         self.zoom = 0
-        self._empty = True
-        self._scene = QtWidgets.QGraphicsScene(self)
-        self.setScene(self._scene)
         self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
         self.setResizeAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -100,7 +97,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.point_pen = QtGui.QPen("red")
         self.point_pen.setWidthF(0.05)
-        self.point_brush = QtGui.QBrush("red", QtCore.Qt.BrushStyle.SolidPattern)
+        self.point_brush = QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern)
 
 
         self.make_base_scene()
@@ -214,7 +211,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def clickFunctionRegional(self):
         self.methode('stops_regional.txt')
 
-############################
+################################################################
 
 
 # Aufruf der Main Window Klasse und darstellen des Fensters
