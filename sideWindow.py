@@ -109,11 +109,7 @@ class interactivePlaner(QtWidgets.QMainWindow):
     def change_end_station(self,value):
         self.zielbahnhof = value
         self.update_text()
-        
-    def methode(self, filename):
-        with open(filename, "r") as tf:
-            train_stations = tf['stop_name']
-        return train_stations
+  
 
     def clickFunctionFern(self):
         stations = pd.read_csv('stops_fern.txt', encoding= 'utf8')
@@ -135,7 +131,6 @@ class interactivePlaner(QtWidgets.QMainWindow):
         self.combobox_start.addItems(train_stations)
         self.combobox_destination.addItems(train_stations)  
     
-    #----------------------------------------------------
    
     # Wie stelle ich das mit der Route an ?????
     @QtCore.Slot()
