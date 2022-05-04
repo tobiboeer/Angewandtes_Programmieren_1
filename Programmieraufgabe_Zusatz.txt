@@ -1,8 +1,0 @@
-- Desktop Icon
-- gewünschte Route farblich hervorheben
-- Musik ?! :-D 
-- Abbild einer Bahn auf der GUI 
-- Programmieraufgabe2 schon integrieren
-- Deutschlandkarte zeichnen
-- grße Städte hervorheben
-- Wetterlage ? 
