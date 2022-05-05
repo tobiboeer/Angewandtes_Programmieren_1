@@ -1,0 +1,7 @@
+- Ideen für die GUI: 
+- - Ins Textfeld sollte geschrieben werden, dass man sich im Nahverkehr, 
+	Fernverkehr oder im Schienenverkehr befindet. 
+- - Löschknopf, der das Textfeld leert ? 
+- - Man könnte auch aus den Nahverkehr, Fernverkehr und Schienenverkehr Checkboxen machen.
+- - Tabelle mit den Routen, aber auch weiteren Informationen wären interessant
+- - Die Knöpfe "Datum" und "Uhrzeit" sind noch nicht mit Funktionen verknüpft
