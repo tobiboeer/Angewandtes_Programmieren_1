@@ -98,7 +98,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
             self.previous_item = None
         if item is not None:
             try:
-                item.setBrush(QtGui.QBrush("green", QtCore.Qt.BrushStyle.SolidPattern))
+                item.setBrush(QtGui.QBrush("grey", QtCore.Qt.BrushStyle.SolidPattern))
             except:
                 pass
             self.previous_item = item
@@ -126,6 +126,25 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__()
 
         self.status_bar = self.statusBar()
+        
+## Menubar ##############
+# Quelle: https://realpython.com/python-menus-toolbars/#populating-menus-with-actions
+# https://pythonprogramming.net/menubar-pyqt-tutorial/
+        
+        menuBar = self.menuBar()
+        about_menu = QtWidgets.QMenu("Help",self)
+        menuBar.addMenu(about_menu)
+    
+        aboutAction = QtGui.QAction("About", self)
+        readmeAction = QtGui.QAction("ReadMe", self)
+
+        about_menu.addAction(aboutAction)
+        about_menu.addAction(readmeAction)
+
+        aboutAction.triggered.connect(self.open_about)
+        readmeAction.triggered.connect(self.open_readme)
+       
+        
 
         ##################
         # Buttons erstellen
@@ -149,8 +168,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.point_pen.setWidthF(0.05)
         self.point_brush = QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern)
 
-        self.line_pen = QtGui.QPen("blue")
-        self.line_pen.setWidthF(0.01)
+        self.line_pen = QtGui.QPen("orange")
+        self.line_pen.setWidthF(0.02)
 
         pfad = os.path.dirname(__file__) + '/' + 'stops_fern.txt'
         stations = pd.read_csv(pfad, encoding= 'utf8')
@@ -248,6 +267,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
                     self.scene.setBackgroundBrush(self.ocean_brush)
 
+## Funktionen für die Menu Bar
+    def open_about(self):
+        print("About File öffnen")
+
+    def open_readme(self):
+        print("Readme File öffnen")
+        
+
 
 
 
@@ -276,12 +303,10 @@ class MainWindow(QtWidgets.QMainWindow):
         # -------------- Comboboxen ------------------        
         self.combobox_start = QtWidgets.QComboBox()
         self.combobox_start.setPlaceholderText("- Startbahnhof wählen -")
-        #self.combobox_start.addItems(self.methode())
         self.combobox_start.currentTextChanged.connect(self.change_start_station)
         
         self.combobox_destination = QtWidgets.QComboBox()
         self.combobox_destination.setPlaceholderText("- Zielbahnhof wählen -")
-        #self.combobox_destination.addItems(self.methode())
         self.combobox_destination.currentTextChanged.connect(self.change_end_station)
  
         # -------------- Textfelder ----------------
@@ -305,28 +330,35 @@ class MainWindow(QtWidgets.QMainWindow):
         self.button_fernverkehr = QtWidgets.QPushButton("Fernverkehr")
         self.button_regional = QtWidgets.QPushButton("Regional")
         button_start = QtWidgets.QPushButton("Route planen")
+        button_delete = QtWidgets.QPushButton("Löschen")
+        
         
         
         self.button_fernverkehr.clicked.connect(self.clickFunctionFern)
         self.button_nahverkehr.clicked.connect(self.clickFunctionNah)
         self.button_regional.clicked.connect(self.clickFunctionRegional)
         #button_start.clicked.connect(self.the_chosen_route)
+        button_delete.clicked.connect(self.deleter)
         
         
         # -------------- Layouts -----------------
-        button_layout = QtWidgets.QHBoxLayout()
-        button_layout.addWidget(self.button_nahverkehr)
-        button_layout.addWidget(self.button_fernverkehr)
-        button_layout.addWidget(self.button_regional)
+        button_layout_traffic = QtWidgets.QHBoxLayout()
+        button_layout_traffic.addWidget(self.button_nahverkehr)
+        button_layout_traffic.addWidget(self.button_fernverkehr)
+        button_layout_traffic.addWidget(self.button_regional)
         
         date_time_layout = QtWidgets.QHBoxLayout()
         date_time_layout.addWidget(textfield_date)
         date_time_layout.addWidget(textfield_time)
         
+        button_layout_interactive = QtWidgets.QHBoxLayout()
+        button_layout_interactive.addWidget(button_delete)
+        button_layout_interactive.addWidget(button_start)
+        
         
         sub_layout = QtWidgets.QVBoxLayout()
         sub_layout.addWidget(label_button_traffic_style)
-        sub_layout.addLayout(button_layout)
+        sub_layout.addLayout(button_layout_traffic)
         sub_layout.addWidget(label_combobox_start) 
         sub_layout.addWidget(self.combobox_start)
         sub_layout.addWidget(label_combobox_destination)
@@ -335,7 +367,7 @@ class MainWindow(QtWidgets.QMainWindow):
         sub_layout.addLayout(date_time_layout)
         sub_layout.addWidget(label_textfield_allInfo)
         sub_layout.addWidget(self.textfield_allInfo)
-        sub_layout.addWidget(button_start)
+        sub_layout.addLayout(button_layout_interactive)
         
         self.layout.addLayout(sub_layout)
 
@@ -351,6 +383,10 @@ class MainWindow(QtWidgets.QMainWindow):
             + f"Zielbahnhof: {self.zielbahnhof} \n"
             + f"Ankunftszeit: {self.ankunftszeit}")
         self.textfield_allInfo.setText(text)
+        
+    def deleter(self):
+        self.set_text_start_values()
+        self.update_text()
     
     def change_start_station(self, value):
         self.abfahrtsbahnhof = value
@@ -365,7 +401,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.clickFunction('stops_fern.txt') 
 
     def clickFunctionNah(self):
-        self.clickFunction('train_stachen.csv')  
+        self.clickFunction('train_station.csv')  
 
     def clickFunctionRegional(self):
         self.clickFunction('stops_regional.txt') 
