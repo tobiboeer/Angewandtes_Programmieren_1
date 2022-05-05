@@ -154,7 +154,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         pfad = os.path.dirname(__file__) + '/' + 'stops_fern.txt'
         stations = pd.read_csv(pfad, encoding= 'utf8')
-        self.drawRouteNetwork(stations,'connections_fern.txt')
+        self.drawRouteNetwork(stations,'connections.csv')
                 
 ###############################################################
     # Source:
@@ -374,7 +374,7 @@ class MainWindow(QtWidgets.QMainWindow):
         pfad = os.path.dirname(__file__) + '/' + pfad_name
         stations = pd.read_csv(pfad, encoding= 'utf8')
 
-        self.drawRouteNetwork(stations,'connections_fern.txt')
+        self.drawRouteNetwork(stations,'connections.csv')
         train_stations = stations['stop_name']
         self.combobox_start.addItems(train_stations)
         self.combobox_destination.addItems(train_stations)  
