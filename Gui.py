@@ -152,7 +152,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.line_pen = QtGui.QPen("blue")
         self.line_pen.setWidthF(0.01)
 
-        self.drawRouteNetwork('stops_fern.txt','connections_fern.txt')
+        pfad = os.path.dirname(__file__) + '/' + 'stops_fern.txt'
+        stations = pd.read_csv(pfad, encoding= 'utf8')
+        self.drawRouteNetwork(stations,'connections_fern.txt')
                 
 ###############################################################
     # Source:
@@ -167,11 +169,9 @@ class MainWindow(QtWidgets.QMainWindow):
 #########################################
 # Load Station Data
 
-    def drawRouteNetwork(self,filename_stops,filename_routes):
+    def drawRouteNetwork(self,train_stations,filename_routes):
         self.make_base_scene()
         self.scene.update()
-        path_of_stations = os.path.dirname(__file__) + '/' + filename_stops
-        train_stations = pd.read_csv(path_of_stations, encoding='utf8')
             
         for one_station in train_stations.itertuples():
             whole_station_information = [(one_station.stop_lat, one_station.stop_lon),one_station.stop_name]
@@ -216,12 +216,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.layout.addWidget(self.germany_map)
 
         self.gui_builder()
-        
-        #self.layout.addWidget(self.layout_ride_fealt)
-
-        #self.layout.addWidget(self.button_fern)
-        #self.layout.addWidget(self.button_nah)
-        #self.layout.addWidget(self.button_regional)
 
         window_content = QtWidgets.QWidget()
         window_content.setLayout(self.layout)
@@ -254,19 +248,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
                     self.scene.setBackgroundBrush(self.ocean_brush)
 
-################################################################
-## wenn ich die habe, müssen hier die connections umbenannt werden
-
-    def clickFunctionFern(self):
-        self.drawRouteNetwork('stops_fern.txt','connections_fern.txt')
-        
-    def clickFunctionNah(self):
-        self.drawRouteNetwork('stops_nah.txt','connections_fern.txt')
-        
-    def clickFunctionRegional(self):
-        self.drawRouteNetwork('stops_regional.txt','connections_fern.txt')
-
-################################################################
 
 
 
@@ -381,30 +362,19 @@ class MainWindow(QtWidgets.QMainWindow):
   
 
     def clickFunctionFern(self):
-        pfad = os.path.dirname(__file__) + '/stops_fern.txt'
-        self.drawRouteNetwork('stops_fern.txt','connections_fern.txt')
-
-        stations = pd.read_csv(pfad, encoding= 'utf8')
-        train_stations = stations['stop_name']
-        self.combobox_start.addItems(train_stations)
-        self.combobox_destination.addItems(train_stations)
-        
+        self.clickFunction('stops_fern.txt') 
 
     def clickFunctionNah(self):
-        pfad = os.path.dirname(__file__) + '/stops_nah.txt'
-        self.drawRouteNetwork('stops_nah.txt','connections_fern.txt')
-
-        stations = pd.read_csv(pfad, encoding= 'utf8')
-        train_stations = stations['stop_name']
-        self.combobox_start.addItems(train_stations)
-        self.combobox_destination.addItems(train_stations)
-        
+        self.clickFunction('train_stachen.csv')  
 
     def clickFunctionRegional(self):
-        pfad = os.path.dirname(__file__) + '/stops_regional.txt'
-        self.drawRouteNetwork('stops_regional.txt','connections_fern.txt')
+        self.clickFunction('stops_regional.txt') 
 
+    def clickFunction(self,pfad_name):
+        pfad = os.path.dirname(__file__) + '/' + pfad_name
         stations = pd.read_csv(pfad, encoding= 'utf8')
+
+        self.drawRouteNetwork(stations,'connections_fern.txt')
         train_stations = stations['stop_name']
         self.combobox_start.addItems(train_stations)
         self.combobox_destination.addItems(train_stations)  
