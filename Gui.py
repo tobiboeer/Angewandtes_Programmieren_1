@@ -311,8 +311,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.button_nahverkehr.clicked.connect(self.clickFunctionNah)
         self.button_regional.clicked.connect(self.clickFunctionRegional)
         #button_start.clicked.connect(self.the_chosen_route)
-        button_delete.clicked.connect(self.deleter)
+        button_delete.clicked.connect(self.deleter_textfield)
         
+        # Verbinden zwischen Knopf und Bahnart - funktioniert nicht
+        #self.button_fernverkehr.clicked.connect(self.change_train_style)
+        #self.button_nahverkehr.clicked.connect(self.change_train_style)
+        #self.button_regional.clicked.connect(self.change_train_style)
         
         # -------------- Layouts -----------------
         button_layout_traffic = QtWidgets.QHBoxLayout()
@@ -347,18 +351,35 @@ class MainWindow(QtWidgets.QMainWindow):
     
     
     def set_text_start_values(self):
+        self.bahnart = "noch nicht ausgewählt.."
         self.abfahrtsbahnhof = "noch nicht ausgewählt.."
         self.zielbahnhof = "noch nicht ausgewählt.."
         self.ankunftszeit = "noch nicht berechnet.."
         
     def update_text(self):
-        text = (f"Abfahrtsbahnhof: {self.abfahrtsbahnhof} \n"
+        text = (f"Bahnart: {self.bahnart} \n"
+            + f"Abfahrtsbahnhof: {self.abfahrtsbahnhof} \n"
             + f"Zielbahnhof: {self.zielbahnhof} \n"
             + f"Ankunftszeit: {self.ankunftszeit}")
         self.textfield_allInfo.setText(text)
         
-    def deleter(self):
+    def deleter_textfield(self):
         self.set_text_start_values()
+        self.update_text()
+    
+
+
+    # schreibe eine methode, die anhand des gedrückten knopfes erkennt, welche Bahnart ausgewählt wurde
+    # code läuft, funktion nicht
+    def change_train_style(self):
+        if self.button_fernverkehr.clicked() == True: 
+            self.bahnart = "Fernverkehr"
+        elif self.button_nahverkehr.clicked() == True: 
+            self.bahnart = "Nahverkehr"
+        elif self.button_regional.clicked() == True: 
+            self.bahnart = "Regionalverkehr"
+        else:
+            self.bahnart = "noch nicht ausgewählt.."
         self.update_text()
     
     def change_start_station(self, value):
