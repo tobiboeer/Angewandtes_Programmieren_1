@@ -276,12 +276,10 @@ class MainWindow(QtWidgets.QMainWindow):
         # -------------- Comboboxen ------------------        
         self.combobox_start = QtWidgets.QComboBox()
         self.combobox_start.setPlaceholderText("- Startbahnhof wählen -")
-        #self.combobox_start.addItems(self.methode())
         self.combobox_start.currentTextChanged.connect(self.change_start_station)
         
         self.combobox_destination = QtWidgets.QComboBox()
         self.combobox_destination.setPlaceholderText("- Zielbahnhof wählen -")
-        #self.combobox_destination.addItems(self.methode())
         self.combobox_destination.currentTextChanged.connect(self.change_end_station)
  
         # -------------- Textfelder ----------------
@@ -305,6 +303,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.button_fernverkehr = QtWidgets.QPushButton("Fernverkehr")
         self.button_regional = QtWidgets.QPushButton("Regional")
         button_start = QtWidgets.QPushButton("Route planen")
+        button_delete = QtWidgets.QPushButton("Löschen")
+        
         
         
         self.button_fernverkehr.clicked.connect(self.clickFunctionFern)
@@ -312,21 +312,31 @@ class MainWindow(QtWidgets.QMainWindow):
         self.button_regional.clicked.connect(self.clickFunctionRegional)
         #button_start.clicked.connect(self.the_chosen_route)
         
+        # Habe versucht über den Button die Start Werte ("noch nicht ausgewählt..") einzufügen.
+        # Funktioniert noch nicht. TB 
+        button_delete.clicked.connect(self.set_text_start_values)
+        
         
         # -------------- Layouts -----------------
-        button_layout = QtWidgets.QHBoxLayout()
-        button_layout.addWidget(self.button_nahverkehr)
-        button_layout.addWidget(self.button_fernverkehr)
-        button_layout.addWidget(self.button_regional)
+        button_layout_traffic = QtWidgets.QHBoxLayout()
+        button_layout_traffic.addWidget(self.button_nahverkehr)
+        button_layout_traffic.addWidget(self.button_fernverkehr)
+        button_layout_traffic.addWidget(self.button_regional)
         
         date_time_layout = QtWidgets.QHBoxLayout()
         date_time_layout.addWidget(textfield_date)
         date_time_layout.addWidget(textfield_time)
         
+        # habe einen weiteren Button gebaut, damit die ausgewählten Bahnhöfe wieder gelöscht werden können.
+        # daher auch das Layout angepasst.
+        button_layout_interactive = QtWidgets.QHBoxLayout()
+        button_layout_interactive.addWidget(button_delete)
+        button_layout_interactive.addWidget(button_start)
+        
         
         sub_layout = QtWidgets.QVBoxLayout()
         sub_layout.addWidget(label_button_traffic_style)
-        sub_layout.addLayout(button_layout)
+        sub_layout.addLayout(button_layout_traffic)
         sub_layout.addWidget(label_combobox_start) 
         sub_layout.addWidget(self.combobox_start)
         sub_layout.addWidget(label_combobox_destination)
@@ -335,7 +345,7 @@ class MainWindow(QtWidgets.QMainWindow):
         sub_layout.addLayout(date_time_layout)
         sub_layout.addWidget(label_textfield_allInfo)
         sub_layout.addWidget(self.textfield_allInfo)
-        sub_layout.addWidget(button_start)
+        sub_layout.addLayout(button_layout_interactive)
         
         self.layout.addLayout(sub_layout)
 
