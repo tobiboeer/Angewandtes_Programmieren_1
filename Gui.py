@@ -311,10 +311,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.button_nahverkehr.clicked.connect(self.clickFunctionNah)
         self.button_regional.clicked.connect(self.clickFunctionRegional)
         #button_start.clicked.connect(self.the_chosen_route)
-        
-        # Habe versucht über den Button die Start Werte ("noch nicht ausgewählt..") einzufügen.
-        # Funktioniert noch nicht. TB 
-        button_delete.clicked.connect(self.set_text_start_values)
+        button_delete.clicked.connect(self.deleter)
         
         
         # -------------- Layouts -----------------
@@ -327,8 +324,6 @@ class MainWindow(QtWidgets.QMainWindow):
         date_time_layout.addWidget(textfield_date)
         date_time_layout.addWidget(textfield_time)
         
-        # habe einen weiteren Button gebaut, damit die ausgewählten Bahnhöfe wieder gelöscht werden können.
-        # daher auch das Layout angepasst.
         button_layout_interactive = QtWidgets.QHBoxLayout()
         button_layout_interactive.addWidget(button_delete)
         button_layout_interactive.addWidget(button_start)
@@ -361,6 +356,10 @@ class MainWindow(QtWidgets.QMainWindow):
             + f"Zielbahnhof: {self.zielbahnhof} \n"
             + f"Ankunftszeit: {self.ankunftszeit}")
         self.textfield_allInfo.setText(text)
+        
+    def deleter(self):
+        self.set_text_start_values()
+        self.update_text()
     
     def change_start_station(self, value):
         self.abfahrtsbahnhof = value
