@@ -1,0 +1,10 @@
+Date: May 2022
+
+Authors:
+    Fabian Kessener, Tobias Böer, Timon Faß
+
+Version: 1.0
+
+Licence:
+
+Hier kommt der Text für die Lizenz hin
