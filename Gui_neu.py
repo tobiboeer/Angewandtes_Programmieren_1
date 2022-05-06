@@ -20,6 +20,7 @@ Licence:
     Hier die Licence hin
 """
 
+from tkinter import ON
 import pandas as pd
 import sys
 import geojson
@@ -145,7 +146,7 @@ class MainWindow(QtWidgets.QMainWindow):
         readmeAction.triggered.connect(self.open_readme)
        
         
-
+        
         ##################
         # Buttons erstellen
         self.button_fern = QtWidgets.QPushButton("Fernverkehr")
@@ -269,10 +270,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
 ## Funktionen für die Menu Bar
     def open_about(self):
-        print("About File öffnen")
+        about_window.show()
+        
 
     def open_readme(self):
-        print("Readme File öffnen")
+        readme_window.show()
+
+
+
+
+    
+     
+
         
 
 
@@ -425,8 +434,56 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 
+class MenuWindowAbout(QtWidgets.QGraphicsView):
+    def __init__(self):
+        """
+        Creates a widget for the About menu.
+        """
+        super().__init__()
+        self.setMinimumSize(300, 300)
+        
 
+        path_to_about = os.path.dirname(__file__) + '/' + 'About.txt'
 
+        with open(path_to_about, encoding='utf8') as about_file:
+            about_text = about_file.read()
+
+        self.label = QtWidgets.QTextEdit()
+        self.label.setReadOnly(True)
+        self.label.setMarkdown(about_text)
+
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+
+    def sizeHint(self):
+        return QtCore.QSize(600, 600)
+
+class MenuWindowReadMe(QtWidgets.QGraphicsView):
+    def __init__(self):
+        """
+        Creates a widget for the ReadMe menu.
+        """
+        super().__init__()
+        self.setMinimumSize(300, 300)
+
+        path_to_about = os.path.dirname(__file__) + '/' + 'ReadMe.txt'
+
+        with open(path_to_about, encoding='utf8') as about_file:
+            about_text = about_file.read()
+
+        self.label = QtWidgets.QTextEdit()
+        self.label.setReadOnly(True)
+        self.label.setMarkdown(about_text)
+
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+
+    
+
+    def sizeHint(self):
+        return QtCore.QSize(600, 600)
 
 
 
@@ -447,5 +504,10 @@ if __name__ == "__main__":
     window = MainWindow()
     window.setWindowTitle("Deutsches Bahnnetz")
     window.show()
+    
+    about_window = MenuWindowAbout()
+    about_window.setWindowTitle("Über dieses Programm")
+    readme_window = MenuWindowReadMe()
+    readme_window.setWindowTitle("Read Me - Wichtig zu wissen")
 
     sys.exit(app.exec())
