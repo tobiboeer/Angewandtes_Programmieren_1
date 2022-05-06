@@ -43,6 +43,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
     
     """
     currentStation = QtCore.Signal(str)
+    stationClicked = QtCore.Signal(str)
 
     def __init__(self):
         """
@@ -81,6 +82,16 @@ class GermanyMap(QtWidgets.QGraphicsView):
         else:
             self.zoom = 0
 
+###################################
+# Neu 06.05.
+    def mousePressEvent(self, event):
+        
+        item = self.itemAt(event.pos())
+        self.stationClicked.emit(item.station)
+
+
+
+##############################
     def mouseMoveEvent(self, event):
         """
         Is used to track the items touched by the mouse.
@@ -228,12 +239,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.germany_map.scale(10, -10)
         self.germany_map.setRenderHint(QtGui.QPainter.Antialiasing)
         self.germany_map.currentStation.connect(self.status_bar.showMessage)
+        self.germany_map.stationClicked.connect(self.click_function)
 
 ######################
 
         # Layout gestalten
         self.layout = QtWidgets.QHBoxLayout()
         self.layout.addWidget(self.germany_map)
+        
 
         self.gui_builder()
 
@@ -275,6 +288,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_readme(self):
         readme_window.show()
+
+    @QtCore.Slot(str)
+    def click_function(self, whole_station_information):
+        print(whole_station_information + ' geklickt')
+
 
 
 
