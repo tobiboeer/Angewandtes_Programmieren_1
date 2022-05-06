@@ -142,6 +142,7 @@ class MainWindow(QtWidgets.QMainWindow):
 ################################################################
 # Train Stations zeichnen  
         
+<<<<<<< Updated upstream
         for x,y in coordinates_list:
 
             # x und y sind vertauscht, weil in der Datei Längen und Breitengrade andersherum sind, als in der Map
@@ -186,6 +187,58 @@ class MainWindow(QtWidgets.QMainWindow):
 #############################
 
   
+=======
+    def deleter_textfield(self):
+        self.set_text_start_values()
+        self.update_text()
+
+    # schreibe eine methode, die anhand des gedrückten knopfes erkennt, welche Bahnart ausgewählt wurde
+    # code läuft, funktion nicht
+    def change_train_style(self):
+        if self.button_fernverkehr.clicked() == True: 
+            self.bahnart = "Fernverkehr"
+        elif self.button_nahverkehr.clicked() == True: 
+            self.bahnart = "Nahverkehr"
+        elif self.button_regional.clicked() == True: 
+            self.bahnart = "Regionalverkehr"
+        else:
+            self.bahnart = "noch nicht ausgewählt.."
+        self.update_text()
+    
+    def change_start_station(self, value):
+        self.abfahrtsbahnhof = value
+        self.update_text()
+        
+    def change_end_station(self,value):
+        self.zielbahnhof = value
+        self.update_text()
+  
+
+    def clickFunctionFern(self):
+        self.clickFunction('stops_fern.txt') 
+
+    def clickFunctionNah(self):
+        self.clickFunction('train_stachen.csv')  
+
+    def clickFunctionRegional(self):
+        self.clickFunction('stops_regional.txt') 
+
+    def clickFunction(self,pfad_name):
+        pfad = os.path.dirname(__file__) + '/' + pfad_name
+        stations = pd.read_csv(pfad, encoding= 'utf8')
+
+        self.drawRouteNetwork(stations,'connections.csv')
+        train_stations = stations['stop_name']
+        self.combobox_start.addItems(train_stations)
+        self.combobox_destination.addItems(train_stations)  
+
+
+
+
+
+
+
+>>>>>>> Stashed changes
 
 
 # Aufruf der Main Window Klasse und darstellen des Fensters
