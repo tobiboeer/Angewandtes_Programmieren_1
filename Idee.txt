@@ -5,3 +5,8 @@
 - - Man könnte auch aus den Nahverkehr, Fernverkehr und Schienenverkehr Checkboxen machen.
 - - Tabelle mit den Routen, aber auch weiteren Informationen wären interessant
 - - Die Knöpfe "Datum" und "Uhrzeit" sind noch nicht mit Funktionen verknüpft
+
+
+Noch zu beachten:
+zoom man mus klicken
+Karten gröse 

@@ -366,8 +366,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def deleter_textfield(self):
         self.set_text_start_values()
         self.update_text()
-    
-
 
     # schreibe eine methode, die anhand des gedrückten knopfes erkennt, welche Bahnart ausgewählt wurde
     # code läuft, funktion nicht
