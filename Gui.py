@@ -1,4 +1,5 @@
-"""Does everything related to the map.
+"""
+Does everything related to the map.
 
 Classes:
     GermanyMap: QGraphicsView
@@ -6,6 +7,12 @@ Classes:
 
     MainWindow: QMainWindow
         Contains the main window of the program
+
+    MenuWindowAbout: QGraphicsView
+        Contains the Graphicsscene of the 'About' menu.
+
+    MenuWindowReadMe: QGraphicsView
+        Contains the Graphicsscene of the 'ReadMe' menu.
 
 Date: May 2022
 
@@ -16,8 +23,34 @@ Authors:
 
 Version: 1.0
 
-Licence:
-    Hier die Licence hin
+Licence: The 3-Clause BSD License
+    
+    Copyright: (c) 2022, Kessener, Boeer, Fass
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice, 
+    this list of conditions and the following disclaimer.
+
+    2. Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation and/or
+    other materials provided with the distribution.
+
+    3. Neither the name of the copyright holder nor the names of its contributors
+    may be used to endorse or promote products derived from this software without
+    specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+    IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+    INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+    NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
+    PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+    WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+    OF SUCH DAMAGE.
 """
 
 import pandas as pd
@@ -30,16 +63,25 @@ from PySide6 import QtGui
 
 # Klasse für die Deutschlandkarte
 class GermanyMap(QtWidgets.QGraphicsView):
-    """Graphicsscene of the German map
+    """
+    Graphicsscene of the map of Germany
     
-    Methods:
+    Functions:
     
-        wheelEvent
-        mouseMoveEvent
-        resizeEvent
-        sizeHint
+        wheelEvent:
+            Enables Zoom by using the mousewheel. 
+            You need to click before zooming.
+        mousePressEvent:
+            Reacts to clicking of the mouse.
+        mouseMoveEvent:
+            Reacts to movement of the mouse.
+        resizeEvent:
+            Enables the widget to be resized properly.
+        sizeHint:
+            Contains the preferred default size. 
     
     """
+    # Signals to react to mouse movement and clicking
     currentStation = QtCore.Signal(str)
     stationClicked = QtCore.Signal(str)
 
@@ -79,22 +121,19 @@ class GermanyMap(QtWidgets.QGraphicsView):
             self.fitInView(self.sceneRect())
         else:
             self.zoom = 0
-###################################
-# Diese Funktion wird ausgeführt, wenn man mit der Maus klickt
+
     def mousePressEvent(self, event):
+        """
+        Reacts to clicking of the mouse.
+        """
         
         item = self.itemAt(event.pos())
         self.stationClicked.emit(item.station)
 
 
-
-##############################
     def mouseMoveEvent(self, event):
         """
-        Is used to track the items touched by the mouse.
-        According to:
-        https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
-        
+        Is used to track the items touched by the mouse and change their color.
         """
         
         item = self.itemAt(event.pos())
@@ -116,29 +155,80 @@ class GermanyMap(QtWidgets.QGraphicsView):
             except:
                 pass
 
-########################################################################
+
     def resizeEvent(self, event):
+        """
+        Enables the widget to be resized properly.
+        """
         scene_size = self.sceneRect()
         dx = (self.width()-4)/scene_size.width()
         dy = (self.height()-4)/scene_size.height()
         self.setTransform(QtGui.QTransform.fromScale(dx, -dy))
 
     def sizeHint(self):
+        """
+        Return of the preferred default size of the widget.
+        """
         return QtCore.QSize(140*4, 180*4)
 
-###############################################################
-# Klasse um das Main Window zu erstellen
-class MainWindow(QtWidgets.QMainWindow):     
 
-# Deutschlandkarte
+# Klasse um das Main Window zu erstellen
+class MainWindow(QtWidgets.QMainWindow):
+    """
+    Creates the main window of the GUI.
+
+    Functions:
+        load_map_data:
+            Loads the data of the map of Germany.
+
+        drawRouteNetwork:
+            Draws stations and routes to the base scene.
+
+        make_base_scene:
+            Creating the base scene, which shows the map of Germany.
+
+        open_about:
+            Shows the window of the 'About' menu.
+
+        open_readme:
+            Shows the window of the 'ReadMe' menu.
+
+        gui_builder:
+        set_text_start_values:
+        update_text:
+        deleter_textfield:
+        change_train_style:
+        change_start_station:
+        change_end_station:
+
+        clickFunctionLongDistance:
+            Loads long distance data, if button 'Fernverkehr' is clicked.
+
+        clickFunctionShortDistance:
+            Loads short distance data, if button 'Nahverkehr' is clicked.
+
+        clickFunctionsRegional:
+            Loads regional data, if button 'Regionalverkehr' is clicked.
+
+        clickFunction
+
+
+    Slots:
+        click_function:
+            Reacts to clicking of the mouse.
+    """     
+
     def __init__(self):
         super().__init__()
 
+
+#--------------- Statusbar ---------------------------------------------
         self.status_bar = self.statusBar()
-## Menubar ##############
-# Quelle: https://realpython.com/python-menus-toolbars/#populating-menus-with-actions
-# https://pythonprogramming.net/menubar-pyqt-tutorial/
         
+#--------------- Menubar -----------------------------------------------
+# According to:
+# https://realpython.com/python-menus-toolbars/#populating-menus-with-actions
+# https://pythonprogramming.net/menubar-pyqt-tutorial/
         menuBar = self.menuBar()
         about_menu = QtWidgets.QMenu("Help",self)
         menuBar.addMenu(about_menu)
@@ -152,21 +242,16 @@ class MainWindow(QtWidgets.QMainWindow):
         aboutAction.triggered.connect(self.open_about)
         readmeAction.triggered.connect(self.open_readme)
        
-        
-        
-        ##################
-        # Buttons erstellen
+#--------------- Buttons ------------------------------------------------
         self.button_fern = QtWidgets.QPushButton("Fernverkehr")
         self.button_nah = QtWidgets.QPushButton("Nahverkehr")
         self.button_regional = QtWidgets.QPushButton("Regionalverkehr")
 
-        self.button_fern.clicked.connect(self.clickFunctionFern)
-        self.button_nah.clicked.connect(self.clickFunctionNah)
+        self.button_fern.clicked.connect(self.clickFunctionLongDistance)
+        self.button_nah.clicked.connect(self.clickFunctionShortDistance)
         self.button_regional.clicked.connect(self.clickFunctionRegional)
 
-        ##################
-
-        # Arbeiten mit Farben Brushes etc
+#--------------- Pens and Brushes ---------------------------------------
         self.ocean_brush = QtGui.QBrush("lightblue", QtCore.Qt.BrushStyle.BDiagPattern)
         self.country_pen = QtGui.QPen("black")
         self.country_pen.setWidthF(0.01)
@@ -179,27 +264,40 @@ class MainWindow(QtWidgets.QMainWindow):
         self.line_pen = QtGui.QPen("orange")
         self.line_pen.setWidthF(0.02)
 
-        pfad = os.path.dirname(__file__) + '/' + 'stops_fern.txt'
-        stations = pd.read_csv(pfad, encoding= 'utf8')
-        self.drawRouteNetwork(stations,'connections.csv')
-                
-###############################################################
-    # Source:
-    # http://opendatalab.de/projects/geojson-utilities/
+        # drawRouteNetwork is called with default values
+        path_of_default = os.path.dirname(__file__) + '/' + 'stops_fern.txt'
+        stations = pd.read_csv(path_of_default, encoding= 'utf8')
+        self.drawRouteNetwork(stations,'connections.csv') 
+
 
     def load_map_data(self):
+        """
+        Loads the data of the map of Germany.
+        Source of the file:
+        http://opendatalab.de/projects/geojson-utilities/
+        """
         path_to_map = os.path.dirname(__file__) + '/landkreise_simplify200.geojson'
         with open(path_to_map,encoding='utf8') as f:
             data = geojson.load(f)
         states = data['features']
         return states
-#########################################
-# Load Station Data
+
 
     def drawRouteNetwork(self,train_stations,filename_routes):
+        """
+        Draws stations and routes to the base scene.
+
+        Parameters:
+            train_stations: 
+                Pandas Dataframe containing names and
+                coordinates of the train stations
+            filename_routes: str
+                Name of the file containing the routes
+        """
         self.make_base_scene()
         self.scene.update()
-            
+
+        # Drawing the stations 
         for one_station in train_stations.itertuples():
             whole_station_information = [(one_station.stop_lat, one_station.stop_lon),one_station.stop_name]
             station_information_coordinates = [[one_station.stop_lat, one_station.stop_lon]]
@@ -214,12 +312,12 @@ class MainWindow(QtWidgets.QMainWindow):
                     point_item.station = whole_station_information[1]
                 else:
                     print('Kein Bahnhof ausgewählt.')
-    ####################
-    #ROUTEN
+
+        # Loads the file with the routes
         path_of_routes = os.path.dirname(__file__) + '/' + filename_routes
         routes = pd.read_csv(path_of_routes, encoding='utf8')
         
-
+        # Drawing the routes
         for start in routes.itertuples():
             y1,x1 = [start.Station1_lat, start.Station1_lon]
             
@@ -234,9 +332,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.germany_map.setRenderHint(QtGui.QPainter.Antialiasing)
         self.germany_map.currentStation.connect(self.status_bar.showMessage)
         self.germany_map.stationClicked.connect(self.click_function)
-######################
 
-        # Layout gestalten
+        # Designing the layout
         self.layout = QtWidgets.QHBoxLayout()
         self.layout.addWidget(self.germany_map)
 
@@ -247,11 +344,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(window_content)
 ##################################
     def make_base_scene(self):
+        """
+        Creating the base scene, which shows the map of Germany.
+        """
 
         self.scene = QtWidgets.QGraphicsScene(5.8, 47.3, 9.4, 7.9) 
 
         states = self.load_map_data()
 
+        # Drawing map of Germany
         for state in states:
             if state['geometry']['type'] == 'Polygon':
                 for polygon in state['geometry']['coordinates']:
@@ -273,38 +374,31 @@ class MainWindow(QtWidgets.QMainWindow):
 
                     self.scene.setBackgroundBrush(self.ocean_brush)
 
-## Funktionen für die Menu Bar
     def open_about(self):
+        """
+        Shows the window of the 'About' menu.
+        """
         about_window.show()
         
 
     def open_readme(self):
+        """
+        Shows the window of the 'ReadMe' menu. 
+        """
         readme_window.show()
 
     @QtCore.Slot(str)
     def click_function(self, whole_station_information):
+        """
+        Reacts to clicking of the mouse.
+        """
         print(whole_station_information + ' geklickt')
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
+#############################################
+# Notiz für uns: Ab hier beginnt Tobis Code #
+#############################################
+       
     def gui_builder(self):
         """ Das ist die Funktion, mit der die GUI gebildet wird."""
 
@@ -345,8 +439,8 @@ class MainWindow(QtWidgets.QMainWindow):
         
         
         
-        self.button_fernverkehr.clicked.connect(self.clickFunctionFern)
-        self.button_nahverkehr.clicked.connect(self.clickFunctionNah)
+        self.button_fernverkehr.clicked.connect(self.clickFunctionLongDistance)
+        self.button_nahverkehr.clicked.connect(self.clickFunctionShortDistance)
         self.button_regional.clicked.connect(self.clickFunctionRegional)
         #button_start.clicked.connect(self.the_chosen_route)
         button_delete.clicked.connect(self.deleter_textfield)
@@ -427,28 +521,41 @@ class MainWindow(QtWidgets.QMainWindow):
         self.update_text()
   
 
-    def clickFunctionFern(self):
+    def clickFunctionLongDistance(self):
+        """
+        Loads long distance data, if button 'Fernverkehr' is clicked.
+        """
         self.clickFunction('stops_fern.txt') 
 
-    def clickFunctionNah(self):
+    def clickFunctionShortDistance(self):
+        """
+        Loads short distance data, if button 'Nahverkehr' is clicked.
+        """
         self.clickFunction('train_stachen.csv')  
 
     def clickFunctionRegional(self):
+        """
+        Loads regional data, if button 'Regionalverkehr' is clicked.
+        """
         self.clickFunction('stops_regional.txt') 
 
-    def clickFunction(self,pfad_name):
-        pfad = os.path.dirname(__file__) + '/' + pfad_name
-        stations = pd.read_csv(pfad, encoding= 'utf8')
+    def clickFunction(self,path_name):
+        path_for_click = os.path.dirname(__file__) + '/' + path_name
+        stations = pd.read_csv(path_for_click, encoding= 'utf8')
 
         self.drawRouteNetwork(stations,'connections.csv')
         train_stations = stations['stop_name']
         self.combobox_start.addItems(train_stations)
         self.combobox_destination.addItems(train_stations)  
 
-#####################################################
-# Neue Klassen für die einzelnen Fenster der Menüleiste
 
 class MenuWindowAbout(QtWidgets.QGraphicsView):
+    """
+    Creates the window of the 'About' menu in the menubar.
+
+    Functions:
+        sizeHint: Contains the preferred default size of the window.
+    """
     def __init__(self):
         """
         Creates a widget for the About menu.
@@ -456,9 +563,8 @@ class MenuWindowAbout(QtWidgets.QGraphicsView):
         super().__init__()
         self.setMinimumSize(300, 300)
         
-
+        # Open the 'About' file and print it in a label of a new window.
         path_to_about = os.path.dirname(__file__) + '/' + 'ABOUT.txt'
-
         with open(path_to_about, encoding='utf8') as about_file:
             about_text = about_file.read()
 
@@ -471,9 +577,18 @@ class MenuWindowAbout(QtWidgets.QGraphicsView):
         self.setLayout(layout)
 
     def sizeHint(self):
+        """
+        Contains the preferred default size of the window.
+        """
         return QtCore.QSize(600, 600)
 
 class MenuWindowReadMe(QtWidgets.QGraphicsView):
+    """
+    Creates the window of the 'ReadMe' menu in the menubar.
+
+    Functions:
+        sizeHint: Contains the preferred default size of the window.
+    """
     def __init__(self):
         """
         Creates a widget for the ReadMe menu.
@@ -481,14 +596,14 @@ class MenuWindowReadMe(QtWidgets.QGraphicsView):
         super().__init__()
         self.setMinimumSize(300, 300)
 
-        path_to_about = os.path.dirname(__file__) + '/' + 'README.txt'
-
-        with open(path_to_about, encoding='utf8') as about_file:
-            about_text = about_file.read()
+        # Open the 'ReadMe' file and print it in a label of a new window.
+        path_to_readme = os.path.dirname(__file__) + '/' + 'README.txt'
+        with open(path_to_readme, encoding='utf8') as readme_file:
+            readme_text = readme_file.read()
 
         self.label = QtWidgets.QTextEdit()
         self.label.setReadOnly(True)
-        self.label.setMarkdown(about_text)
+        self.label.setMarkdown(readme_text)
 
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.label)
@@ -497,32 +612,14 @@ class MenuWindowReadMe(QtWidgets.QGraphicsView):
     
 
     def sizeHint(self):
+        """
+        Contains the preferred default size of the window.
+        """
         return QtCore.QSize(600, 600)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Aufruf der Main Window Klasse und darstellen des Fensters
+# Calling the MainWindow, MenuWindowAbout and MenuWindowReadMe classes
+# and display them as windows
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
 
@@ -531,7 +628,7 @@ if __name__ == "__main__":
     window.show()
 
     about_window = MenuWindowAbout()
-    about_window.setWindowTitle("Über dieses Programm")
+    about_window.setWindowTitle("About - Über dieses Programm")
     readme_window = MenuWindowReadMe()
     readme_window.setWindowTitle("Read Me - Wichtig zu wissen")
 
