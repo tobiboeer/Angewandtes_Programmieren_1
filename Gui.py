@@ -27,7 +27,6 @@ import os
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 from PySide6 import QtGui
-import json
 
 # Klasse für die Deutschlandkarte
 class GermanyMap(QtWidgets.QGraphicsView):
@@ -42,6 +41,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
     
     """
     currentStation = QtCore.Signal(str)
+    stationClicked = QtCore.Signal(str)
 
     def __init__(self):
         """
@@ -79,7 +79,16 @@ class GermanyMap(QtWidgets.QGraphicsView):
             self.fitInView(self.sceneRect())
         else:
             self.zoom = 0
+###################################
+# Diese Funktion wird ausgeführt, wenn man mit der Maus klickt
+    def mousePressEvent(self, event):
+        
+        item = self.itemAt(event.pos())
+        self.stationClicked.emit(item.station)
 
+
+
+##############################
     def mouseMoveEvent(self, event):
         """
         Is used to track the items touched by the mouse.
@@ -98,7 +107,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
             self.previous_item = None
         if item is not None:
             try:
-                item.setBrush(QtGui.QBrush("green", QtCore.Qt.BrushStyle.SolidPattern))
+                item.setBrush(QtGui.QBrush("grey", QtCore.Qt.BrushStyle.SolidPattern))
             except:
                 pass
             self.previous_item = item
@@ -126,7 +135,25 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__()
 
         self.status_bar = self.statusBar()
+## Menubar ##############
+# Quelle: https://realpython.com/python-menus-toolbars/#populating-menus-with-actions
+# https://pythonprogramming.net/menubar-pyqt-tutorial/
+        
+        menuBar = self.menuBar()
+        about_menu = QtWidgets.QMenu("Help",self)
+        menuBar.addMenu(about_menu)
+    
+        aboutAction = QtGui.QAction("About", self)
+        readmeAction = QtGui.QAction("ReadMe", self)
 
+        about_menu.addAction(aboutAction)
+        about_menu.addAction(readmeAction)
+
+        aboutAction.triggered.connect(self.open_about)
+        readmeAction.triggered.connect(self.open_readme)
+       
+        
+        
         ##################
         # Buttons erstellen
         self.button_fern = QtWidgets.QPushButton("Fernverkehr")
@@ -149,8 +176,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.point_pen.setWidthF(0.05)
         self.point_brush = QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern)
 
-        self.line_pen = QtGui.QPen("blue")
-        self.line_pen.setWidthF(0.01)
+        self.line_pen = QtGui.QPen("orange")
+        self.line_pen.setWidthF(0.02)
 
         pfad = os.path.dirname(__file__) + '/' + 'stops_fern.txt'
         stations = pd.read_csv(pfad, encoding= 'utf8')
@@ -192,12 +219,10 @@ class MainWindow(QtWidgets.QMainWindow):
         path_of_routes = os.path.dirname(__file__) + '/' + filename_routes
         routes = pd.read_csv(path_of_routes, encoding='utf8')
         
-        #painterpath = QtGui.QPainterPath()
 
         for start in routes.itertuples():
             y1,x1 = [start.Station1_lat, start.Station1_lon]
             
-            #painterpath.moveTo(QtCore.QPointF(x,y))
             y2,x2 = [start.Station2_lat, start.Station2_lon]
             self.scene.addLine(x1,y1,x2,y2, pen=self.line_pen)
             
@@ -208,7 +233,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.germany_map.scale(10, -10)
         self.germany_map.setRenderHint(QtGui.QPainter.Antialiasing)
         self.germany_map.currentStation.connect(self.status_bar.showMessage)
-
+        self.germany_map.stationClicked.connect(self.click_function)
 ######################
 
         # Layout gestalten
@@ -247,6 +272,19 @@ class MainWindow(QtWidgets.QMainWindow):
                        
 
                     self.scene.setBackgroundBrush(self.ocean_brush)
+
+## Funktionen für die Menu Bar
+    def open_about(self):
+        about_window.show()
+        
+
+    def open_readme(self):
+        readme_window.show()
+
+    @QtCore.Slot(str)
+    def click_function(self, whole_station_information):
+        print(whole_station_information + ' geklickt')
+
 
 
 
@@ -407,7 +445,59 @@ class MainWindow(QtWidgets.QMainWindow):
         self.combobox_start.addItems(train_stations)
         self.combobox_destination.addItems(train_stations)  
 
+#####################################################
+# Neue Klassen für die einzelnen Fenster der Menüleiste
 
+class MenuWindowAbout(QtWidgets.QGraphicsView):
+    def __init__(self):
+        """
+        Creates a widget for the About menu.
+        """
+        super().__init__()
+        self.setMinimumSize(300, 300)
+        
+
+        path_to_about = os.path.dirname(__file__) + '/' + 'ABOUT.txt'
+
+        with open(path_to_about, encoding='utf8') as about_file:
+            about_text = about_file.read()
+
+        self.label = QtWidgets.QTextEdit()
+        self.label.setReadOnly(True)
+        self.label.setMarkdown(about_text)
+
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+
+    def sizeHint(self):
+        return QtCore.QSize(600, 600)
+
+class MenuWindowReadMe(QtWidgets.QGraphicsView):
+    def __init__(self):
+        """
+        Creates a widget for the ReadMe menu.
+        """
+        super().__init__()
+        self.setMinimumSize(300, 300)
+
+        path_to_about = os.path.dirname(__file__) + '/' + 'README.txt'
+
+        with open(path_to_about, encoding='utf8') as about_file:
+            about_text = about_file.read()
+
+        self.label = QtWidgets.QTextEdit()
+        self.label.setReadOnly(True)
+        self.label.setMarkdown(about_text)
+
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+
+    
+
+    def sizeHint(self):
+        return QtCore.QSize(600, 600)
 
 
 
@@ -439,5 +529,10 @@ if __name__ == "__main__":
     window = MainWindow()
     window.setWindowTitle("Deutsches Bahnnetz")
     window.show()
+
+    about_window = MenuWindowAbout()
+    about_window.setWindowTitle("Über dieses Programm")
+    readme_window = MenuWindowReadMe()
+    readme_window.setWindowTitle("Read Me - Wichtig zu wissen")
 
     sys.exit(app.exec())
