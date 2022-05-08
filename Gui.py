@@ -229,11 +229,12 @@ class MainWindow(QtWidgets.QMainWindow):
 # According to:
 # https://realpython.com/python-menus-toolbars/#populating-menus-with-actions
 # https://pythonprogramming.net/menubar-pyqt-tutorial/
+        
         menuBar = self.menuBar()
         about_menu = QtWidgets.QMenu("Help",self)
         menuBar.addMenu(about_menu)
     
-        aboutAction = QtGui.QAction("About", self)
+        aboutAction = QtGui.QAction("About/Licence", self)
         readmeAction = QtGui.QAction("ReadMe", self)
 
         about_menu.addAction(aboutAction)
@@ -342,7 +343,7 @@ class MainWindow(QtWidgets.QMainWindow):
         window_content = QtWidgets.QWidget()
         window_content.setLayout(self.layout)
         self.setCentralWidget(window_content)
-##################################
+
     def make_base_scene(self):
         """
         Creating the base scene, which shows the map of Germany.
