@@ -580,7 +580,7 @@ class MenuWindowAbout(QtWidgets.QGraphicsView):
         """
         Contains the preferred default size of the window.
         """
-        return QtCore.QSize(600, 600)
+        return QtCore.QSize(700, 600)
 
 class MenuWindowReadMe(QtWidgets.QGraphicsView):
     """
