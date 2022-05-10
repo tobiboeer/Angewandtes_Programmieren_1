@@ -53,6 +53,7 @@ Licence: The 3-Clause BSD License
     OF SUCH DAMAGE.
 """
 
+import re
 import pandas as pd
 import sys
 import geojson
@@ -520,15 +521,16 @@ class tableCreator(QtCore.QAbstractTableModel):
     Creates a table with the main functions: rowCount, columnCount, data and headerData.
     These functions are setting the size of the matrix and a clear arrangement.
     """
-    def __init__(self):
+    def __init__(self,df):
         """
         Defines the path in the directory and renames the columns for the clearancy.
         """
         super().__init__()
-        name = "stop_times"
-        pfad = os.path.abspath(os.path.join(os.path.dirname( __file__ ), name + '.txt'))
-        self.dataframe = pd.read_csv(pfad)
-        
+        #name = "stop_times"
+        #pfad = os.path.abspath(os.path.join(os.path.dirname( __file__ ), name + '.txt'))
+        #self.dataframe = pd.read_csv(pfad)
+
+        self.dataframe = df
         # Wenn das Datenframe steht, kann das hier auch verändert werden.
         #self.dataframe.rename(columns = {'service_id': "Beispiel String 1", 
                         #"exception_type": "Beispiel2", "date": "Beispiel3"}, inplace = True)
@@ -570,15 +572,22 @@ class dataTable(QtWidgets.QMainWindow):
     Creates a widget of the 'tableCreator'. 
     """
 
-    def __init__(self):
+    def __init__(self,main_gui):
         """
         Loads the file components of the 'tableCreator', creates a widget and merges
         the together. 
         """
         super().__init__()
+        self.main_gui = main_gui
+
+        self.setMinimumSize(140, 250)
         
         table_view = QtWidgets.QTableView()
-        table_model = tableCreator()
+        day = datetime.today().weekday()
+        hauer = int(datetime.now().strftime("%H"))
+        min = int(datetime.now().strftime("%M"))
+        df = self.main_gui.all_data.get_trainstachen_info([day,hauer,min],"Hamburg Hbf")
+        table_model = tableCreator(df)
         table_view.setModel(table_model)
         
         layout = QtWidgets.QHBoxLayout()
@@ -631,7 +640,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.germany_map = Map(self)
         
 
-        self.dataTable_instace = dataTable()
+        self.dataTable_instace = dataTable(self)
         self.grid_layout.addWidget(self.dataTable_instace,1,0,1,2)
 
         stations = self.all_data.stops_fern
@@ -693,15 +702,34 @@ class Data():
         self.stops_fern = self.lode_routes('stops_fern.txt')
 
         self.lode_rest()
+        self.gtfs_fern = self.lode_gtfs("latest_fern")
 
     def lode_rest(self):
         self.stops_nah = self.lode_routes('stops_nah.txt')
         self.stops_regional = self.lode_routes('stops_regional.txt')
 
+    def lode_gtfs(self,kategorie):
+        pfad_start = os.path.abspath(os.path.join(os.path.dirname( __file__ ), kategorie))+ '\\'
 
-  
+        data_names = ['agency','calendar','calendar_dates','feed_info','routes','stop_times','stops','trips']
+        name_dict = {}
 
+        for name in data_names:
+            pfad = pfad_start + name + '.txt'
 
+            if exists(pfad):
+
+                df = pd.read_csv(pfad)
+                pd.set_option('display.min_rows', 10) 
+                if name == 'stopshivz':
+                    pd.set_option('display.min_rows', 400) 
+                name_dict[name] = df
+
+            else:
+                print("Die Datei " + name + " wurde nicht Gefunden")
+                print(os.path.abspath(os.path.join(os.path.dirname( __file__ ), name + '.txt')))
+
+        return name_dict
 
     def load_map_data(self):
         """
@@ -736,6 +764,101 @@ class Data():
         path_of_routes = os.path.dirname(__file__) + '/' + filename_routes
         routes = pd.read_csv(path_of_routes, encoding='utf8')
         return routes
+
+    def get_trainstachen_info(self,date,trainstachen_name):
+
+        name_dict = self.gtfs_fern
+
+        time_spane = 4
+
+        day_given = date[0]
+        hauer = date[1]
+        min = date[2]
+
+        # Bahnhofs Nahme -->  stop IDs
+        stop_IDs = name_dict["stops"].loc[name_dict["stops"]["stop_name"] == trainstachen_name]['stop_id'].to_numpy()
+        # IDs -->  trip_id 
+        trip_id_IDs = set(name_dict["stop_times"].loc[name_dict["stop_times"]["stop_id"].isin(stop_IDs)]['trip_id'].to_numpy())
+
+
+        conactions_df_counter = int(0)
+        for trip_id_instanz in trip_id_IDs:
+
+            trips_trip_id = name_dict["trips"].loc[name_dict["trips"]["trip_id"] == trip_id_instanz]
+            service_id_instanz = trips_trip_id['service_id'].to_numpy()[0]
+            serves_days = name_dict["calendar"].loc[name_dict["calendar"]["service_id"] == service_id_instanz]
+
+            if not serves_days.empty:
+                
+                stop_times_trip_id_instanz = name_dict["stop_times"].loc[name_dict["stop_times"]["trip_id"] == trip_id_instanz]
+                trip_id_stops = stop_times_trip_id_instanz.loc[stop_times_trip_id_instanz["stop_id"].isin(stop_IDs)]
+
+                arrival_time = trip_id_stops['arrival_time'].to_numpy()[0]
+                arrival_time_houer = int(arrival_time[0:2])
+                days_over = int(arrival_time_houer / 24)
+
+                day = day_given
+                time_diferenc = 0
+                if days_over > 0:
+                    arrival_time_houer = arrival_time_houer - (24 * days_over)
+                    arrival_time_houer_str = str(arrival_time_houer)
+                    if len(arrival_time_houer_str) == 1:
+                        arrival_time_houer_str = "0" + arrival_time_houer_str
+                    arrival_time = arrival_time_houer_str+arrival_time[2:]
+                    day = day_given - days_over
+                    if (int(arrival_time[0:2]) < hauer) or (int(arrival_time[0:2]) < hauer) and (int(arrival_time[3:5]) < min):
+                        day = day + 1
+                        time_diferenc = 24*60
+                    if day < 0:
+                        day = day + 7
+                    time_diferenc = time_diferenc + (int(arrival_time[0:2])-hauer)*60 + (int(arrival_time[3:5])-min)
+                else:
+                    time_diferenc = (int(arrival_time[0:2])-hauer)*60 + (int(arrival_time[3:5])-min)
+
+                day_is_serfed = serves_days[calendar.day_name[day].lower()].to_numpy()[0]
+                if day_is_serfed == 1:
+                    
+
+                    if time_diferenc > 0 and time_diferenc < time_spane*60:
+
+                        trip_stachens = stop_times_trip_id_instanz['stop_sequence'].to_numpy()
+                        last_stachen = max(trip_stachens)
+                        direction = trips_trip_id['direction_id'].to_numpy()[0]
+                        if direction == 0:
+                            end_station = last_stachen
+                        else:
+                            end_station = 0
+                        end_station_stop_id = stop_times_trip_id_instanz.loc[stop_times_trip_id_instanz["stop_sequence"] == end_station]['stop_id'].to_numpy()[0]
+                        end_station_name = name_dict["stops"].loc[name_dict["stops"]["stop_id"] == end_station_stop_id]['stop_name'].to_numpy()[0]
+
+
+                        route_id_instanz = trips_trip_id['route_id'].to_numpy()[0]
+                        routes_row = name_dict["routes"].loc[name_dict["routes"]["route_id"] == route_id_instanz]
+
+                        agency_id_instanz = routes_row['agency_id'].to_numpy()[0]
+                        agency_name_instanz = name_dict["agency"].loc[name_dict["agency"]["agency_id"] == agency_id_instanz]['agency_name'].to_numpy()[0]
+                        route_long_name = routes_row['route_long_name'].to_numpy()[0]
+                        departure_time = trip_id_stops['departure_time'].to_numpy()[0]
+
+                        if conactions_df_counter == 0:
+                            conactions_df = pd.DataFrame([[agency_name_instanz, route_long_name,end_station_name,arrival_time,departure_time]], columns=["agency_name_instanz","route_long_name","end_station_name","arrival_time","departure_time"])
+                        else:
+                            conactions_df.loc[conactions_df_counter] = [agency_name_instanz, route_long_name,end_station_name,arrival_time,departure_time]
+                        conactions_df_counter += 1
+
+        conactions_df = conactions_df.sort_values(by=['arrival_time'])
+
+        return conactions_df
+
+
+
+
+
+
+
+
+
+
 
 
 # Calling the MainWindow, MenuWindowAbout and MenuWindowReadMe classes
