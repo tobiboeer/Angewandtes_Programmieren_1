@@ -418,25 +418,40 @@ class MainWindow(QtWidgets.QMainWindow):
 
 # Klasse für die Deutschlandkarte
 class Side_winow(QtWidgets.QMainWindow):
+    """
+    Creating an interactive widget next to the german map.
+    """
 
     def __init__(self,main_gui):
+        """
+        Instantiate the main aspects of an interactive planer. 
+        It contains the comboboxes, textfields, labels, layouts and buttons.       
+        """
         super().__init__()
             
         self.main_gui = main_gui
+        # Können die auskommentierten Dinge raus ? 
         #path_for_click = os.path.dirname(__file__) + '/' + "stops_regional.txt"
         #stations = pd.read_csv(path_for_click, encoding= 'utf8')
-
+        
+        # -------------- COMBOBOXES ----------------
         self.combobox_start = QtWidgets.QComboBox()
         self.combobox_start.setPlaceholderText("- Startbahnhof wählen -")
+        
+        # Können die auskommentierten Dinge raus ? 
         #self.combobox_start.addItems(stations)
+        
         self.combobox_start.currentTextChanged.connect(self.change_start_station)
         
         self.combobox_destination = QtWidgets.QComboBox()
         self.combobox_destination.setPlaceholderText("- Zielbahnhof wählen -")
+        
+        # Können die auskommentierten Dinge raus ? 
         #self.combobox_destination.addItems(stations)
+        
         self.combobox_destination.currentTextChanged.connect(self.change_end_station)
  
-        # -------------- Textfelder ----------------
+        # -------------- TEXT FIELDS ----------------
         textfield_date = QtWidgets.QDateEdit()
         textfield_time = QtWidgets.QTimeEdit()
         self.textfield_allInfo = QtWidgets.QTextEdit()
@@ -445,14 +460,14 @@ class Side_winow(QtWidgets.QMainWindow):
         self.set_text_start_values()
         self.update_text()
         
-        # -------------- Label  ------------------
+        # -------------- LABELS  ------------------
         label_button_traffic_style = QtWidgets.QLabel("Bahnart:")
         label_combobox_start = QtWidgets.QLabel("Abfahrbahnhof:")
         label_combobox_destination = QtWidgets.QLabel("Ankunftbahnhof:")
         label_textfield_date_time = QtWidgets.QLabel("Datum und Zeit der Abfahrt:")
         label_textfield_allInfo = QtWidgets.QLabel("Ausgewählte Informationen:")
         
-        # -------------- Button ------------------
+        # -------------- BUTTONS ------------------
         self.button_nahverkehr = QtWidgets.QPushButton("Nahverkehr")
         self.button_fernverkehr = QtWidgets.QPushButton("Fernverkehr")
         self.button_regional = QtWidgets.QPushButton("Regional")
@@ -464,7 +479,7 @@ class Side_winow(QtWidgets.QMainWindow):
         self.button_regional.clicked.connect(self.clickFunctionRegional)
         button_delete.clicked.connect(self.deleter_textfield)
         
-        # -------------- Layouts -----------------
+        # -------------- LAYOUTS -----------------
         button_layout_traffic = QtWidgets.QHBoxLayout()
         button_layout_traffic.addWidget(self.button_nahverkehr)
         button_layout_traffic.addWidget(self.button_fernverkehr)
@@ -497,19 +512,27 @@ class Side_winow(QtWidgets.QMainWindow):
         window_content = QtWidgets.QWidget()
         window_content.setLayout(sub_layout)
         self.setCentralWidget(window_content)
-
+        
+        # Können die auskommentierten Dinge raus ? 
         #self.layout.addLayout(sub_layout)
         #self.grid_layout.addWidget(sub_layout,1,0)
         
 
     
     def set_text_start_values(self):
+        """
+        Sets the first strings in the text box.        
+        """
         self.bahnart = "noch nicht ausgewählt.."
         self.abfahrtsbahnhof = "noch nicht ausgewählt.."
         self.zielbahnhof = "noch nicht ausgewählt.."
         self.ankunftszeit = "noch nicht berechnet.."
         
     def update_text(self):
+        """
+        Connects the first text values of the method 'set_text_start_values'
+        and changes the first strings into the choiced option.
+        """
         text = (f"Bahnart: {self.bahnart} \n"
             + f"Abfahrtsbahnhof: {self.abfahrtsbahnhof} \n"
             + f"Zielbahnhof: {self.zielbahnhof} \n"
@@ -517,27 +540,24 @@ class Side_winow(QtWidgets.QMainWindow):
         self.textfield_allInfo.setText(text)
         
     def deleter_textfield(self):
+        """
+        Deletes the choice by pushing the button 'delete'.
+        """
+    
         self.set_text_start_values()
-        self.update_text()
-
-    # schreibe eine methode, die anhand des gedrückten knopfes erkennt, welche Bahnart ausgewählt wurde
-    # code läuft, funktion nicht
-    def change_train_style(self):
-        if self.button_fernverkehr.clicked() == True: 
-            self.bahnart = "Fernverkehr"
-        elif self.button_nahverkehr.clicked() == True: 
-            self.bahnart = "Nahverkehr"
-        elif self.button_regional.clicked() == True: 
-            self.bahnart = "Regionalverkehr"
-        else:
-            self.bahnart = "noch nicht ausgewählt.."
         self.update_text()
     
     def change_start_station(self, value):
+        """
+        Noted the selected start trainstation and updates the text box.        
+        """
         self.abfahrtsbahnhof = value
         self.update_text()
         
     def change_end_station(self,value):
+        """
+        Noted the selected end station and updates the text box.
+        """
         self.zielbahnhof = value
         self.update_text()
   
@@ -563,7 +583,9 @@ class Side_winow(QtWidgets.QMainWindow):
     def clickFunction(self,path_name):
         path_for_click = os.path.dirname(__file__) + '/' + path_name
         stations = pd.read_csv(path_for_click, encoding= 'utf8')
-
+        
+        
+        # Kann das weg ? :-D 
         print("ashdashfpiashfpahbp")
         print(stations)
 
@@ -677,26 +699,42 @@ class MenuWindowReadMe(QtWidgets.QGraphicsView):
 # Ideen zum Verbessern der Tabelle:
 # - Überschrift: wenn auf auf einen Bahnhof gedrückt wird, werden die Werte angezeigt
 # - Headerdata leserlicher gestalten
-# - Fenstergröße festlegen
-# - ...
-# - Kommentieren
-# - gerne noch erweitern :-) TB
-
 
 class tableCreator(QtCore.QAbstractTableModel):
+    """
+    Creates a table with the main functions: rowCount, columnCount, data and headerData.
+    These functions are setting the size of the matrix and a clear arrangement.
+    """
     def __init__(self):
+        """
+        Defines the path in the directory and renames the columns for the clearancy.
+        """
         super().__init__()
         name = "stop_times"
         pfad = os.path.abspath(os.path.join(os.path.dirname( __file__ ), name + '.txt'))
-        self.dataframe = pd.read_csv(pfad)      
+        self.dataframe = pd.read_csv(pfad)
+        
+        # Wenn das Datenframe steht, kann das hier auch verändert werden.
+        #self.dataframe.rename(columns = {'service_id': "Beispiel String 1", 
+                        #"exception_type": "Beispiel2", "date": "Beispiel3"}, inplace = True)
+        
         
     def rowCount(self, parent = None):
+        """
+        Sets the amount of the rows of the read file.
+        """
         return len(self.dataframe[0:])
         
     def columnCount(self, parent = None):
+        """
+        Sets the amount of the columns of the read file.
+        """
         return len(self.dataframe.keys())
         
     def data(self, index, role = QtCore.Qt.DisplayRole):
+        """
+        Shows the file components.
+        """
         if role != QtCore.Qt.DisplayRole:
             return None
             
@@ -704,6 +742,9 @@ class tableCreator(QtCore.QAbstractTableModel):
         return str(value)
             
     def headerData(self, index, orientation, role = QtCore.Qt.DisplayRole):
+        """
+        Shows the head of the columns seperately.
+        """
         if role != QtCore.Qt.DisplayRole or orientation != QtCore.Qt.Orientation.Horizontal:
            return None
         
@@ -720,7 +761,15 @@ class tableCreator(QtCore.QAbstractTableModel):
 
 
 class dataTable(QtWidgets.QMainWindow):
+    """
+    Creates a widget of the 'tableCreator'. 
+    """
+
     def __init__(self):
+        """
+        Loads the file components of the 'tableCreator', creates a widget and merges
+        the together. 
+        """
         super().__init__()
         
         table_view = QtWidgets.QTableView()
