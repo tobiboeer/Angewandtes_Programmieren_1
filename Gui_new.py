@@ -703,6 +703,7 @@ class Data():
 
         self.lode_rest()
         self.gtfs_fern = self.lode_gtfs("latest_fern")
+        self.gtfs_regional = self.lode_gtfs("latest_regional")
 
     def lode_rest(self):
         self.stops_nah = self.lode_routes('stops_nah.txt')
@@ -847,6 +848,12 @@ class Data():
                         conactions_df_counter += 1
 
         conactions_df = conactions_df.sort_values(by=['arrival_time'])
+        actuell_time = str(hauer) + ":" + str(min) + ":00"
+
+        conactions_df_firs = conactions_df.loc[conactions_df["arrival_time"] >= actuell_time]
+        conactions_df_sec = conactions_df.loc[conactions_df["arrival_time"] < actuell_time]
+
+        conactions_df = pd.concat([conactions_df_firs,conactions_df_sec])
 
         return conactions_df
 
