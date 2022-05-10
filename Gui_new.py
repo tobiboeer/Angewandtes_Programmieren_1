@@ -362,27 +362,16 @@ class Side_winow(QtWidgets.QMainWindow):
             
         self.main_gui = main_gui
         
-        
         # -------------- COMBOBOXES ----------------
         self.combobox_start = QtWidgets.QComboBox()
-        self.combobox_start.setPlaceholderText("- Startbahnhof wählen -")
-        
-        # Können die auskommentierten Dinge raus ? 
-        #self.combobox_start.addItems(stations)
-        
+        self.combobox_start.setPlaceholderText("- Bahnhof wählen -")
         self.combobox_start.currentTextChanged.connect(self.change_start_station)
         
-        self.combobox_destination = QtWidgets.QComboBox()
-        self.combobox_destination.setPlaceholderText("- Zielbahnhof wählen -")
-        
-        # Können die auskommentierten Dinge raus ? 
-        #self.combobox_destination.addItems(stations)
-        
-        self.combobox_destination.currentTextChanged.connect(self.change_end_station)
- 
+
         # -------------- TEXT FIELDS ----------------
         textfield_date = QtWidgets.QDateEdit()
-        textfield_time = QtWidgets.QTimeEdit()
+        self.textfield_time = QtWidgets.QTimeEdit()
+        self.textfield_time_dif = QtWidgets.QTimeEdit()
         self.textfield_allInfo = QtWidgets.QTextEdit()
         
         self.textfield_allInfo.setReadOnly(True)
@@ -392,22 +381,25 @@ class Side_winow(QtWidgets.QMainWindow):
         # -------------- LABELS  ------------------
         label_button_traffic_style = QtWidgets.QLabel("Bahnart:")
         label_combobox_start = QtWidgets.QLabel("Abfahrbahnhof:")
-        label_combobox_destination = QtWidgets.QLabel("Ankunftbahnhof:")
         label_textfield_date_time = QtWidgets.QLabel("Datum und Zeit der Abfahrt:")
+        self.label_textfield_time_dif = QtWidgets.QLabel("Abfart zeit Fenster")
         label_textfield_allInfo = QtWidgets.QLabel("Ausgewählte Informationen:")
-        
+        label_button_recuest = QtWidgets.QLabel("Daten zum Bahnhof erstellen")
+
         # -------------- BUTTONS ------------------
         self.button_nahverkehr = QtWidgets.QPushButton("Nahverkehr")
         self.button_fernverkehr = QtWidgets.QPushButton("Fernverkehr")
         self.button_regional = QtWidgets.QPushButton("Regional")
+        self.button_recuest = QtWidgets.QPushButton("Anfrafe stellen")
         button_start = QtWidgets.QPushButton("Route planen")
         button_delete = QtWidgets.QPushButton("Löschen")
-        
+
         self.button_fernverkehr.clicked.connect(self.clickFunctionLongDistance)
         self.button_nahverkehr.clicked.connect(self.clickFunctionShortDistance)
         self.button_regional.clicked.connect(self.clickFunctionRegional)
         button_delete.clicked.connect(self.deleter_textfield)
-        
+        self.button_recuest.clicked.connect(self.trainstachen_recqest)
+
         # -------------- LAYOUTS -----------------
         button_layout_traffic = QtWidgets.QHBoxLayout()
         button_layout_traffic.addWidget(self.button_nahverkehr)
@@ -416,8 +408,14 @@ class Side_winow(QtWidgets.QMainWindow):
         
         date_time_layout = QtWidgets.QHBoxLayout()
         date_time_layout.addWidget(textfield_date)
-        date_time_layout.addWidget(textfield_time)
-        
+        date_time_layout.addWidget(self.textfield_time)
+
+        time_dif_layout = QtWidgets.QHBoxLayout()
+        time_dif_layout.addWidget(self.textfield_time_dif)
+
+        button_recuest_layout = QtWidgets.QHBoxLayout()
+        button_recuest_layout.addWidget(self.button_recuest)
+
         button_layout_interactive = QtWidgets.QHBoxLayout()
         button_layout_interactive.addWidget(button_delete)
         button_layout_interactive.addWidget(button_start)
@@ -428,10 +426,12 @@ class Side_winow(QtWidgets.QMainWindow):
         sub_layout.addLayout(button_layout_traffic)
         sub_layout.addWidget(label_combobox_start) 
         sub_layout.addWidget(self.combobox_start)
-        sub_layout.addWidget(label_combobox_destination)
-        sub_layout.addWidget(self.combobox_destination)
         sub_layout.addWidget(label_textfield_date_time)
         sub_layout.addLayout(date_time_layout)
+        sub_layout.addWidget(self.label_textfield_time_dif)
+        sub_layout.addLayout(time_dif_layout)
+        sub_layout.addWidget(label_button_recuest)
+        sub_layout.addLayout(button_recuest_layout)
         sub_layout.addWidget(label_textfield_allInfo)
         sub_layout.addWidget(self.textfield_allInfo)
         sub_layout.addLayout(button_layout_interactive)
@@ -440,6 +440,9 @@ class Side_winow(QtWidgets.QMainWindow):
         window_content.setLayout(sub_layout)
         self.setCentralWidget(window_content)
         
+    def bla(self, value):
+        print(value)
+
     def set_text_start_values(self):
         """
         Sets the first strings in the text box.        
@@ -500,13 +503,15 @@ class Side_winow(QtWidgets.QMainWindow):
         """
         self.clickFunction(self.main_gui.all_data.stops_regional) 
 
-    def clickFunction(self,stations):       
+    def clickFunction(self,stations):  
+        print(self.textfield_time_dif.time().toString())  # bitte drin lassen
+
         self.main_gui.drawRouteNetwork(stations,'connections.csv') 
         train_stations = stations['stop_name']
         self.combobox_start.addItems(train_stations)
-        self.combobox_destination.addItems(train_stations)  
 
-
+    def trainstachen_recqest(self):
+        pass
     
 
 
@@ -526,10 +531,6 @@ class tableCreator(QtCore.QAbstractTableModel):
         Defines the path in the directory and renames the columns for the clearancy.
         """
         super().__init__()
-        #name = "stop_times"
-        #pfad = os.path.abspath(os.path.join(os.path.dirname( __file__ ), name + '.txt'))
-        #self.dataframe = pd.read_csv(pfad)
-
         self.dataframe = df
         # Wenn das Datenframe steht, kann das hier auch verändert werden.
         #self.dataframe.rename(columns = {'service_id': "Beispiel String 1", 
@@ -584,9 +585,11 @@ class dataTable(QtWidgets.QMainWindow):
         
         table_view = QtWidgets.QTableView()
         day = datetime.today().weekday()
-        hauer = int(datetime.now().strftime("%H"))
+        hauer = int(self.main_gui.side_winow_instnz.textfield_time.time().toString()[0:2])
+        print("hauer",hauer)
         min = int(datetime.now().strftime("%M"))
-        df = self.main_gui.all_data.get_trainstachen_info([day,hauer,min],"Hamburg Hbf")
+        time_span = self.main_gui.side_winow_instnz.textfield_time_dif.time().toString()
+        df = self.main_gui.all_data.get_trainstachen_info([day,hauer,min],"Hamburg Hbf",time_span)
         table_model = tableCreator(df)
         table_view.setModel(table_model)
         
@@ -639,6 +642,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setLayout(self.grid_layout)
         self.germany_map = Map(self)
         
+        self.side_winow_instnz = Side_winow(self)
+        self.grid_layout.addWidget(self.side_winow_instnz,0,1)
 
         self.dataTable_instace = dataTable(self)
         self.grid_layout.addWidget(self.dataTable_instace,1,0,1,2)
@@ -646,8 +651,7 @@ class MainWindow(QtWidgets.QMainWindow):
         stations = self.all_data.stops_fern
         self.germany_map.drawRouteNetwork(stations,'connections.csv')
         
-        self.side_winow_instnz = Side_winow(self)
-        self.grid_layout.addWidget(self.side_winow_instnz,0,1)
+        
 
         window_content = QtWidgets.QWidget()
         window_content.setLayout(self.grid_layout)
@@ -766,11 +770,14 @@ class Data():
         routes = pd.read_csv(path_of_routes, encoding='utf8')
         return routes
 
-    def get_trainstachen_info(self,date,trainstachen_name):
+    def get_trainstachen_info(self,date,trainstachen_name,time_spane):
 
         name_dict = self.gtfs_fern
 
-        time_spane = 4
+        time_spane = int(time_spane[3:5])
+        if time_spane == 0:
+            time_spane = 1
+        print("time_spane " , time_spane)
 
         day_given = date[0]
         hauer = date[1]
