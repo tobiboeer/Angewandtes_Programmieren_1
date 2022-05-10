@@ -63,6 +63,16 @@ from PySide6 import QtGui
 import json
 
 
+class Map(QtWidgets.QMainWindow):
+
+    def __init__(self,main_gui):
+  
+        super().__init__()
+        self.main_gui = main_gui
+        self.germany_map = GermanyMap(self)
+
+    def drawRouteNetwork(self,train_stations,filename_routes):
+        self.germany_map.drawRouteNetwork(train_stations,filename_routes)
 
 # Klasse für die Deutschlandkarte
 class GermanyMap(QtWidgets.QGraphicsView):
@@ -71,25 +81,26 @@ class GermanyMap(QtWidgets.QGraphicsView):
     currentStation = QtCore.Signal(str)
     stationClicked = QtCore.Signal(str)
 
-    def __init__(self,main_gui):
+    def __init__(self,map_gui):
         """
         Creates a widget for the map.
         """
         super().__init__()
 
-        self.main_gui = main_gui
+        self.main_gui = map_gui.main_gui
+        self.map_gui = map_gui
 
         self.setMinimumSize(140, 180)
         self.setMouseTracking(True)
         self.previous_item = None
  
+        self.pens_and_brushes() # werden alle davon verwendet
 
         self.zoom = 0
         self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
         self.setResizeAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
-
 
     def wheelEvent(self, event):
         """
@@ -117,9 +128,12 @@ class GermanyMap(QtWidgets.QGraphicsView):
         """
         
         item = self.itemAt(event.pos())
-        self.stationClicked.emit(item.station)
-
-
+        if item is not None:
+            try:
+                self.stationClicked.emit(item.station)
+            except:
+                pass
+            
     def mouseMoveEvent(self, event):
         """
         Is used to track the items touched by the mouse and change their color.
@@ -144,7 +158,6 @@ class GermanyMap(QtWidgets.QGraphicsView):
             except:
                 pass
 
-
     def resizeEvent(self, event):
         """
         Enables the widget to be resized properly.
@@ -159,92 +172,6 @@ class GermanyMap(QtWidgets.QGraphicsView):
         Return of the preferred default size of the widget.
         """
         return QtCore.QSize(140*4, 180*4)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Klasse um das Main Window zu erstellen
-class MainWindow(QtWidgets.QMainWindow):
-    
-
-    def __init__(self):
-        super().__init__()
-
-        self.status_bar = self.statusBar()
-        
-        menuBar = self.menuBar()
-        about_menu = QtWidgets.QMenu("Help",self)
-        menuBar.addMenu(about_menu)
-    
-        aboutAction = QtGui.QAction("About/Licence", self)
-        readmeAction = QtGui.QAction("ReadMe", self)
-
-        about_menu.addAction(aboutAction)
-        about_menu.addAction(readmeAction)
-
-        aboutAction.triggered.connect(self.open_about)
-        readmeAction.triggered.connect(self.open_readme)
-       
-        self.pens_and_brushes() # werden alle davon verwendet
-
-        self.grid_layout = QtWidgets.QGridLayout()
-        self.setLayout(self.grid_layout)
-        self.germany_map = GermanyMap(self)
-        self.dataTable_instace = dataTable()
-        self.grid_layout.addWidget(self.dataTable_instace,1,0,1,2)
-
-
-        # drawRouteNetwork is called with default values
-        path_of_default = os.path.dirname(__file__) + '/' + 'stops_fern.txt'
-        stations = pd.read_csv(path_of_default, encoding= 'utf8')
-        self.drawRouteNetwork(stations,'connections.csv') 
-
-
-        
-        self.side_winow_instnz = Side_winow(self)
-        self.grid_layout.addWidget(self.side_winow_instnz,0,1)
-
-
-        window_content = QtWidgets.QWidget()
-        window_content.setLayout(self.grid_layout)
-        self.setCentralWidget(window_content)
-
-
-
-
 
     def pens_and_brushes(self):
         self.ocean_brush = QtGui.QBrush("lightblue", QtCore.Qt.BrushStyle.BDiagPattern)
@@ -282,8 +209,8 @@ class MainWindow(QtWidgets.QMainWindow):
             filename_routes: str
                 Name of the file containing the routes
         """
+
         self.make_base_scene()
-        self.scene.update()
 
         # Drawing the stations 
         for one_station in train_stations.itertuples():
@@ -293,7 +220,7 @@ class MainWindow(QtWidgets.QMainWindow):
             for y,x in station_information_coordinates:
                 width = 0.02
                 height = 0.02
-                point_item = self.scene.addEllipse(x,y,width,height, pen=self.point_pen, brush=self.point_brush)
+                point_item = self.map_gui.scene.addEllipse(x,y,width,height, pen=self.point_pen, brush=self.point_brush)
                 point_item.station = y,x
 
                 if point_item.station in whole_station_information:
@@ -310,23 +237,23 @@ class MainWindow(QtWidgets.QMainWindow):
             y1,x1 = [start.Station1_lat, start.Station1_lon]
             
             y2,x2 = [start.Station2_lat, start.Station2_lon]
-            self.scene.addLine(x1,y1,x2,y2, pen=self.line_pen)
+            self.map_gui.scene.addLine(x1,y1,x2,y2, pen=self.line_pen)
             
-        self.germany_map = GermanyMap(self) 
-        self.germany_map.setScene(self.scene)
-        self.germany_map.scale(10, -10)
-        self.germany_map.setRenderHint(QtGui.QPainter.Antialiasing)
-        self.germany_map.currentStation.connect(self.status_bar.showMessage)
-        self.germany_map.stationClicked.connect(self.click_function)
-        self.grid_layout.addWidget(self.germany_map,0,0)
-         
+        self = GermanyMap(self.map_gui) 
+        self.setScene(self.map_gui.scene)
+        self.scale(10, -10)
+        self.setRenderHint(QtGui.QPainter.Antialiasing)
+        self.currentStation.connect(self.main_gui.status_bar.showMessage)
+        self.stationClicked.connect(self.main_gui.click_function)
+
+        self.main_gui.grid_layout.addWidget(self,0,0)
 
     def make_base_scene(self):
         """
         Creating the base scene, which shows the map of Germany.
         """
 
-        self.scene = QtWidgets.QGraphicsScene(5.8, 47.3, 9.4, 7.9) 
+        self.map_gui.scene = QtWidgets.QGraphicsScene(5.8, 47.3, 9.4, 7.9) 
 
         states = self.load_map_data()
 
@@ -337,7 +264,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     qpolygon = QtGui.QPolygonF()
                     for x, y in polygon:
                         qpolygon.append(QtCore.QPointF(x, y))
-                    polygon_item = self.scene.addPolygon(qpolygon, pen=self.country_pen, brush=self.land_brush)
+                    polygon_item = self.map_gui.scene.addPolygon(qpolygon, pen=self.country_pen, brush=self.land_brush)
                     polygon_item.station = state['properties']['GEN']
                    
             else:
@@ -346,19 +273,88 @@ class MainWindow(QtWidgets.QMainWindow):
                         qpolygon = QtGui.QPolygonF()
                         for x, y in polygon:
                             qpolygon.append(QtCore.QPointF(x, y))
-                        polygon_item = self.scene.addPolygon(qpolygon, pen=self.country_pen, brush=self.land_brush)
+                        polygon_item = self.map_gui.scene.addPolygon(qpolygon, pen=self.country_pen, brush=self.land_brush)
                         polygon_item.station = state['properties']['GEN']
                        
+                    self.map_gui.scene.setBackgroundBrush(self.ocean_brush)
 
-                    self.scene.setBackgroundBrush(self.ocean_brush)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Klasse um das Main Window zu erstellen
+class MainWindow(QtWidgets.QMainWindow):
+    
+    def __init__(self):
+        super().__init__()
+
+        self.status_bar = self.statusBar()
+        
+        menuBar = self.menuBar()
+        about_menu = QtWidgets.QMenu("Help",self)
+        menuBar.addMenu(about_menu)
+    
+        aboutAction = QtGui.QAction("About/Licence", self)
+        readmeAction = QtGui.QAction("ReadMe", self)
+
+        about_menu.addAction(aboutAction)
+        about_menu.addAction(readmeAction)
+
+        aboutAction.triggered.connect(self.open_about)
+        readmeAction.triggered.connect(self.open_readme)
+       
+        self.grid_layout = QtWidgets.QGridLayout()
+        self.setLayout(self.grid_layout)
+        self.germany_map = Map(self)
+        
+
+        self.dataTable_instace = dataTable()
+        self.grid_layout.addWidget(self.dataTable_instace,1,0,1,2)
+
+        path_of_default = os.path.dirname(__file__) + '/' + 'stops_fern.txt'
+        stations = pd.read_csv(path_of_default, encoding= 'utf8')
+        self.germany_map.drawRouteNetwork(stations,'connections.csv')
+        
+        self.side_winow_instnz = Side_winow(self)
+        self.grid_layout.addWidget(self.side_winow_instnz,0,1)
+
+        window_content = QtWidgets.QWidget()
+        window_content.setLayout(self.grid_layout)
+        self.setCentralWidget(window_content)
+
+    def drawRouteNetwork(self,train_stations,filename_routes):
+        self.germany_map.drawRouteNetwork(train_stations,filename_routes)
+        
     def open_about(self):
         """
         Shows the window of the 'About' menu.
         """
         about_window.show()
-        
-
+    
     def open_readme(self):
         """
         Shows the window of the 'ReadMe' menu. 
@@ -382,12 +378,6 @@ class MainWindow(QtWidgets.QMainWindow):
         
         self.layout.addLayout(sub_layout)
         
-
-        #window_content = QtWidgets.QWidget()
-        #window_content.setLayout(layout)
-        #self.setCentralWidget(window_content)
-
-        pass
 
 
 
@@ -507,15 +497,10 @@ class Side_winow(QtWidgets.QMainWindow):
         sub_layout.addWidget(self.textfield_allInfo)
         sub_layout.addLayout(button_layout_interactive)
         
-
-
         window_content = QtWidgets.QWidget()
         window_content.setLayout(sub_layout)
         self.setCentralWidget(window_content)
         
-        # Können die auskommentierten Dinge raus ? 
-        #self.layout.addLayout(sub_layout)
-        #self.grid_layout.addWidget(sub_layout,1,0)
         
 
     
