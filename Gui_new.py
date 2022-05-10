@@ -61,6 +61,14 @@ from PySide6 import QtCore
 from PySide6 import QtWidgets
 from PySide6 import QtGui
 import json
+import csv
+import numpy as np
+from os.path import exists
+import random
+from datetime import datetime
+import time
+import calendar
+
 
 
 class Map(QtWidgets.QMainWindow):
@@ -186,18 +194,6 @@ class GermanyMap(QtWidgets.QGraphicsView):
         self.line_pen = QtGui.QPen("orange")
         self.line_pen.setWidthF(0.02)
 
-    def load_map_data(self):
-        """
-        Loads the data of the map of Germany.
-        Source of the file:
-        http://opendatalab.de/projects/geojson-utilities/
-        """
-        path_to_map = os.path.dirname(__file__) + '/landkreise_simplify200.geojson'
-        with open(path_to_map,encoding='utf8') as f:
-            data = geojson.load(f)
-        states = data['features']
-        return states
-
     def drawRouteNetwork(self,train_stations,filename_routes):
         """
         Draws stations and routes to the base scene.
@@ -229,8 +225,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
                     print('Kein Bahnhof ausgewählt.')
 
         # Loads the file with the routes
-        path_of_routes = os.path.dirname(__file__) + '/' + filename_routes
-        routes = pd.read_csv(path_of_routes, encoding='utf8')
+        routes = self.main_gui.all_data.lode_routes(filename_routes)
         
         # Drawing the routes
         for start in routes.itertuples():
@@ -254,8 +249,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
         """
 
         self.map_gui.scene = QtWidgets.QGraphicsScene(5.8, 47.3, 9.4, 7.9) 
-
-        states = self.load_map_data()
+        states = self.main_gui.all_data.counts
 
         # Drawing map of Germany
         for state in states:
@@ -283,119 +277,65 @@ class GermanyMap(QtWidgets.QGraphicsView):
 
 
 
+class MenuWindowAbout(QtWidgets.QGraphicsView):
+    """
+    Creates the window of the 'About' menu in the menubar.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Klasse um das Main Window zu erstellen
-class MainWindow(QtWidgets.QMainWindow):
-    
-    def __init__(self):
+    Functions:
+        sizeHint: Contains the preferred default size of the window.
+    """
+    def __init__(self,all_data):
+        """
+        Creates a widget for the About menu.
+        """
         super().__init__()
+        self.all_data = all_data
+        self.setMinimumSize(300, 300)
 
-        self.status_bar = self.statusBar()
+        self.label = QtWidgets.QTextEdit()
+        self.label.setReadOnly(True)
+        self.label.setMarkdown(self.all_data.about_text)
+
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+
+    def sizeHint(self):
+        """
+        Contains the preferred default size of the window.
+        """
+        return QtCore.QSize(700, 600)
+
+class MenuWindowReadMe(QtWidgets.QGraphicsView):
+    """
+    Creates the window of the 'ReadMe' menu in the menubar.
+
+    Functions:
+        sizeHint: Contains the preferred default size of the window.
+    """
+    def __init__(self,all_data):
+        """
+        Creates a widget for the ReadMe menu.
+        """
+        super().__init__()
+        self.all_data = all_data
+        self.setMinimumSize(300, 300)
         
-        menuBar = self.menuBar()
-        about_menu = QtWidgets.QMenu("Help",self)
-        menuBar.addMenu(about_menu)
+        self.label = QtWidgets.QTextEdit()
+        self.label.setReadOnly(True)
+        self.label.setMarkdown(self.all_data.readme_text)
+
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+
     
-        aboutAction = QtGui.QAction("About/Licence", self)
-        readmeAction = QtGui.QAction("ReadMe", self)
 
-        about_menu.addAction(aboutAction)
-        about_menu.addAction(readmeAction)
-
-        aboutAction.triggered.connect(self.open_about)
-        readmeAction.triggered.connect(self.open_readme)
-       
-        self.grid_layout = QtWidgets.QGridLayout()
-        self.setLayout(self.grid_layout)
-        self.germany_map = Map(self)
-        
-
-        self.dataTable_instace = dataTable()
-        self.grid_layout.addWidget(self.dataTable_instace,1,0,1,2)
-
-        path_of_default = os.path.dirname(__file__) + '/' + 'stops_fern.txt'
-        stations = pd.read_csv(path_of_default, encoding= 'utf8')
-        self.germany_map.drawRouteNetwork(stations,'connections.csv')
-        
-        self.side_winow_instnz = Side_winow(self)
-        self.grid_layout.addWidget(self.side_winow_instnz,0,1)
-
-        window_content = QtWidgets.QWidget()
-        window_content.setLayout(self.grid_layout)
-        self.setCentralWidget(window_content)
-
-    def drawRouteNetwork(self,train_stations,filename_routes):
-        self.germany_map.drawRouteNetwork(train_stations,filename_routes)
-        
-    def open_about(self):
+    def sizeHint(self):
         """
-        Shows the window of the 'About' menu.
+        Contains the preferred default size of the window.
         """
-        about_window.show()
-    
-    def open_readme(self):
-        """
-        Shows the window of the 'ReadMe' menu. 
-        """
-        readme_window.show()
-
-    @QtCore.Slot(str)
-    def click_function(self, whole_station_information):
-        """
-        Reacts to clicking of the mouse.
-        """
-        print(whole_station_information + ' geklickt')
-
-    def transtachen_show(self):
-        table_view = QtWidgets.QTableView()
-        table_model = tableCreator()
-        table_view.setModel(table_model)
-        
-        sub_layout = QtWidgets.QHBoxLayout()
-        sub_layout.addWidget(table_view)
-        
-        self.layout.addLayout(sub_layout)
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        return QtCore.QSize(600, 600)
 
 
 
@@ -420,9 +360,7 @@ class Side_winow(QtWidgets.QMainWindow):
         super().__init__()
             
         self.main_gui = main_gui
-        # Können die auskommentierten Dinge raus ? 
-        #path_for_click = os.path.dirname(__file__) + '/' + "stops_regional.txt"
-        #stations = pd.read_csv(path_for_click, encoding= 'utf8')
+        
         
         # -------------- COMBOBOXES ----------------
         self.combobox_start = QtWidgets.QComboBox()
@@ -501,9 +439,6 @@ class Side_winow(QtWidgets.QMainWindow):
         window_content.setLayout(sub_layout)
         self.setCentralWidget(window_content)
         
-        
-
-    
     def set_text_start_values(self):
         """
         Sets the first strings in the text box.        
@@ -546,34 +481,25 @@ class Side_winow(QtWidgets.QMainWindow):
         self.zielbahnhof = value
         self.update_text()
   
-
     def clickFunctionLongDistance(self):
         """
         Loads long distance data, if button 'Fernverkehr' is clicked.
         """
-        self.clickFunction('stops_fern.txt') 
+        self.clickFunction(self.main_gui.all_data.stops_fern) 
 
     def clickFunctionShortDistance(self):
         """
         Loads short distance data, if button 'Nahverkehr' is clicked.
         """
-        self.clickFunction('train_stachen.csv')  
+        self.clickFunction(self.main_gui.all_data.stops_nah)  
 
     def clickFunctionRegional(self):
         """
         Loads regional data, if button 'Regionalverkehr' is clicked.
         """
-        self.clickFunction('stops_regional.txt') 
+        self.clickFunction(self.main_gui.all_data.stops_regional) 
 
-    def clickFunction(self,path_name):
-        path_for_click = os.path.dirname(__file__) + '/' + path_name
-        stations = pd.read_csv(path_for_click, encoding= 'utf8')
-        
-        
-        # Kann das weg ? :-D 
-        print("ashdashfpiashfpahbp")
-        print(stations)
-
+    def clickFunction(self,stations):       
         self.main_gui.drawRouteNetwork(stations,'connections.csv') 
         train_stations = stations['stop_name']
         self.combobox_start.addItems(train_stations)
@@ -581,102 +507,6 @@ class Side_winow(QtWidgets.QMainWindow):
 
 
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-class MenuWindowAbout(QtWidgets.QGraphicsView):
-    """
-    Creates the window of the 'About' menu in the menubar.
-
-    Functions:
-        sizeHint: Contains the preferred default size of the window.
-    """
-    def __init__(self):
-        """
-        Creates a widget for the About menu.
-        """
-        super().__init__()
-        self.setMinimumSize(300, 300)
-        
-        # Open the 'About' file and print it in a label of a new window.
-        path_to_about = os.path.dirname(__file__) + '/' + 'ABOUT.txt'
-        with open(path_to_about, encoding='utf8') as about_file:
-            about_text = about_file.read()
-
-        self.label = QtWidgets.QTextEdit()
-        self.label.setReadOnly(True)
-        self.label.setMarkdown(about_text)
-
-        layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(self.label)
-        self.setLayout(layout)
-
-    def sizeHint(self):
-        """
-        Contains the preferred default size of the window.
-        """
-        return QtCore.QSize(700, 600)
-
-class MenuWindowReadMe(QtWidgets.QGraphicsView):
-    """
-    Creates the window of the 'ReadMe' menu in the menubar.
-
-    Functions:
-        sizeHint: Contains the preferred default size of the window.
-    """
-    def __init__(self):
-        """
-        Creates a widget for the ReadMe menu.
-        """
-        super().__init__()
-        self.setMinimumSize(300, 300)
-
-        # Open the 'ReadMe' file and print it in a label of a new window.
-        path_to_readme = os.path.dirname(__file__) + '/' + 'README.txt'
-        with open(path_to_readme, encoding='utf8') as readme_file:
-            readme_text = readme_file.read()
-
-        self.label = QtWidgets.QTextEdit()
-        self.label.setReadOnly(True)
-        self.label.setMarkdown(readme_text)
-
-        layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(self.label)
-        self.setLayout(layout)
-
-    
-
-    def sizeHint(self):
-        """
-        Contains the preferred default size of the window.
-        """
-        return QtCore.QSize(600, 600)
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -735,16 +565,6 @@ class tableCreator(QtCore.QAbstractTableModel):
         
         return self.dataframe.columns[index]
  
-
-
-
-
-
-
-
-
-
-
 class dataTable(QtWidgets.QMainWindow):
     """
     Creates a widget of the 'tableCreator'. 
@@ -779,18 +599,159 @@ class dataTable(QtWidgets.QMainWindow):
 
 
 
+
+
+
+
+# Klasse um das Main Window zu erstellen
+class MainWindow(QtWidgets.QMainWindow):
+    
+    def __init__(self,all_data):
+        super().__init__()
+
+        self.all_data = all_data
+
+        self.status_bar = self.statusBar()
+        
+        menuBar = self.menuBar()
+        about_menu = QtWidgets.QMenu("Help",self)
+        menuBar.addMenu(about_menu)
+    
+        aboutAction = QtGui.QAction("About/Licence", self)
+        readmeAction = QtGui.QAction("ReadMe", self)
+
+        about_menu.addAction(aboutAction)
+        about_menu.addAction(readmeAction)
+
+        aboutAction.triggered.connect(self.open_about)
+        readmeAction.triggered.connect(self.open_readme)
+       
+        self.grid_layout = QtWidgets.QGridLayout()
+        self.setLayout(self.grid_layout)
+        self.germany_map = Map(self)
+        
+
+        self.dataTable_instace = dataTable()
+        self.grid_layout.addWidget(self.dataTable_instace,1,0,1,2)
+
+        stations = self.all_data.stops_fern
+        self.germany_map.drawRouteNetwork(stations,'connections.csv')
+        
+        self.side_winow_instnz = Side_winow(self)
+        self.grid_layout.addWidget(self.side_winow_instnz,0,1)
+
+        window_content = QtWidgets.QWidget()
+        window_content.setLayout(self.grid_layout)
+        self.setCentralWidget(window_content)
+
+    def drawRouteNetwork(self,train_stations,filename_routes):
+        self.germany_map.drawRouteNetwork(train_stations,filename_routes)
+        
+    def open_about(self):
+        """
+        Shows the window of the 'About' menu.
+        """
+        about_window.show()
+    
+    def open_readme(self):
+        """
+        Shows the window of the 'ReadMe' menu. 
+        """
+        readme_window.show()
+
+    @QtCore.Slot(str)
+    def click_function(self, whole_station_information):
+        """
+        Reacts to clicking of the mouse.
+        """
+        print(whole_station_information + ' geklickt')
+
+    def transtachen_show(self):
+        table_view = QtWidgets.QTableView()
+        table_model = tableCreator()
+        table_view.setModel(table_model)
+        
+        sub_layout = QtWidgets.QHBoxLayout()
+        sub_layout.addWidget(table_view)
+        
+        self.layout.addLayout(sub_layout)
+        
+
+
+
+
+
+
+
+
+class Data():
+
+    def __init__(self):
+        self.counts = self.load_map_data()
+        self.about_text = self.lode_about_text()
+        self.readme_text = self.lode_about_text()
+        self.stops_fern = self.lode_routes('stops_fern.txt')
+
+        self.lode_rest()
+
+    def lode_rest(self):
+        self.stops_nah = self.lode_routes('stops_nah.txt')
+        self.stops_regional = self.lode_routes('stops_regional.txt')
+
+
+  
+
+
+
+    def load_map_data(self):
+        """
+        Loads the data of the map of Germany.
+        Source of the file:
+        http://opendatalab.de/projects/geojson-utilities/
+        """
+        path_to_map = os.path.dirname(__file__) + '/landkreise_simplify200.geojson'
+        with open(path_to_map,encoding='utf8') as f:
+            data = geojson.load(f)
+        states = data['features']
+        return states
+
+    def lode_about_text(self):
+        # Open the 'About' file and print it in a label of a new window.
+        path_to_about = os.path.dirname(__file__) + '/' + 'ABOUT.txt'
+        with open(path_to_about, encoding='utf8') as about_file:
+            about_text = about_file.read()
+        return about_text
+
+    def lode_readme_text(self):
+        # Open the 'ReadMe' file and print it in a label of a new window.
+        path_to_readme = os.path.dirname(__file__) + '/' + 'README.txt'
+        with open(path_to_readme, encoding='utf8') as readme_file:
+            readme_text = readme_file.read()
+        return readme_text
+
+    def lode_routes(self,filename_routes):
+        # Loads the file with the routes
+        #filename_routes = "bla"
+
+        path_of_routes = os.path.dirname(__file__) + '/' + filename_routes
+        routes = pd.read_csv(path_of_routes, encoding='utf8')
+        return routes
+
+
 # Calling the MainWindow, MenuWindowAbout and MenuWindowReadMe classes
 # and display them as windows
 if __name__ == "__main__":
+    all_data = Data()
+
     app = QtWidgets.QApplication(sys.argv)
 
-    window = MainWindow()
+    window = MainWindow(all_data)
     window.setWindowTitle("Deutsches Bahnnetz")
     window.show()
 
-    about_window = MenuWindowAbout()
+    about_window = MenuWindowAbout(all_data)
     about_window.setWindowTitle("About - Über dieses Programm")
-    readme_window = MenuWindowReadMe()
+    readme_window = MenuWindowReadMe(all_data)
     readme_window.setWindowTitle("Read Me - Wichtig zu wissen")
 
     sys.exit(app.exec())
