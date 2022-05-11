@@ -674,7 +674,6 @@ class Model():
         self.cerent_connections = self.all_data.connections_fern
         self.cerent_gtfs = self.all_data.gtfs("latest_fern")
         self.trainstachen_info = None
-        
 
     def set_main_gui(self,main_gui):
         self.main_gui = main_gui
@@ -686,20 +685,28 @@ class Model():
         return self.cerent_connections
 
     def change_cerent_stops(self,new_type):
-        if new_type == "stops_fern":
-            self.cerent_stops = self.all_data.get_stops_fern()
-            self.cerent_connections = self.all_data.get_connections_fern()
-            self.cerent_gtfs = self.all_data.gtfs("latest_fern")
-        if new_type == "stops_nah":
-            self.cerent_stops = self.all_data.get_stops_nah()
-            self.cerent_connections = self.all_data.get_connections_nah()
-            self.cerent_gtfs = self.all_data.gtfs("latest_nah")
-        if new_type == "stops_regional":
-            self.cerent_stops = self.all_data.get_stops_regional()
-            self.cerent_connections = self.all_data.get_connections_regional()
-            self.cerent_gtfs = self.all_data.gtfs("latest_regional")
-        
-        self.main_gui.drawRouteNetwork(self.cerent_stops,'connections.csv') 
+        if not (new_type in self.all_data.delited_kategorie_opchens):
+            start_veluages = [self.cerent_stops,self.cerent_connections,self.cerent_gtfs]
+
+            if new_type == "stops_fern":
+                self.cerent_stops = self.all_data.get_stops_fern()
+                self.cerent_connections = self.all_data.get_connections_fern()
+                self.cerent_gtfs = self.all_data.gtfs("latest_fern")
+            if new_type == "stops_nah":
+                self.cerent_stops = self.all_data.get_stops_nah()
+                self.cerent_connections = self.all_data.get_connections_nah()
+                self.cerent_gtfs = self.all_data.gtfs("latest_nah")
+            if new_type == "stops_regional":
+                self.cerent_stops = self.all_data.get_stops_regional()
+                self.cerent_connections = self.all_data.get_connections_regional()
+                self.cerent_gtfs = self.all_data.gtfs("latest_regional")
+
+            if self.cerent_gtfs == None:
+                self.cerent_stops = start_veluages[0]
+                self.cerent_connections = start_veluages[1]
+                self.cerent_gtfs = start_veluages[2]
+            else:
+                self.main_gui.drawRouteNetwork(self.cerent_stops,'connections.csv') 
         
     def get_about_text(self):
         return self.all_data.about_text
@@ -719,17 +726,14 @@ class Model():
 
 
 
-
-
-
-
-
 class Data(threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self)
 
     def run(self):
+        self.delited_kategorie_opchens = []
+
         self.counts = self.load_map_data()
         self.about_text = self.lode_about_text()
         self.readme_text = self.lode_readme_text()
@@ -787,19 +791,24 @@ class Data(threading.Thread):
     def get_connections_fern(self):
         return self.connections_fern
 
-
     def gtfs(self,kategorie):
         if kategorie == "latest_nah":
             if self.gtfs_nah == None:
                 self.gtfs_nah = self.gtfs_nah_pre.result()
+                if self.gtfs_nah == None:
+                    self.delited_kategorie_opchens.append("stops_nah")
             return self.gtfs_nah
 
         if kategorie == "latest_fern":
+            if self.gtfs_fern == None:
+                self.delited_kategorie_opchens.append("stops_fern")
             return self.gtfs_fern
 
         if kategorie == "latest_regional":
             if self.gtfs_regional == None:
                 self.gtfs_regional = self.gtfs_regional_pre.result()
+                if self.gtfs_regional == None:
+                    self.delited_kategorie_opchens.append("stops_regional")
             return self.gtfs_regional
 
     def lode_gtfs(self,kategorie):
@@ -807,6 +816,8 @@ class Data(threading.Thread):
 
         data_names = ['agency','calendar','calendar_dates','feed_info','routes','stop_times','stops','trips']
         name_dict = {}
+
+        gtfs_is_missing_files = False
 
         for name in data_names:
             pfad = pfad_start + name + '.txt'
@@ -822,6 +833,12 @@ class Data(threading.Thread):
             else:
                 print("Die Datei " + name + " wurde nicht Gefunden")
                 print(os.path.abspath(os.path.join(os.path.dirname( __file__ ), name + '.txt')))
+                gtfs_is_missing_files = True
+
+        if gtfs_is_missing_files:
+            print(" \n \n")
+            print("da die daten von " + kategorie + " nicht geladen werden konten \n Kann man diese auch nicht aus welen")
+            return None
 
         print(kategorie)
         return name_dict
@@ -833,32 +850,45 @@ class Data(threading.Thread):
         http://opendatalab.de/projects/geojson-utilities/
         """
         path_to_map = os.path.dirname(__file__) + '/landkreise_simplify200.geojson'
-        with open(path_to_map,encoding='utf8') as f:
-            data = geojson.load(f)
-        states = data['features']
-        return states
+        if exists(path_to_map):
+            with open(path_to_map,encoding='utf8') as f:
+                data = geojson.load(f)
+            states = data['features']
+            return states
+        else:
+            print("the landkreise_simplify200.geojson file is missing.")
+            print("ists a criticel pat, therfor the program is shatig down.")
+            print("the data is awaleble at http://opendatalab.de/projects/geojson-utilities/")
+            exit()
 
     def lode_about_text(self):
         # Open the 'About' file and print it in a label of a new window.
         path_to_about = os.path.dirname(__file__) + '/' + 'ABOUT.md'
-        with open(path_to_about, encoding='utf8') as about_file:
-            about_text = about_file.read()
-        return about_text
+        if exists(path_to_about):
+            with open(path_to_about, encoding='utf8') as about_file:
+                about_text = about_file.read()
+            return about_text
+        else:
+            return "No ABOUT text was found"
 
     def lode_readme_text(self):
         # Open the 'ReadMe' file and print it in a label of a new window.
         path_to_readme = os.path.dirname(__file__) + '/' + 'README.md'
-        with open(path_to_readme, encoding='utf8') as readme_file:
-            readme_text = readme_file.read()
-        return readme_text
+        if exists(path_to_readme):
+            with open(path_to_readme, encoding='utf8') as readme_file:
+                readme_text = readme_file.read()
+            return readme_text
+        else:
+            return "no README text was found"
 
     def lode_text(self,filename_routes):
         # Loads the file with the routes
-        #filename_routes = "bla"
 
         path_of_routes = os.path.dirname(__file__) + '/' + filename_routes
-        routes = pd.read_csv(path_of_routes, encoding='utf8')
-        return routes
+        if exists(path_of_routes):
+            routes = pd.read_csv(path_of_routes, encoding='utf8')
+            return routes
+        return False
 
     def create_trainstachen_info(self,date,trainstachen_name,time_spane,name_dict):
 
@@ -955,15 +985,6 @@ class Data(threading.Thread):
         else:
             fetback_df = pd.DataFrame([["Keiene Züge gefunden"]], columns=["Info"])
             return fetback_df
-
-
-
-
-
-
-
-
-
 
 
 
