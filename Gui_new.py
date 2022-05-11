@@ -702,7 +702,7 @@ class Data():
     def __init__(self):
         self.counts = self.load_map_data()
         self.about_text = self.lode_about_text()
-        self.readme_text = self.lode_about_text()
+        self.readme_text = self.lode_readme_text()
         self.stops_fern = self.lode_routes('stops_fern.txt')
 
         self.lode_rest()
@@ -750,14 +750,14 @@ class Data():
 
     def lode_about_text(self):
         # Open the 'About' file and print it in a label of a new window.
-        path_to_about = os.path.dirname(__file__) + '/' + 'ABOUT.txt'
+        path_to_about = os.path.dirname(__file__) + '/' + 'ABOUT.md'
         with open(path_to_about, encoding='utf8') as about_file:
             about_text = about_file.read()
         return about_text
 
     def lode_readme_text(self):
         # Open the 'ReadMe' file and print it in a label of a new window.
-        path_to_readme = os.path.dirname(__file__) + '/' + 'README.txt'
+        path_to_readme = os.path.dirname(__file__) + '/' + 'README.md'
         with open(path_to_readme, encoding='utf8') as readme_file:
             readme_text = readme_file.read()
         return readme_text
