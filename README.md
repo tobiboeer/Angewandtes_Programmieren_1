@@ -25,9 +25,9 @@ Data preparation can be done with XXXX.py but this takes a long time.
 
 **Using the Program**
 
-If you execute the program, you get the following window.
+If you execute the program, you get the following window:
 
-![Alt text](/../<master>/path/to/Unbenannt.png?raw=true "Optional Title")
+![ScreenShot](https://raw.github.com/tobiboeer/Angewandtes_Programmieren_1/blob/master/Unbenannt.png)
 
 ---
 
