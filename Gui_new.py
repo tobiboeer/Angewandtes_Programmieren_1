@@ -220,6 +220,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
 
         # Loads the file with the routes
         routes = self.main_gui.model.all_data.lode_routes(filename_routes) # muss definitif überarbeitet werden
+        routes = self.main_gui.model.get_conectons()
         
         # Drawing the routes
         for start in routes.itertuples():
@@ -265,9 +266,6 @@ class GermanyMap(QtWidgets.QGraphicsView):
                         polygon_item.station = state['properties']['GEN']
                        
                     self.map_gui.scene.setBackgroundBrush(self.ocean_brush)
-
-
-
 
 
 
@@ -324,11 +322,6 @@ class MenuWindowReadMe(QtWidgets.QGraphicsView):
         Contains the preferred default size of the window.
         """
         return QtCore.QSize(600, 600)
-
-
-
-
-
 
 
 class Side_winow(QtWidgets.QMainWindow):
@@ -585,16 +578,6 @@ class dataTable(QtWidgets.QMainWindow):
 
 
 
-
-
-
-
-
-
-
-
-
-
 # Klasse um das Main Window zu erstellen
 class MainWindow(QtWidgets.QMainWindow):
     """
@@ -686,6 +669,7 @@ class Model():
     def __init__(self,all_data):
         self.all_data = all_data
         self.cerent_stops = self.all_data.stops_fern
+        self.cerent_connections = self.all_data.connections_fern
         self.trainstachen_info = None
         pass
 
@@ -695,13 +679,19 @@ class Model():
     def get_cerent_stops(self):
         return self.cerent_stops
 
+    def get_conectons(self):
+        return self.cerent_connections
+
     def change_cerent_stops(self,new_type):
         if new_type == "stops_fern":
             self.cerent_stops = self.all_data.stops_fern
+            self.cerent_connections = self.all_data.connections_fern
         if new_type == "stops_nah":
             self.cerent_stops = self.all_data.stops_nah
+            self.cerent_connections = self.all_data.connections_nah
         if new_type == "stops_regional":
             self.cerent_stops = self.all_data.stops_regional
+            self.cerent_connections = self.all_data.connections_regional
         
         self.main_gui.drawRouteNetwork(self.cerent_stops,'connections.csv') 
         
@@ -726,6 +716,7 @@ class Data():
         self.about_text = self.lode_about_text()
         self.readme_text = self.lode_readme_text()
         self.stops_fern = self.lode_routes('stops_fern.txt')
+        self.connections_fern = self.lode_routes('connections_fern.csv')
 
         self.lode_rest()
         self.gtfs_fern = self.lode_gtfs("latest_fern")
@@ -734,6 +725,8 @@ class Data():
     def lode_rest(self):
         self.stops_nah = self.lode_routes('stops_nah.txt')
         self.stops_regional = self.lode_routes('stops_regional.txt')
+        self.connections_regional = self.lode_routes('connections_regional.csv')
+        self.connections_nah = self.lode_routes('connections_og.csv')
 
     def lode_gtfs(self,kategorie):
         pfad_start = os.path.abspath(os.path.join(os.path.dirname( __file__ ), kategorie))+ '\\'
