@@ -226,7 +226,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
                     print('Kein Bahnhof ausgewählt.')
 
         # Loads the file with the routes
-        routes = self.main_gui.all_data.lode_routes(filename_routes)
+        routes = self.main_gui.model.all_data.lode_routes(filename_routes) # muss definitif überarbeitet werden
         
         # Drawing the routes
         for start in routes.itertuples():
@@ -250,7 +250,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
         """
 
         self.map_gui.scene = QtWidgets.QGraphicsScene(5.8, 47.3, 9.4, 7.9) 
-        states = self.main_gui.all_data.counts
+        states = self.main_gui.model.get_counts()
 
         # Drawing map of Germany
         for state in states:
@@ -285,17 +285,17 @@ class MenuWindowAbout(QtWidgets.QGraphicsView):
     Functions:
         sizeHint: Contains the preferred default size of the window.
     """
-    def __init__(self,all_data):
+    def __init__(self,model):
         """
         Creates a widget for the About menu.
         """
         super().__init__()
-        self.all_data = all_data
+        self.model = model
         self.setMinimumSize(300, 300)
 
         self.label = QtWidgets.QTextEdit()
         self.label.setReadOnly(True)
-        self.label.setMarkdown(self.all_data.about_text)
+        self.label.setMarkdown(self.model.get_about_text())
 
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.label)
@@ -319,12 +319,12 @@ class MenuWindowReadMe(QtWidgets.QGraphicsView):
         Creates a widget for the ReadMe menu.
         """
         super().__init__()
-        self.all_data = all_data
+        self.model = model
         self.setMinimumSize(300, 300)
         
         self.label = QtWidgets.QTextEdit()
         self.label.setReadOnly(True)
-        self.label.setMarkdown(self.all_data.readme_text)
+        self.label.setMarkdown(self.model.get_readme_text())
 
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.label)
@@ -439,9 +439,8 @@ class Side_winow(QtWidgets.QMainWindow):
         window_content = QtWidgets.QWidget()
         window_content.setLayout(sub_layout)
         self.setCentralWidget(window_content)
-        
-    def bla(self, value):
-        print(value)
+
+        self.set_train_stations_list()
 
     def set_text_start_values(self):
         """
@@ -489,33 +488,36 @@ class Side_winow(QtWidgets.QMainWindow):
         """
         Loads long distance data, if button 'Fernverkehr' is clicked.
         """
-        self.clickFunction(self.main_gui.all_data.stops_fern) 
+        self.main_gui.model.change_cerent_stops("stops_fern")
+        self.set_train_stations_list()
 
     def clickFunctionShortDistance(self):
         """
         Loads short distance data, if button 'Nahverkehr' is clicked.
         """
-        self.clickFunction(self.main_gui.all_data.stops_nah)  
+        self.main_gui.model.change_cerent_stops("stops_nah")
+        self.set_train_stations_list()
 
     def clickFunctionRegional(self):
         """
         Loads regional data, if button 'Regionalverkehr' is clicked.
         """
-        self.clickFunction(self.main_gui.all_data.stops_regional) 
+        self.main_gui.model.change_cerent_stops("stops_regional")
+        self.set_train_stations_list()
 
-    def clickFunction(self,stations):  
-        print(self.textfield_time_dif.time().toString())  # bitte drin lassen
-
-        self.main_gui.drawRouteNetwork(stations,'connections.csv') 
+    def set_train_stations_list(self):  
+        stations = self.main_gui.model.get_cerent_stops()
         train_stations = stations['stop_name']
         self.combobox_start.addItems(train_stations)
 
     def trainstachen_recqest(self):
-        pass
-    
+        time_span = self.textfield_time_dif.time().toString()
 
+        day = datetime.today().weekday()
+        hauer = int(datetime.now().strftime("%H"))
+        min = int(datetime.now().strftime("%M"))
 
-
+        self.main_gui.model.change_trainstachen_info(time_span,day,hauer,min,self.abfahrtsbahnhof)
 
 # Ideen zum Verbessern der Tabelle:
 # - Überschrift: wenn auf auf einen Bahnhof gedrückt wird, werden die Werte angezeigt
@@ -583,23 +585,18 @@ class dataTable(QtWidgets.QMainWindow):
 
         self.setMinimumSize(140, 250)
         
-        table_view = QtWidgets.QTableView()
-        day = datetime.today().weekday()
-        hauer = int(self.main_gui.side_winow_instnz.textfield_time.time().toString()[0:2])
-        print("hauer",hauer)
-        min = int(datetime.now().strftime("%M"))
-        time_span = self.main_gui.side_winow_instnz.textfield_time_dif.time().toString()
-        df = self.main_gui.all_data.get_trainstachen_info([day,hauer,min],"Hamburg Hbf",time_span)
-        table_model = tableCreator(df)
-        table_view.setModel(table_model)
-        
+        self.table_view = QtWidgets.QTableView()
+                
         layout = QtWidgets.QHBoxLayout()
-        layout.addWidget(table_view)
+        layout.addWidget(self.table_view)
         
         window_content = QtWidgets.QWidget()
         window_content.setLayout(layout)
         self.setCentralWidget(window_content)
 
+    def set_df(self,trainstachen_info):
+        table_model = tableCreator(trainstachen_info)
+        self.table_view.setModel(table_model)
 
 
 
@@ -618,10 +615,11 @@ class dataTable(QtWidgets.QMainWindow):
 # Klasse um das Main Window zu erstellen
 class MainWindow(QtWidgets.QMainWindow):
     
-    def __init__(self,all_data):
+    def __init__(self,model):
         super().__init__()
 
-        self.all_data = all_data
+        self.model = model
+        self.model.set_main_gui(self)
 
         self.status_bar = self.statusBar()
         
@@ -648,11 +646,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.dataTable_instace = dataTable(self)
         self.grid_layout.addWidget(self.dataTable_instace,1,0,1,2)
 
-        stations = self.all_data.stops_fern
+        stations = self.model.get_cerent_stops()
         self.germany_map.drawRouteNetwork(stations,'connections.csv')
         
-        
-
         window_content = QtWidgets.QWidget()
         window_content.setLayout(self.grid_layout)
         self.setCentralWidget(window_content)
@@ -693,9 +689,43 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 
+class Model():
 
+    def __init__(self,all_data):
+        self.all_data = all_data
+        self.cerent_stops = self.all_data.stops_fern
+        self.trainstachen_info = None
+        pass
 
+    def set_main_gui(self,main_gui):
+        self.main_gui = main_gui
 
+    def get_cerent_stops(self):
+        return self.cerent_stops
+
+    def change_cerent_stops(self,new_type):
+        if new_type == "stops_fern":
+            self.cerent_stops = self.all_data.stops_fern
+        if new_type == "stops_nah":
+            self.cerent_stops = self.all_data.stops_nah
+        if new_type == "stops_regional":
+            self.cerent_stops = self.all_data.stops_regional
+        
+        self.main_gui.drawRouteNetwork(self.cerent_stops,'connections.csv') 
+        
+    def get_about_text(self):
+        return self.all_data.about_text
+
+    def get_readme_text(self):
+        return self.all_data.readme_text
+
+    def get_counts(self):
+        return self.all_data.counts
+
+    def change_trainstachen_info(self,time_span,day,hauer,min,trainstachen):
+        self.trainstachen_info = self.all_data.create_trainstachen_info([day,hauer,min],trainstachen,time_span)
+        self.main_gui.dataTable_instace.set_df(self.trainstachen_info)
+        
 
 class Data():
 
@@ -770,14 +800,15 @@ class Data():
         routes = pd.read_csv(path_of_routes, encoding='utf8')
         return routes
 
-    def get_trainstachen_info(self,date,trainstachen_name,time_spane):
+    def create_trainstachen_info(self,date,trainstachen_name,time_spane):
+
+        print(date,trainstachen_name,time_spane)
 
         name_dict = self.gtfs_fern
 
-        time_spane = int(time_spane[3:5])
+        time_spane = int(time_spane[0:2])
         if time_spane == 0:
             time_spane = 1
-        print("time_spane " , time_spane)
 
         day_given = date[0]
         hauer = date[1]
@@ -854,15 +885,22 @@ class Data():
                             conactions_df.loc[conactions_df_counter] = [agency_name_instanz, route_long_name,end_station_name,arrival_time,departure_time]
                         conactions_df_counter += 1
 
-        conactions_df = conactions_df.sort_values(by=['arrival_time'])
-        actuell_time = str(hauer) + ":" + str(min) + ":00"
+        if conactions_df_counter > 0:
 
-        conactions_df_firs = conactions_df.loc[conactions_df["arrival_time"] >= actuell_time]
-        conactions_df_sec = conactions_df.loc[conactions_df["arrival_time"] < actuell_time]
+            conactions_df = conactions_df.sort_values(by=['arrival_time'])
+            actuell_time = str(hauer) + ":" + str(min) + ":00"
 
-        conactions_df = pd.concat([conactions_df_firs,conactions_df_sec])
+            conactions_df_firs = conactions_df.loc[conactions_df["arrival_time"] >= actuell_time]
+            conactions_df_sec = conactions_df.loc[conactions_df["arrival_time"] < actuell_time]
 
-        return conactions_df
+            conactions_df = pd.concat([conactions_df_firs,conactions_df_sec])
+
+            return conactions_df
+        else:
+            fetback_df = pd.DataFrame([["Keiene Züge gefunden"]], columns=["Info"])
+            return fetback_df
+
+
 
 
 
@@ -880,15 +918,17 @@ class Data():
 if __name__ == "__main__":
     all_data = Data()
 
+    model = Model(all_data)
+
     app = QtWidgets.QApplication(sys.argv)
 
-    window = MainWindow(all_data)
+    window = MainWindow(model)
     window.setWindowTitle("Deutsches Bahnnetz")
     window.show()
 
-    about_window = MenuWindowAbout(all_data)
+    about_window = MenuWindowAbout(model)
     about_window.setWindowTitle("About - Über dieses Programm")
-    readme_window = MenuWindowReadMe(all_data)
+    readme_window = MenuWindowReadMe(model)
     readme_window.setWindowTitle("Read Me - Wichtig zu wissen")
 
     sys.exit(app.exec())
