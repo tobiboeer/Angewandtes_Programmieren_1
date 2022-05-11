@@ -14,43 +14,26 @@ Classes:
     MenuWindowReadMe: QGraphicsView
         Contains the Graphicsscene of the 'ReadMe' menu.
 
-Date: May 2022
+Date: 13. May 2022
 
 Authors:
     Fabian Kessener
     Tobias Boeer
     Timon Fass
 
+Emails:
+    fabian.kessener@student.jade-hs.de
+    tobias.boeer@student.jade-hs.de
+    timon.fass@student.jade-hs.de
+
 Version: 1.0
 
-Licence: The 3-Clause BSD License
+Licence: 
     
     Copyright: (c) 2022, Kessener, Boeer, Fass
-
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are met:
-
-    1. Redistributions of source code must retain the above copyright notice, 
-    this list of conditions and the following disclaimer.
-
-    2. Redistributions in binary form must reproduce the above copyright notice,
-    this list of conditions and the following disclaimer in the documentation and/or
-    other materials provided with the distribution.
-
-    3. Neither the name of the copyright holder nor the names of its contributors
-    may be used to endorse or promote products derived from this software without
-    specific prior written permission.
-
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-    IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
-    INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
-    NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
-    PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-    WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
-    OF SUCH DAMAGE.
+    This code is published under the terms of the 3-Clause BSD License.
+    The full text can be seen in ABOUT.md or the 'About/Licence' dropdown
+    menu.
 """
 
 import re
@@ -73,6 +56,9 @@ import calendar
 
 
 class Map(QtWidgets.QMainWindow):
+    """
+    Creates the main window for the map.
+    """
 
     def __init__(self,main_gui):
   
@@ -85,6 +71,9 @@ class Map(QtWidgets.QMainWindow):
 
 # Klasse für die Deutschlandkarte
 class GermanyMap(QtWidgets.QGraphicsView):
+    """
+    Graphicsscene of the map of Germany.
+    """
   
     # Signals to react to mouse movement and clicking
     currentStation = QtCore.Signal(str)
@@ -183,6 +172,10 @@ class GermanyMap(QtWidgets.QGraphicsView):
         return QtCore.QSize(140*4, 180*4)
 
     def pens_and_brushes(self):
+        """
+        Contains all pens and brushes.
+        """
+
         self.ocean_brush = QtGui.QBrush("lightblue", QtCore.Qt.BrushStyle.BDiagPattern)
         self.country_pen = QtGui.QPen("black")
         self.country_pen.setWidthF(0.01)
@@ -281,9 +274,6 @@ class GermanyMap(QtWidgets.QGraphicsView):
 class MenuWindowAbout(QtWidgets.QGraphicsView):
     """
     Creates the window of the 'About' menu in the menubar.
-
-    Functions:
-        sizeHint: Contains the preferred default size of the window.
     """
     def __init__(self,model):
         """
@@ -310,9 +300,6 @@ class MenuWindowAbout(QtWidgets.QGraphicsView):
 class MenuWindowReadMe(QtWidgets.QGraphicsView):
     """
     Creates the window of the 'ReadMe' menu in the menubar.
-
-    Functions:
-        sizeHint: Contains the preferred default size of the window.
     """
     def __init__(self,all_data):
         """
@@ -343,11 +330,7 @@ class MenuWindowReadMe(QtWidgets.QGraphicsView):
 
 
 
-#############################################
-# Notiz für uns: Ab hier beginnt Tobis Code #
-#############################################
 
-# Klasse für die Deutschlandkarte
 class Side_winow(QtWidgets.QMainWindow):
     """
     Creating an interactive widget next to the german map.
@@ -355,7 +338,7 @@ class Side_winow(QtWidgets.QMainWindow):
 
     def __init__(self,main_gui):
         """
-        Instantiate the main aspects of an interactive planer. 
+        Instantiate the main aspects of an interactive planner. 
         It contains the comboboxes, textfields, labels, layouts and buttons.       
         """
         super().__init__()
@@ -614,6 +597,9 @@ class dataTable(QtWidgets.QMainWindow):
 
 # Klasse um das Main Window zu erstellen
 class MainWindow(QtWidgets.QMainWindow):
+    """
+    Creates the main window of the GUI.
+    """
     
     def __init__(self,model):
         super().__init__()
@@ -621,8 +607,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.model = model
         self.model.set_main_gui(self)
 
+#--------------- Statusbar ---------------------------------------------
         self.status_bar = self.statusBar()
-        
+
+#--------------- Menubar -----------------------------------------------
+# According to:
+# https://realpython.com/python-menus-toolbars/#populating-menus-with-actions
+# https://pythonprogramming.net/menubar-pyqt-tutorial/
+
         menuBar = self.menuBar()
         about_menu = QtWidgets.QMenu("Help",self)
         menuBar.addMenu(about_menu)
@@ -732,7 +724,7 @@ class Data():
     def __init__(self):
         self.counts = self.load_map_data()
         self.about_text = self.lode_about_text()
-        self.readme_text = self.lode_about_text()
+        self.readme_text = self.lode_readme_text()
         self.stops_fern = self.lode_routes('stops_fern.txt')
 
         self.lode_rest()
@@ -780,14 +772,14 @@ class Data():
 
     def lode_about_text(self):
         # Open the 'About' file and print it in a label of a new window.
-        path_to_about = os.path.dirname(__file__) + '/' + 'ABOUT.txt'
+        path_to_about = os.path.dirname(__file__) + '/' + 'ABOUT.md'
         with open(path_to_about, encoding='utf8') as about_file:
             about_text = about_file.read()
         return about_text
 
     def lode_readme_text(self):
         # Open the 'ReadMe' file and print it in a label of a new window.
-        path_to_readme = os.path.dirname(__file__) + '/' + 'README.txt'
+        path_to_readme = os.path.dirname(__file__) + '/' + 'README.md'
         with open(path_to_readme, encoding='utf8') as readme_file:
             readme_text = readme_file.read()
         return readme_text
