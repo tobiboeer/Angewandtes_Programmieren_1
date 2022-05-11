@@ -10,13 +10,24 @@
 
 **Executing the Program**
 
-Hier steht der Text
+This program was only tested with Windows 10 (was habt ihr für
+Betriebssysteme?) and Python 3.10.2 (Welche Version habt ihr?).
+Before use you need to install following modules:
+- pandas
+- geojson
+- PySide6
+- numpy  
+
+To start the program you need to execute the file XXXX.py. 
+Data preparation can be done with XXXX.py but this takes a long time.
 
 ---
 
 **Using the Program**
 
-Hier steht der Text
+If you execute the program, you get the following window.
+
+![Alt text](/../<master>/path/to/Unbenannt.png?raw=true "Optional Title")
 
 ---
 
