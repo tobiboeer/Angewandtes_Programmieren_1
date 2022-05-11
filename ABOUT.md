@@ -1,14 +1,14 @@
-**ABOUT/LICENCE**
+# ABOUT/LICENCE
 
 This program is a project by students from Assistive Technologies of the Jade Hochschule Oldenburg in the module "Applied Programming". 
 
-*Date:* 13. May 2022
+**Date:** 13. May 2022
 
-*Authors:* Fabian Kessener, Tobias Böer, Timon Faß
+**Authors:** Fabian Kessener, Tobias Böer, Timon Faß
 
-*Version:* 1.0
+**Version:** 1.0
 
-*Licence:* 
+**Licence:** 
 	
 	The 3-Clause BSD License
 
