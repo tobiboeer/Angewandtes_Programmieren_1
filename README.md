@@ -27,7 +27,7 @@ Data preparation can be done with XXXX.py but this takes a long time.
 
 If you execute the program, you get the following window:
 
-![ScreenShot](https://raw.github.com/tobiboeer/Angewandtes_Programmieren_1/blob/master/Unbenannt.png)
+![ScreenShot](ScreenshotProgramm.png)
 
 ---
 
