@@ -14,43 +14,26 @@ Classes:
     MenuWindowReadMe: QGraphicsView
         Contains the Graphicsscene of the 'ReadMe' menu.
 
-Date: May 2022
+Date: 13. May 2022
 
 Authors:
     Fabian Kessener
     Tobias Boeer
     Timon Fass
 
+Emails:
+    fabian.kessener@student.jade-hs.de
+    tobias.boeer@student.jade-hs.de
+    timon.fass@student.jade-hs.de
+
 Version: 1.0
 
-Licence: The 3-Clause BSD License
+Licence: 
     
     Copyright: (c) 2022, Kessener, Boeer, Fass
-
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are met:
-
-    1. Redistributions of source code must retain the above copyright notice, 
-    this list of conditions and the following disclaimer.
-
-    2. Redistributions in binary form must reproduce the above copyright notice,
-    this list of conditions and the following disclaimer in the documentation and/or
-    other materials provided with the distribution.
-
-    3. Neither the name of the copyright holder nor the names of its contributors
-    may be used to endorse or promote products derived from this software without
-    specific prior written permission.
-
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-    IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
-    INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
-    NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
-    PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-    WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
-    OF SUCH DAMAGE.
+    This code is published under the terms of the 3-Clause BSD License.
+    The full text can be seen in ABOUT.md or the 'About/Licence' dropdown
+    menu.
 """
 
 import re
@@ -73,6 +56,9 @@ import calendar
 
 
 class Map(QtWidgets.QMainWindow):
+    """
+    Creates the main window for the map.
+    """
 
     def __init__(self,main_gui):
   
@@ -83,8 +69,11 @@ class Map(QtWidgets.QMainWindow):
     def drawRouteNetwork(self,train_stations,filename_routes):
         self.germany_map.drawRouteNetwork(train_stations,filename_routes)
 
-# Klasse für die Deutschlandkarte
+
 class GermanyMap(QtWidgets.QGraphicsView):
+    """
+    Graphicsscene of the map of Germany.
+    """
   
     # Signals to react to mouse movement and clicking
     currentStation = QtCore.Signal(str)
@@ -183,6 +172,9 @@ class GermanyMap(QtWidgets.QGraphicsView):
         return QtCore.QSize(140*4, 180*4)
 
     def pens_and_brushes(self):
+        """
+        Contains all pens and brushes.
+        """
         self.ocean_brush = QtGui.QBrush("lightblue", QtCore.Qt.BrushStyle.BDiagPattern)
         self.country_pen = QtGui.QPen("black")
         self.country_pen.setWidthF(0.01)
