@@ -9,15 +9,24 @@
 ---
 
 **Executing the Program**
+
+Hier steht der Text
+
 ---
+
 **Using the Program**
+
+Hier steht der Text
+
 ---
+
 **Special Features**
 
-- Markdown Menu
+- Markdown 'Help' Menu
 - Switching between different train types
 - showing the station and the districts in the bottom left corner
 - Dropdown Menu with train station (which also reacts to typing)
+- Overview window
 
 ---
 DIE README MUSS EINE PROJEKTBESCHREIBUNG ENTHALTEN; AUTORENSCHAFT ANGEBEN; VERSTÄNDLICH GESCHRIEBEN SEIN; 
