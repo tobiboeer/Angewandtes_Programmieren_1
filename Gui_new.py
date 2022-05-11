@@ -52,6 +52,8 @@ import random
 from datetime import datetime
 import time
 import calendar
+import threading
+import concurrent.futures
 
 
 
@@ -219,7 +221,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
                     print('Kein Bahnhof ausgewählt.')
 
         # Loads the file with the routes
-        routes = self.main_gui.model.all_data.lode_routes(filename_routes) # muss definitif überarbeitet werden
+        #routes = self.main_gui.model.all_data.lode_routes(filename_routes) # muss definitif überarbeitet werden
         routes = self.main_gui.model.get_conectons()
         
         # Drawing the routes
@@ -670,8 +672,9 @@ class Model():
         self.all_data = all_data
         self.cerent_stops = self.all_data.stops_fern
         self.cerent_connections = self.all_data.connections_fern
+        self.cerent_gtfs = self.all_data.gtfs("latest_fern")
         self.trainstachen_info = None
-        pass
+        
 
     def set_main_gui(self,main_gui):
         self.main_gui = main_gui
@@ -684,14 +687,17 @@ class Model():
 
     def change_cerent_stops(self,new_type):
         if new_type == "stops_fern":
-            self.cerent_stops = self.all_data.stops_fern
-            self.cerent_connections = self.all_data.connections_fern
+            self.cerent_stops = self.all_data.get_stops_fern()
+            self.cerent_connections = self.all_data.get_connections_fern()
+            self.cerent_gtfs = self.all_data.gtfs("latest_fern")
         if new_type == "stops_nah":
-            self.cerent_stops = self.all_data.stops_nah
-            self.cerent_connections = self.all_data.connections_nah
+            self.cerent_stops = self.all_data.get_stops_nah()
+            self.cerent_connections = self.all_data.get_connections_nah()
+            self.cerent_gtfs = self.all_data.gtfs("latest_nah")
         if new_type == "stops_regional":
-            self.cerent_stops = self.all_data.stops_regional
-            self.cerent_connections = self.all_data.connections_regional
+            self.cerent_stops = self.all_data.get_stops_regional()
+            self.cerent_connections = self.all_data.get_connections_regional()
+            self.cerent_gtfs = self.all_data.gtfs("latest_regional")
         
         self.main_gui.drawRouteNetwork(self.cerent_stops,'connections.csv') 
         
@@ -705,28 +711,96 @@ class Model():
         return self.all_data.counts
 
     def change_trainstachen_info(self,time_span,day,hauer,min,trainstachen):
-        self.trainstachen_info = self.all_data.create_trainstachen_info([day,hauer,min],trainstachen,time_span)
+        self.trainstachen_info = self.all_data.create_trainstachen_info([day,hauer,min],trainstachen,time_span,self.cerent_gtfs)
         self.main_gui.dataTable_instace.set_df(self.trainstachen_info)
         
 
-class Data():
+
+
+
+
+
+
+
+
+
+class Data(threading.Thread):
 
     def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
         self.counts = self.load_map_data()
         self.about_text = self.lode_about_text()
         self.readme_text = self.lode_readme_text()
-        self.stops_fern = self.lode_routes('stops_fern.txt')
-        self.connections_fern = self.lode_routes('connections_fern.csv')
-
+        self.stops_fern = self.lode_text('stops_fern.txt')
+        self.connections_fern = self.lode_text('connections_fern.csv')
+        self.gtfs_fern = self.lode_gtfs,"latest_fern"
         self.lode_rest()
-        self.gtfs_fern = self.lode_gtfs("latest_fern")
-        self.gtfs_regional = self.lode_gtfs("latest_regional")
 
-    def lode_rest(self):
-        self.stops_nah = self.lode_routes('stops_nah.txt')
-        self.stops_regional = self.lode_routes('stops_regional.txt')
-        self.connections_regional = self.lode_routes('connections_regional.csv')
-        self.connections_nah = self.lode_routes('connections_og.csv')
+    def lode_rest(self):        
+        self.gtfs_nah = None
+        self.gtfs_regional = None
+        self.connections_nah_set = False
+        self.connections_regional_set = False
+        self.stops_regional_set = False
+        self.stops_nah_set = False
+
+        threading.Thread(target=self.gtfs_prep).start()
+
+    def gtfs_prep(self):
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            self.gtfs_nah_pre = executor.submit(self.lode_gtfs,"latest_nah")
+            self.gtfs_regional_pre = executor.submit(self.lode_gtfs,"latest_regional")
+            self.connections_nah_pre = executor.submit(self.lode_text,'connections_og.csv')
+            self.connections_regional_pre = executor.submit(self.lode_text,'connections_regional.csv')
+            self.stops_regional_pre = executor.submit(self.lode_text,'stops_regional.txt')
+            self.stops_nah_pre = executor.submit(self.lode_text,'stops_nah.txt')
+
+    def get_stops_fern(self):
+        return self.stops_fern
+
+    def get_stops_nah(self):
+        if not self.stops_nah_set:
+            self.stops_nah_set = True
+            self.stops_nah = self.stops_nah_pre.result()
+        return self.stops_nah
+
+    def get_stops_regional(self):
+        if not self.stops_regional_set:
+            self.stops_regional_set = True
+            self.stops_regional = self.stops_regional_pre.result()
+        return self.stops_regional
+
+    def get_connections_regional(self):
+        if not self.connections_regional_set:
+            self.connections_regional_set = True
+            self.connections_regional = self.connections_regional_pre.result()
+        return self.connections_regional
+
+    def get_connections_nah(self):
+        if not self.connections_nah_set:
+            self.connections_nah_set = True
+            self.connections_nah = self.connections_nah_pre.result()
+        return self.connections_nah
+
+    def get_connections_fern(self):
+        return self.connections_fern
+
+
+    def gtfs(self,kategorie):
+        if kategorie == "latest_nah":
+            if self.gtfs_nah == None:
+                self.gtfs_nah = self.gtfs_nah_pre.result()
+            return self.gtfs_nah
+
+        if kategorie == "latest_fern":
+            return self.gtfs_fern
+
+        if kategorie == "latest_regional":
+            if self.gtfs_regional == None:
+                self.gtfs_regional = self.gtfs_regional_pre.result()
+            return self.gtfs_regional
 
     def lode_gtfs(self,kategorie):
         pfad_start = os.path.abspath(os.path.join(os.path.dirname( __file__ ), kategorie))+ '\\'
@@ -749,6 +823,7 @@ class Data():
                 print("Die Datei " + name + " wurde nicht Gefunden")
                 print(os.path.abspath(os.path.join(os.path.dirname( __file__ ), name + '.txt')))
 
+        print(kategorie)
         return name_dict
 
     def load_map_data(self):
@@ -777,7 +852,7 @@ class Data():
             readme_text = readme_file.read()
         return readme_text
 
-    def lode_routes(self,filename_routes):
+    def lode_text(self,filename_routes):
         # Loads the file with the routes
         #filename_routes = "bla"
 
@@ -785,11 +860,7 @@ class Data():
         routes = pd.read_csv(path_of_routes, encoding='utf8')
         return routes
 
-    def create_trainstachen_info(self,date,trainstachen_name,time_spane):
-
-        print(date,trainstachen_name,time_spane)
-
-        name_dict = self.gtfs_fern
+    def create_trainstachen_info(self,date,trainstachen_name,time_spane,name_dict):
 
         time_spane = int(time_spane[0:2])
         if time_spane == 0:
@@ -902,6 +973,9 @@ class Data():
 # and display them as windows
 if __name__ == "__main__":
     all_data = Data()
+    all_data.run()
+
+    print("baljdbdfbsojlvböadbvöob")
 
     model = Model(all_data)
 
