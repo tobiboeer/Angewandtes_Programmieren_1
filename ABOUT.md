@@ -6,7 +6,11 @@ This program is a project by students from Assistive Technologies of the Jade Ho
 
 **Authors:** Fabian Kessener, Tobias Böer, Timon Faß
 
+**Emails:** <fabian.kessener@student.jade-hs.de>, <tobias.boeer@student.jade-hs.de>, <timon.fass@student.jade-hs.de>
+
 **Version:** 1.0
+
+---
 
 **Licence:** 
 	
