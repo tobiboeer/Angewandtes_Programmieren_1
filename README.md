@@ -44,7 +44,7 @@ bottom left corner.
 
 On the right side you can see an user interface. On the top you can choose
 if you want to see local transport ("Nahverkehr"), long distance ("Fernverkehr")
-or regional distance ("Regional") trains by clicking the buttons. The 
+or regional distance ("Regional") train stations by clicking the buttons. The 
 map and the dropdown menu below will change and show the associated stations.
 
 *Important:* Keep in mind, it will take a long time to load the local 
