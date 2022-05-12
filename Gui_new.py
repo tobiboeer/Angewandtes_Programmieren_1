@@ -142,7 +142,6 @@ class Conectons(threading.Thread):
         self.conectons = [[],[]]
 
         all_rout_ids = self.name_dict["routes"]["route_id"].to_numpy()
-        all_rout_ids = all_rout_ids[0:200]
 
         if len(all_rout_ids) <= 1:
             print("len(all_rout_ids) ",len(all_rout_ids))
