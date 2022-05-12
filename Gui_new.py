@@ -623,9 +623,7 @@ class Side_winow(QtWidgets.QMainWindow):
         Connects the first text values of the method 'set_text_start_values'
         and changes the first strings into the choiced option.
         """
-        text = (f"Abfahrtsbahnhof: {self.abfahrtsbahnhof} \n"
-            + f"Zielbahnhof: {self.zielbahnhof} \n"
-            + f"Ankunftszeit: {self.ankunftszeit}")
+        text = f"Abfahrtsbahnhof: {self.abfahrtsbahnhof}"
         self.textfield_allInfo.setText(text)
         
     def deleter_textfield(self):
