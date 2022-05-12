@@ -41,23 +41,28 @@ import pandas as pd
 import sys
 import geojson
 import os
-from PySide6 import QtCore
-from PySide6 import QtWidgets
-from PySide6 import QtGui
 import json
 import csv
-import numpy as np
-from os.path import exists
 import random
-from datetime import datetime
 import time
 import calendar
 import threading
 import concurrent.futures
 import markdown
+import numpy as np
+
+from PySide6 import QtCore
+from PySide6 import QtWidgets
+from PySide6 import QtGui
+from os.path import exists
+from datetime import datetime
+
 
 
 class myFred(threading.Thread):
+    """
+    Creating a multithread.
+    """
     def __init__(self,all_rout_ids,parent,amount_of_trets,name_dict_input):
         threading.Thread.__init__(self)
         self.name_dict = name_dict_input
@@ -66,20 +71,25 @@ class myFred(threading.Thread):
         self.amount_of_trets = amount_of_trets
 
     def run(self):
-        # based on the rood id the choneckchens betwen the trainstachens are put togeter
+        """
+        Based on the 'route id'. The connections between the train stations are put together.
+        """
         conectons = []
 
         for done, rout_id in enumerate(self.all_rout_ids):
-            # gets all trip ids from the roout id 
+            # Gets all the trid id from the route id.
             trip_id_example_list = self.name_dict["trips"].loc[self.name_dict["trips"]["route_id"] == rout_id]['trip_id'].to_numpy()
-            # reduses the number trip ids to reduce the runtime.  
+            
+            # Reducing the number of trip id's to reduce the runtime.
             trip_id_example_list = set(trip_id_example_list)
             sub_stop_ids_inspected = []
+            
             for trip_id_example in trip_id_example_list:
-                # gets all stops from the trip id
+                # Gets all the stop names from the trip id.
                 all_stops = self.name_dict["stop_times"][self.name_dict["stop_times"].trip_id == trip_id_example]
                 sub_stop_ids = list(all_stops["stop_id"].to_numpy())
-                # creats a list of al trainstacen conechons
+                
+                # Creates a list of all train station connections.
                 if not (sub_stop_ids in sub_stop_ids_inspected):
                     for count, stop_id in enumerate(sub_stop_ids):
                         if count != 0:
@@ -91,38 +101,45 @@ class myFred(threading.Thread):
 
 
         # reduses the cupels witch are multipl tims in the list
-
+        ## HIER BIN ICH BEI DER ÜBERSETZUNG NICHT SICHER.
+        # Reduces the recurrent station names in the list.
         df = pd.DataFrame (conectons, columns = ['stachen_1','stachen_2'])
         groub = df.groupby(['stachen_1','stachen_2'])
         groub = pd.DataFrame(groub.size())
         groub.reset_index(inplace=True)
         groub = groub.drop(labels=[0], axis=1)
 
-        # re asembels the list
+        
+        # Reassembles the list.
         stachen_1 = list(groub["stachen_1"].to_numpy())
         stachen_2 = list(groub["stachen_2"].to_numpy())
         conectons = [stachen_1,stachen_2]
         
         print("conectons in Tret erstellt")
 
-        # writes to the main class
+        # Writes to the main class
         while True:
             if self.parent.add_conectons(conectons):
                 break
             time.sleep(0.01)
-
+        
         # if all treda are done the main code can be run
+        ## HIER BIN ICH BEI DER ÜBERSETZUNG NICHT SICHER.
+        # If all threads are done the main code can be run.
         self.parent.shreads_done += 1
         if self.parent.shreads_done == self.amount_of_trets:
             self.parent.ceap_going()
 
 class Conectons(threading.Thread):
+    """
+    HIER NOCH EIN KOMMENTAR WAS DIESE KLASSE TUT. 
+    """
     def __init__(self,data_clas,type):
         threading.Thread.__init__(self)
         self.data_clas = data_clas
         self.type = type
 
-        # sets the variables to the needet typ
+        # Sets the variables to the needed type.
         if self.type == "fern":
             self.name_dict = self.data_clas.gtfs_fern
             self.name = 'connections_fern.csv'
@@ -134,26 +151,27 @@ class Conectons(threading.Thread):
             self.name_dict = self.data_clas.gtfs_nah
             self.name = 'connections_nah.csv'
 
-
     def run(self):
         self.shreads_done = 0
         self.add_conectons_actif = 0
         self.conectons = [[],[]]
-
-        # gets the rout_ids to get the conections
+        
+        # Gets the route id's to get the connections.
         all_rout_ids = self.name_dict["routes"]["route_id"].to_numpy()
 
         # if the all_rout_ids 
+        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+        # If 
         if len(all_rout_ids) <= 1:
             print("len(all_rout_ids) ",len(all_rout_ids))
             exit()
 
-        # starts with 64 treds, for big dats sets, if needet the amound is redused
+        # Starts with 64 threads for big data sets, if needed the amount is reduced.
         amount_of_trets = 64
         while amount_of_trets > len(all_rout_ids):
             amount_of_trets = int(amount_of_trets/2)
 
-        # the therds are set end stardet
+        # The threads are set and started.
         step_sise = int(len(all_rout_ids)/(amount_of_trets-1))
         for i in range(amount_of_trets-1):
             to_check_all_rout_ids = all_rout_ids[0:step_sise]
@@ -163,6 +181,10 @@ class Conectons(threading.Thread):
 
     def add_conectons(self,add):
         # to reduse conflics only one tred is aloud to wreid at a time
+        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER
+        """
+        Reduces the conflicts only one thread is allowed to write simultaneously.
+        """
         if self.add_conectons_actif == 0:
             self.add_conectons_actif = 1
 
@@ -171,21 +193,27 @@ class Conectons(threading.Thread):
 
             self.add_conectons_actif = 0
 
-            # fedback if the riting was suxsesfull
+            # Feedback, if the writing was successful.
             return True
         else:
             return False
 
     def ceap_going(self):
-
         # reduses the cupels witch are multipl tims in the list
+        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+        """
+        Reduces the recurrent station names in the list.
+        """
         d = {'stachen_1':self.conectons[0],'stop_id':self.conectons[1]}
         df = pd.DataFrame (d)
         groub = df.groupby(['stachen_1','stop_id'])
         groub = pd.DataFrame(groub.size())
         groub.reset_index(inplace=True)
         groub = groub.drop(labels=[0], axis=1)
+
         # replases the stop ids with the lon and lat veluages
+        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+        # Replaces the stop id's with the lon and lat values.
         new_df = pd.merge(self.name_dict["stops"],groub)
         new_df.rename(columns = {'stop_lat':'Station1_lat', 'stop_lon':'Station1_lon'}, inplace = True)
         new_df = new_df.drop(['stop_name', 'stop_id'], axis=1)
@@ -194,11 +222,11 @@ class Conectons(threading.Thread):
         new_df = new_df.drop(['stop_name', 'stop_id'], axis=1)
         new_df.rename(columns = {'stop_lat':'Station2_lat', 'stop_lon':'Station2_lon'}, inplace = True)
 
-        # writes data
+        #Writes the data.
         pfad = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data/" + self.name))
         new_df.to_csv(pfad)
 
-        # depandig of the type one file is restored
+        # Depending of the type, one file is restored.
         if self.type == "fern":
             self.data_clas.free_fern_add_1()
         
@@ -549,7 +577,7 @@ class Side_winow(QtWidgets.QMainWindow):
         self.button_regional.clicked.connect(self.clickFunctionRegional)
         self.button_recuest.clicked.connect(self.trainstachen_recqest)
 
-        # -------------- LAYOUTS -----------------
+        # -------------- LAYOUTS ------------------------------------
         button_layout_traffic = QtWidgets.QHBoxLayout()
         button_layout_traffic.addWidget(self.button_nahverkehr)
         button_layout_traffic.addWidget(self.button_fernverkehr)
@@ -738,13 +766,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.model = model
         self.model.set_main_gui(self)
 
-#--------------- Statusbar ---------------------------------------------
+        #--------------- Statusbar ----------------------------------
         self.status_bar = self.statusBar()
 
-#--------------- Menubar -----------------------------------------------
-# According to:
-# https://realpython.com/python-menus-toolbars/#populating-menus-with-actions
-# https://pythonprogramming.net/menubar-pyqt-tutorial/
+        #--------------- Menubar ------------------------------------
+        # According to:
+        # https://realpython.com/python-menus-toolbars/#populating-menus-with-actions
+        # https://pythonprogramming.net/menubar-pyqt-tutorial/
 
         menuBar = self.menuBar()
         help_menu = QtWidgets.QMenu("Help",self)
@@ -818,33 +846,47 @@ class MainWindow(QtWidgets.QMainWindow):
         
 
 class Model():
+    """
+    Creates a model of the bla bla bla ?
+    HIER NOCH EIN KOMMENTAR EINFÜGEN 
+    """
 
     def __init__(self,all_data):
-        # sets base veluages
+        """
+        Sets the basic values.
+        """
         self.all_data = all_data
         self.trainstachen_info = None
         self.get_first_data()
 
     def get_first_data(self):
         # dependig if the data set is corect the set is lodet
+        ## HIER BIN ICH MIR WEGEN DER ÜBERSETZUNG NICHT SICHER.
+        """
+        Depending on the data. If the set is correct, it will be loaded.
+        """
+
         if self.all_data.lode_first:
             # set is coreckt and is lodet
+            # Checks for correctness and loads the data.
             self.cerent_stops = self.all_data.get_stops_fern()
             self.cerent_connections = self.all_data.get_connections_fern()
             self.cerent_gtfs = self.all_data.gtfs("latest_fern")
         else:
             #set incoreckt and is blockt
+            # The incorrect data set is blocked.
             self.all_data.delited_kategorie_opchens.append("stops_fern")
-            # try to restor lost data
+            
+            # Tries to restore the lost data.
             if not (self.all_data.gtfs("latest_fern") == None):
                 self.all_data.restor("fern")
 
-
-            # lodes new data 
+            # Loads the new data.
             self.cerent_stops = self.all_data.get_stops_regional()
             self.cerent_connections = self.all_data.get_connections_regional()
             self.cerent_gtfs = self.all_data.gtfs("latest_regional")
-            # checks data
+            
+            # Checks the new data.
             if (self.cerent_stops[1] == False) or (self.cerent_connections[1] == False) or (self.cerent_gtfs == None):
                 self.all_data.delited_kategorie_opchens.append("stops_regional")
                 if not (self.all_data.gtfs("latest_regional") == None):
@@ -868,12 +910,15 @@ class Model():
         return self.cerent_connections[0]
 
     def change_cerent_stops(self,new_type):
-        # if the katigorie is avaleble it can be chosen
+        """
+        If the category is available, it can be chosen.
+        """
+
         if not (new_type in self.all_data.delited_kategorie_opchens):
-            # saves curend status, as a backup
+            # Saves the current status as a backup
             start_veluages = [self.cerent_stops,self.cerent_connections,self.cerent_gtfs]
 
-            # lodes data baset on the type
+            # Loads the data, based on the type
             if new_type == "stops_fern":
                 self.cerent_stops = self.all_data.get_stops_fern()
                 self.cerent_connections = self.all_data.get_connections_fern()
@@ -887,19 +932,22 @@ class Model():
                 self.cerent_connections = self.all_data.get_connections_regional()
                 self.cerent_gtfs = self.all_data.gtfs("latest_regional")
 
-            # if data is incoreckt
+            # If the data is incorrect
             if (self.cerent_gtfs == None) or (self.cerent_stops[1]==False) or (self.cerent_connections[1]==False):
-                # the backup is used to resor the og veluages
+                
+                # The backup is used to restore the first values
                 self.cerent_stops = start_veluages[0]
                 self.cerent_connections = start_veluages[1]
                 self.cerent_gtfs = start_veluages[2]
-
+                
                 # is tyt to resor data form every kategory, mait not be nasesery most times
+                ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+                # Is typed to restore data from every category, might not be necessary mostly.
                 self.all_data.restor("fern")
                 self.all_data.restor("nah")
                 self.all_data.restor("regional")
             else:
-                # the gui lodes new data and shows it
+                # The gui loades new data and shows it.
                 self.main_gui.drawRouteNetwork(self.get_cerent_stops(),self.get_conectons()) 
         
     def get_about_text(self):
@@ -915,7 +963,9 @@ class Model():
         return self.all_data.counts
 
     def change_trainstachen_info(self,time_span,day,hauer,min,trainstachen):
-        # calculates new trainstachen data and fills it in
+        """
+        Calculates new train station data and fills it in.
+        """
         self.trainstachen_info = self.all_data.create_trainstachen_info([day,hauer,min],trainstachen,time_span,self.cerent_gtfs)
         self.main_gui.dataTable_instace.set_df(self.trainstachen_info)
         
@@ -928,7 +978,7 @@ class Data(threading.Thread):
     def run(self):
         self.delited_kategorie_opchens = []
 
-        # lodes nesesry and lite data, for the first vue
+        # Loads necessary and little data for the first vue.
         self.counts = self.load_map_data()
         self.about_text = self.lode_about_text()
         self.readme_text = self.lode_readme_text()
@@ -938,39 +988,51 @@ class Data(threading.Thread):
         self.connections_fern = self.lode_text('connections_fern.csv')
         self.gtfs_fern = self.lode_gtfs("latest_fern")
 
-        # checks if the first files are ok, or if (at a later date) diferend files nedes to be chosen
+        # Checks if the first files are ok, or if a different files needed to be chosen.
         self.lode_first = True
         if (self.stops_fern[1] == False) or (self.connections_fern[1] == False) or (self.gtfs_fern == None):
             self.lode_first = False
 
-        # presets the gtfs variables, thrfor thy can be chckt if they alredy have bin lodet
+        # Presents the gtfs variables, therefore they can be checked, if they already have bin loaded.
         self.gtfs_nah = None
         self.gtfs_regional = None
-        # veluages determenig if the variable is set 
+        
+        # Values determing, if the variable is set. 
         self.connections_nah_set = False
         self.connections_regional_set = False
         self.stops_regional_set = False
         self.stops_nah_set = False
 
-        # the lodig of the rest of the data is stadet
+        # The loading of the rest of the data is stated.
         threading.Thread(target=self.gtfs_prep).start()
-        # the time dilay is needet, tho every pre (runnig proses) is stardet.
+        
+        # The time delay is needed, though every running process is started.
         # thes nesesry becas the modell class myd aces them
+        # HIER BIN ICH MIR BEI DER ÜBERSEETZUNG NICHT SICHER.
+        # This is necessary, becaus the class 'model' made access them.
         time.sleep(0.1)
 
     def restor(self,key):
-        # if the key fits, and ther is data to be restrd
+        """
+        HIER NOCH EIN KOMMENTAR WAS DIESE METHODE TUT.
+        """
+        # If the key fits and there is data to be restored.
         if key == "fern" and ("stops_fern" in self.delited_kategorie_opchens):
-            # if the main data set is ther (nedert for restoring)
+        
+            # If the main data set is there. 
+            #(nedert for restoring)HIER BIN ICH MIR NICHT SICHER, WAS DAS BEDEUTET.
             if not (self.gtfs_fern == None):
-                # veluage represents how mutch of the typ is coreckt
+            
+                # Value represents how much of the type is correct.
                 self.free_fern = 0
-                # if connections_fern is wrong, a new file is created
+                
+                # If 'connections_fern' is wrong, a new file is created.
                 if self.connections_fern[1] == False:
                     Conectons(self,"fern").run() 
                 else:
-                    # connections_fern is coreckt
+                    # 'Connections_fern' is correct.
                     self.free_fern_add_1()
+                    
                 if self.stops_fern[1] == False:
                     self.restor_trainsatchen_by_typ("fern")
                 else:
@@ -1023,8 +1085,8 @@ class Data(threading.Thread):
 
     def free_regional_add_1(self):
         self.free_regional += 1
-        # the dataset is fully restored and can be lodet
-        # and the kategory is avaleble agan
+        
+        # The dataset is fully restored and can be loaded and the category is available again.
         if self.free_regional == 2:
             self.stops_regional = self.lode_text('stops_regional.txt')
             self.connections_regional = self.lode_text('connections_regional.csv')
@@ -1045,7 +1107,9 @@ class Data(threading.Thread):
             self.delited_kategorie_opchens.remove("stops_nah")
 
     def gtfs_prep(self):
-        # every file gets ists owen loding thet, wich is saver in the variabe on the left
+        """
+        Every file gets its own loading thread, which is safer in the variable on the left.
+        """
         with concurrent.futures.ThreadPoolExecutor() as executor:
             self.gtfs_nah_pre = executor.submit(self.lode_gtfs,"latest_nah")
             self.gtfs_regional_pre = executor.submit(self.lode_gtfs,"latest_regional")
@@ -1055,8 +1119,10 @@ class Data(threading.Thread):
             self.stops_nah_pre = executor.submit(self.lode_text,'stops_nah.txt')
 
     def get_stops_fern(self):
-        # if the valuue is incorecht, the kategory option is delited
-        # and a restrachen is tryed
+        ## HIER BIN ICH MIR BEI DER ÜBERSEETZUNG UNSICHER.
+        """
+        If the value is incorrect, the category option is delighted and a (restrachen) ?? is tried
+        """
         if self.stops_fern[1] == False:
             if not ("stops_fern" in self.delited_kategorie_opchens):
                 self.delited_kategorie_opchens.append("stops_fern")
@@ -1065,9 +1131,11 @@ class Data(threading.Thread):
         return self.stops_fern
 
     def get_stops_nah(self):
-        # if the valuue is not pulled, its done now
-        # if the valuue is incorecht, the kategory option is delited
-        # and a restrachen is tryed
+        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+        """
+        If the value is not pulled, its done now. if the value is incorecht, the kategory option is delited
+        and a restrachen is tryed
+        """
         if not self.stops_nah_set:
             self.stops_nah_set = True
             self.stops_nah = self.stops_nah_pre.result()
@@ -1078,9 +1146,11 @@ class Data(threading.Thread):
         return self.stops_nah
 
     def get_stops_regional(self):
-        # if the valuue is not pulled, its done now
-        # if the valuue is incorecht, the kategory option is delited
-        # and a restrachen is tryed
+        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+        """
+        If the value is not pulled, its done now. If the value is incorrect, the category option is delighted
+        and a restrachen is tryed
+        """
         if not self.stops_regional_set:
             self.stops_regional_set = True
             self.stops_regional = self.stops_regional_pre.result()
@@ -1092,9 +1162,11 @@ class Data(threading.Thread):
         return self.stops_regional
 
     def get_connections_regional(self):
-        # if the valuue is not pulled, its done now
-        # if the valuue is incorecht, the kategory option is delited
-        # and a restrachen is tryed
+        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+        """
+        If the value is not pulled, it's done now. If the value is incorrect, the category option is delighted
+        and a restrachen is tryed
+        """
         if not self.connections_regional_set:
             self.connections_regional_set = True
             self.connections_regional = self.connections_regional_pre.result()
@@ -1106,9 +1178,11 @@ class Data(threading.Thread):
         return self.connections_regional
 
     def get_connections_nah(self):
-        # if the valuue is not pulled, its done now
-        # if the valuue is incorecht, the kategory option is delited
-        # and a restrachen is tryed
+        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+        """
+        If the value is not pulled, its done now.If the value is incorrect, the category option is delighted
+        and a restrachen is tryed
+        """
         if not self.connections_nah_set:
             self.connections_nah_set = True
             self.connections_nah = self.connections_nah_pre.result()
@@ -1119,8 +1193,10 @@ class Data(threading.Thread):
         return self.connections_nah
 
     def get_connections_fern(self):
-        # if the valuue is incorecht, the kategory option is delited
-        # and a restrachen is tryed
+        ## HIER BIN ICH MIR NICHT SICHER.
+        """
+        If the valuue is incorecht, the kategory option is delited and a restrachen is tryed
+        """
         if self.connections_fern[1] == False:
             if not ("stops_fern" in self.delited_kategorie_opchens):
                     self.delited_kategorie_opchens.append("stops_fern")
@@ -1128,8 +1204,9 @@ class Data(threading.Thread):
         return self.connections_fern
 
     def gtfs(self,kategorie):
-        # the gtfs are pulled if needet
-        # if gtfs data is missing, the opchon is closed
+        """
+        # The gtfs are pulled if needed. If gtfs data is missing, the option is closed.
+        """
         if kategorie == "latest_nah":
             if self.gtfs_nah == None:
                 self.gtfs_nah = self.gtfs_nah_pre.result()
@@ -1151,14 +1228,14 @@ class Data(threading.Thread):
 
     def lode_gtfs(self,kategorie):
 
-        #creats pahth
+        # Creates path
         pfad_start = os.path.abspath(os.path.join(os.path.dirname( __file__ ), kategorie))+ '\\'
         data_names = ['agency','calendar','calendar_dates','feed_info','routes','stop_times','stops','trips']
         name_dict = {}
 
         gtfs_is_missing_files = False
 
-        # redes in all data
+        # Reads in all the data.
         for name in data_names:
             pfad = pfad_start + name + '.txt'
             if exists(pfad):
@@ -1166,12 +1243,12 @@ class Data(threading.Thread):
                 name_dict[name] = df
 
             else:
-                # if data is not found the user is toled about
+                # If data is not found the user is informed.
                 print("Die Datei " + name + " wurde nicht Gefunden")
                 print(os.path.abspath(os.path.join(os.path.dirname( __file__ ), name + '.txt')))
                 gtfs_is_missing_files = True
 
-        # if data is not found the user is toled about
+        # If the data is not found, the user is informed.
         if gtfs_is_missing_files:
             print(" \n \n")
             print("da die daten von " + kategorie + " nicht geladen werden konten \n Kann man diese auch nicht aus welen")
@@ -1199,7 +1276,7 @@ class Data(threading.Thread):
             exit()
 
     def lode_about_text(self):
-        # Open the 'About' file and print it in a label of a new window.
+        # Opens the 'About' file and prints it in a label of a new window.
         path_to_about = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/ABOUT.md'))
         if exists(path_to_about):
             with open(path_to_about, encoding='utf8') as about_file:
@@ -1210,7 +1287,7 @@ class Data(threading.Thread):
             return "No ABOUT text was found"
 
     def lode_readme_text(self):
-        # Open the 'ReadMe' file and print it in a label of a new window.
+        # Opens the 'ReadMe' file and prints it in a label of a new window.
         path_str = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data")) + "\\" 
         path_to_readme = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/README.md'))
         if exists(path_to_readme):
@@ -1225,7 +1302,7 @@ class Data(threading.Thread):
             return "No README text was found"
 
     def load_tutorial(self):
-        # Open the 'Tutorial' file and print it in a label of a new window.
+        # Opens the 'Tutorial' file and prints it in a label of a new window.
         path_str = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data")) + "\\" 
         path_to_tutorial = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/TUTORIAL.md'))
         if exists(path_to_tutorial):
@@ -1240,12 +1317,13 @@ class Data(threading.Thread):
             return "No TUTORIAL text was found"
 
     def lode_text(self,filename_routes):
-        # Loads the file with the routes
+        # Loads the file with the routes.
 
         path_of_routes = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/' + filename_routes))
         if exists(path_of_routes):
             routes = pd.read_csv(path_of_routes, encoding='utf8')
-            # a indechachon if the reading was sucsesfull is includet
+            
+            # An indication, if the reading was successfull, it is included.
             return [routes,True]
         return [None,False]
 
@@ -1261,10 +1339,11 @@ class Data(threading.Thread):
 
         # Bahnhofs Nahme -->  stop IDs
         stop_IDs = name_dict["stops"].loc[name_dict["stops"]["stop_name"] == trainstachen_name]['stop_id'].to_numpy()
+        
         # IDs -->  trip_id 
         trip_id_IDs = set(name_dict["stop_times"].loc[name_dict["stop_times"]["stop_id"].isin(stop_IDs)]['trip_id'].to_numpy())
 
-
+        # HIER FEHLEN EIN PAAR KOMMENTARE.
         conactions_df_counter = int(0)
         for trip_id_instanz in trip_id_IDs:
 
@@ -1344,9 +1423,6 @@ class Data(threading.Thread):
         else:
             fetback_df = pd.DataFrame([["Keiene Züge gefunden"]], columns=["Info"])
             return fetback_df
-
-
-
 
 
 # Calling the MainWindow, MenuWindowAbout and MenuWindowReadMe classes
