@@ -58,6 +58,168 @@ import markdown
 
 
 
+
+
+
+
+
+
+
+class myFred(threading.Thread):
+    def __init__(self,all_rout_ids,parent,amount_of_trets,name_dict_input):
+        threading.Thread.__init__(self)
+        self.name_dict = name_dict_input
+        self.all_rout_ids = all_rout_ids
+        self.parent = parent
+        self.amount_of_trets = amount_of_trets
+
+    def run(self):
+        conectons = []
+
+        for done, rout_id in enumerate(self.all_rout_ids):
+            trip_id_example_list = self.name_dict["trips"].loc[self.name_dict["trips"]["route_id"] == rout_id]['trip_id'].to_numpy()
+            trip_id_example_list = set(trip_id_example_list)
+            sub_stop_ids_inspected = []
+            for trip_id_example in trip_id_example_list:
+                all_stops = self.name_dict["stop_times"][self.name_dict["stop_times"].trip_id == trip_id_example]
+                sub_stop_ids = list(all_stops["stop_id"].to_numpy())
+                if not (sub_stop_ids in sub_stop_ids_inspected):
+                    for count, stop_id in enumerate(sub_stop_ids):
+                        if count != 0:
+                            conectons.append([stop_id,last_stop_id])
+                        last_stop_id = stop_id
+                    sub_stop_ids_inspected.append(sub_stop_ids)
+
+            #if done % 20 == 0:
+                #print(done,len(self.all_rout_ids))
+
+     
+        df = pd.DataFrame (conectons, columns = ['stachen_1','stachen_2'])
+        groub = df.groupby(['stachen_1','stachen_2'])
+        groub = pd.DataFrame(groub.size())
+        groub.reset_index(inplace=True)
+        groub = groub.drop(labels=[0], axis=1)
+
+        stachen_1 = list(groub["stachen_1"].to_numpy())
+        stachen_2 = list(groub["stachen_2"].to_numpy())
+        conectons = [stachen_1,stachen_2]
+        
+        print("conectons in Tret erstellt")
+
+        while True:
+            if self.parent.add_conectons(conectons):
+                break
+            time.sleep(0.01)
+
+
+        self.parent.shreads_done += 1
+        if self.parent.shreads_done == self.amount_of_trets:
+            self.parent.ceap_going()
+
+class Conectons(threading.Thread):
+    def __init__(self,data_clas,type):
+        threading.Thread.__init__(self)
+        self.data_clas = data_clas
+        self.type = type
+
+        #Conectons(self,"fern").run() #.gtfs_fern,'connections_fern.csv'
+        if self.type == "fern":
+            self.name_dict = self.data_clas.gtfs_fern
+            self.name = 'connections_fern.csv'
+
+
+    def run(self):
+        self.shreads_done = 0
+
+        self.add_conectons_actif = 0
+        self.conectons = [[],[]]
+
+        all_rout_ids = self.name_dict["routes"]["route_id"].to_numpy()
+        all_rout_ids = all_rout_ids[0:200]
+
+        if len(all_rout_ids) <= 1:
+            print("len(all_rout_ids) ",len(all_rout_ids))
+            exit()
+
+        amount_of_trets = 64
+        while amount_of_trets > len(all_rout_ids):
+            amount_of_trets = int(amount_of_trets/2)
+
+        print("amount_of_trets ", amount_of_trets)
+
+        step_sise = int(len(all_rout_ids)/(amount_of_trets-1))
+        for i in range(amount_of_trets-1):
+            to_check_all_rout_ids = all_rout_ids[0:step_sise]
+            all_rout_ids =  all_rout_ids[step_sise:]
+            myFred(to_check_all_rout_ids,self,amount_of_trets,self.name_dict).start()
+        myFred(all_rout_ids,self,amount_of_trets,self.name_dict).start()
+        print("loob done")
+
+    def add_conectons(self,add):
+        if self.add_conectons_actif == 0:
+            self.add_conectons_actif = 1
+
+            self.conectons[0] = self.conectons[0] + add[0]
+            self.conectons[1] = self.conectons[1] + add[1]
+
+            self.add_conectons_actif = 0
+            return True
+        else:
+            return False
+
+    def ceap_going(self):
+        print(len(self.conectons))
+
+        d = {'stachen_1':self.conectons[0],'stop_id':self.conectons[1]}
+        df = pd.DataFrame (d)
+        groub = df.groupby(['stachen_1','stop_id'])
+        groub = pd.DataFrame(groub.size())
+        groub.reset_index(inplace=True)
+        groub = groub.drop(labels=[0], axis=1)
+        new_df = pd.merge(self.name_dict["stops"],groub)
+        new_df.rename(columns = {'stop_lat':'Station1_lat', 'stop_lon':'Station1_lon'}, inplace = True)
+        new_df = new_df.drop(['stop_name', 'stop_id'], axis=1)
+        new_df.rename(columns = {'stachen_1':'stop_id'}, inplace = True)
+        new_df = pd.merge(self.name_dict["stops"],new_df)
+        new_df = new_df.drop(['stop_name', 'stop_id'], axis=1)
+        new_df.rename(columns = {'stop_lat':'Station2_lat', 'stop_lon':'Station2_lon'}, inplace = True)
+        #print("new_df \n", new_df)
+
+        pfad = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data/" + self.name))
+        new_df.to_csv(pfad)
+
+        print(" Die Datei wurde erstellt ------------")
+
+        if self.type == "fern":
+            self.data_clas.free_fern_add_1()
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class Map(QtWidgets.QMainWindow):
     """
     Creates the main window for the map.
@@ -514,7 +676,6 @@ class Side_winow(QtWidgets.QMainWindow):
 
     def set_train_stations_list(self):  
         stations = self.main_gui.model.get_cerent_stops()
-        print("stations \n",stations)                          #------------------------------
         train_stations = stations['stop_name']
         self.combobox_start.addItems(train_stations)
 
@@ -719,6 +880,11 @@ class Model():
             self.cerent_gtfs = self.all_data.gtfs("latest_fern")
         else:
             self.all_data.delited_kategorie_opchens.append("stops_fern")
+
+            if not (self.all_data.gtfs("latest_fern") == None):
+                self.all_data.restor("fern")
+                pass
+
             self.cerent_stops = self.all_data.get_stops_regional()
             self.cerent_connections = self.all_data.get_connections_regional()
             self.cerent_gtfs = self.all_data.gtfs("latest_regional")
@@ -731,8 +897,6 @@ class Model():
                     self.all_data.delited_kategorie_opchens.append("stops_nah")
                     print(" alle daten sets sind felerhaft. Die bedinbarkeit ist eingeschrenkt.")
         
-        
-
     def set_main_gui(self,main_gui):
         self.main_gui = main_gui
 
@@ -764,8 +928,6 @@ class Model():
                 self.cerent_connections = start_veluages[1]
                 self.cerent_gtfs = start_veluages[2]
             else:
-                print("pppppppppppppppppppppppppppp")
-                print(self.cerent_stops)
                 self.main_gui.drawRouteNetwork(self.get_cerent_stops(),'connections.csv') 
         
     def get_about_text(self):
@@ -810,8 +972,6 @@ class Data(threading.Thread):
         if (self.stops_fern[1] == False) or (self.connections_fern[1] == False) or (self.gtfs_fern == None):
             self.lode_first = False
 
-
-        
         self.gtfs_nah = None
         self.gtfs_regional = None
         self.connections_nah_set = False
@@ -822,6 +982,27 @@ class Data(threading.Thread):
         threading.Thread(target=self.gtfs_prep).start()
         time.sleep(0.1)
 
+    def restor(self,key):
+        if key == "fern":
+            print("halllllooooo")
+            self.free_fern = 0
+            if self.connections_fern[1] == False:
+                Conectons(self,"fern").run() #.gtfs_fern,'connections_fern.csv'
+            else:
+                self.free_fern_add_1()
+            if self.stops_fern[1] == False:
+                pass
+            else:
+                self.free_fern_add_1()
+
+    def free_fern_add_1(self):
+        self.free_fern += 1
+        if self.free_fern == 2:
+            self.stops_fern = self.lode_text('stops_fern.txt')
+            self.connections_fern = self.lode_text('connections_fern.csv')
+            self.delited_kategorie_opchens.remove("stops_fern")
+
+
     def gtfs_prep(self):
         with concurrent.futures.ThreadPoolExecutor() as executor:
             self.gtfs_nah_pre = executor.submit(self.lode_gtfs,"latest_nah")
@@ -830,7 +1011,6 @@ class Data(threading.Thread):
             self.connections_regional_pre = executor.submit(self.lode_text,'connections_regional.csv')
             self.stops_regional_pre = executor.submit(self.lode_text,'stops_regional.txt')
             self.stops_nah_pre = executor.submit(self.lode_text,'stops_nah.txt')
-
 
     def get_stops_fern(self):
         return self.stops_fern
@@ -951,7 +1131,6 @@ class Data(threading.Thread):
                 readme_text = readme_file.read()
                 readme_file.close()
                 readme_text = readme_text.replace("/////", path_str)
-                print(readme_text)
                 readme_text_md = markdown.markdown(readme_text)
             return readme_text_md
         else:
@@ -1060,11 +1239,11 @@ class Data(threading.Thread):
 
         if conactions_df_counter > 0:
 
-            conactions_df = conactions_df.sort_values(by=['arrival_time'])
+            conactions_df = conactions_df.sort_values(by=['Einfahrtzeit'])
             actuell_time = str(hauer) + ":" + str(min) + ":00"
 
-            conactions_df_firs = conactions_df.loc[conactions_df["arrival_time"] >= actuell_time]
-            conactions_df_sec = conactions_df.loc[conactions_df["arrival_time"] < actuell_time]
+            conactions_df_firs = conactions_df.loc[conactions_df["Einfahrtzeit"] >= actuell_time]
+            conactions_df_sec = conactions_df.loc[conactions_df["Einfahrtzeit"] < actuell_time]
 
             conactions_df = pd.concat([conactions_df_firs,conactions_df_sec])
 
