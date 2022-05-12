@@ -940,6 +940,7 @@ class Data(threading.Thread):
     def run(self):
         self.delited_kategorie_opchens = []
 
+        # lodes nesesry and lite data, for the first vue
         self.counts = self.load_map_data()
         self.about_text = self.lode_about_text()
         self.readme_text = self.lode_readme_text()
@@ -949,27 +950,38 @@ class Data(threading.Thread):
         self.connections_fern = self.lode_text('connections_fern.csv')
         self.gtfs_fern = self.lode_gtfs("latest_fern")
 
+        # checks if the first files are ok, or if (at a later date) diferend files nedes to be chosen
         self.lode_first = True
         if (self.stops_fern[1] == False) or (self.connections_fern[1] == False) or (self.gtfs_fern == None):
             self.lode_first = False
 
+        # presets the gtfs variables, thrfor thy can be chckt if they alredy have bin lodet
         self.gtfs_nah = None
         self.gtfs_regional = None
+        # veluages determenig if the variable is set 
         self.connections_nah_set = False
         self.connections_regional_set = False
         self.stops_regional_set = False
         self.stops_nah_set = False
 
+        # the lodig of the rest of the data is stadet
         threading.Thread(target=self.gtfs_prep).start()
+        # the time dilay is needet, tho every pre (runnig proses) is stardet.
+        # thes nesesry becas the modell class myd aces them
         time.sleep(0.1)
 
     def restor(self,key):
+        # if the key fits, and ther is data to be restrd
         if key == "fern" and ("stops_fern" in self.delited_kategorie_opchens):
+            # if the main data set is ther (nedert for restoring)
             if not (self.gtfs_fern == None):
+                # veluage represents how mutch of the typ is coreckt
                 self.free_fern = 0
+                # if connections_fern is wrong, a new file is created
                 if self.connections_fern[1] == False:
                     Conectons(self,"fern").run() 
                 else:
+                    # connections_fern is coreckt
                     self.free_fern_add_1()
                 if self.stops_fern[1] == False:
                     pass
@@ -994,27 +1006,20 @@ class Data(threading.Thread):
                 if self.connections_regional[1] == False:
                     Conectons(self,"regional").run() 
                 else:
-                    print("restoored--------------17")
                     self.free_regional_add_1()
                 if self.stops_regional[1] == False:
-                    print("restoored--------------16")
-                    print(self.stops_regional)
-                    print("restoored--------------16")
                     pass
                 else:
-                    print("restoored--------------17")
                     self.free_regional_add_1()
 
     def free_regional_add_1(self):
-        print("restoored--------------18")
         self.free_regional += 1
+        # the dataset is fully restored and can be lodet
+        # and the kategory is avaleble agan
         if self.free_regional == 2:
-            print("restoored--------------19")
             self.stops_regional = self.lode_text('stops_regional.txt')
             self.connections_regional = self.lode_text('connections_regional.csv')
             self.delited_kategorie_opchens.remove("stops_regional")
-
-            print("restoored--------------")
 
     def free_fern_add_1(self):
         self.free_fern += 1
@@ -1030,10 +1035,8 @@ class Data(threading.Thread):
             self.connections_fern = self.lode_text('connections_nah.csv')
             self.delited_kategorie_opchens.remove("stops_nah")
 
-
-
-
     def gtfs_prep(self):
+        # every file gets ists owen loding thet, wich is saver in the variabe on the left
         with concurrent.futures.ThreadPoolExecutor() as executor:
             self.gtfs_nah_pre = executor.submit(self.lode_gtfs,"latest_nah")
             self.gtfs_regional_pre = executor.submit(self.lode_gtfs,"latest_regional")
@@ -1043,50 +1046,72 @@ class Data(threading.Thread):
             self.stops_nah_pre = executor.submit(self.lode_text,'stops_nah.txt')
 
     def get_stops_fern(self):
+        # if the valuue is incorecht, the kategory option is delited
+        # and a restrachen is tryed
         if self.stops_fern[1] == False:
-            self.delited_kategorie_opchens.append("stops_fern")
+            if not ("stops_fern" in self.delited_kategorie_opchens):
+                self.delited_kategorie_opchens.append("stops_fern")
             self.restor("fern")
         return self.stops_fern
 
     def get_stops_nah(self):
+        # if the valuue is not pulled, its done now
+        # if the valuue is incorecht, the kategory option is delited
+        # and a restrachen is tryed
         if not self.stops_nah_set:
             self.stops_nah_set = True
             self.stops_nah = self.stops_nah_pre.result()
             if self.stops_nah[1] == False:
-                self.delited_kategorie_opchens.append("stops_nah")
+                if not ("stops_nah" in self.delited_kategorie_opchens):
+                    self.delited_kategorie_opchens.append("stops_nah")
                 self.restor("nah")
         return self.stops_nah
 
     def get_stops_regional(self):
+        # if the valuue is not pulled, its done now
+        # if the valuue is incorecht, the kategory option is delited
+        # and a restrachen is tryed
         if not self.stops_regional_set:
             self.stops_regional_set = True
             self.stops_regional = self.stops_regional_pre.result()
             if self.stops_regional[1] == False:
-                self.delited_kategorie_opchens.append("stops_regional")
+                if not ("stops_regional" in self.delited_kategorie_opchens):
+                    self.delited_kategorie_opchens.append("stops_regional")
                 self.restor("regional")
         return self.stops_regional
 
     def get_connections_regional(self):
+        # if the valuue is not pulled, its done now
+        # if the valuue is incorecht, the kategory option is delited
+        # and a restrachen is tryed
         if not self.connections_regional_set:
             self.connections_regional_set = True
             self.connections_regional = self.connections_regional_pre.result()
             if self.connections_regional[1] == False:
-                self.delited_kategorie_opchens.append("stops_regional")
+                if not ("stops_regional" in self.delited_kategorie_opchens):
+                    self.delited_kategorie_opchens.append("stops_regional")
                 self.restor("regional")
         return self.connections_regional
         
     def get_connections_nah(self):
+        # if the valuue is not pulled, its done now
+        # if the valuue is incorecht, the kategory option is delited
+        # and a restrachen is tryed
         if not self.connections_nah_set:
             self.connections_nah_set = True
             self.connections_nah = self.connections_nah_pre.result()
             if self.connections_nah[1] == False:
-                self.delited_kategorie_opchens.append("stops_nah")
+                if not ("stops_nah" in self.delited_kategorie_opchens):
+                    self.delited_kategorie_opchens.append("stops_nah")
                 self.restor("nah")
         return self.connections_nah
 
     def get_connections_fern(self):
+        # if the valuue is incorecht, the kategory option is delited
+        # and a restrachen is tryed
         if self.connections_fern[1] == False:
-            self.delited_kategorie_opchens.append("stops_fern")
+            if not ("stops_fern" in self.delited_kategorie_opchens):
+                    self.delited_kategorie_opchens.append("stops_fern")
             self.restor("fern")
         return self.connections_fern
 
