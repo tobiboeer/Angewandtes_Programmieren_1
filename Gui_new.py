@@ -326,6 +326,34 @@ class MenuWindowReadMe(QtWidgets.QGraphicsView):
         """
         return QtCore.QSize(600, 600)
 
+class MenuWindowTutorial(QtWidgets.QGraphicsView):
+    """
+    Creates the window of the 'Tutorial' menu in the menubar.
+    """
+    def __init__(self,all_data):
+        """
+        Creates a widget for the Tutorial menu.
+        """
+        super().__init__()
+        self.model = model
+        self.setMinimumSize(300, 300)
+        
+        self.label = QtWidgets.QTextEdit()
+        self.label.setReadOnly(True)
+        self.label.setMarkdown(self.model.get_tutorial())
+
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+
+    
+
+    def sizeHint(self):
+        """
+        Contains the preferred default size of the window.
+        """
+        return QtCore.QSize(1000, 1000)
+
 
 class Side_winow(QtWidgets.QMainWindow):
     """
@@ -603,17 +631,20 @@ class MainWindow(QtWidgets.QMainWindow):
 # https://pythonprogramming.net/menubar-pyqt-tutorial/
 
         menuBar = self.menuBar()
-        about_menu = QtWidgets.QMenu("Help",self)
-        menuBar.addMenu(about_menu)
+        help_menu = QtWidgets.QMenu("Help",self)
+        menuBar.addMenu(help_menu)
     
         aboutAction = QtGui.QAction("About/Licence", self)
         readmeAction = QtGui.QAction("ReadMe", self)
+        tutorialAction = QtGui.QAction("Tutorial", self)
 
-        about_menu.addAction(aboutAction)
-        about_menu.addAction(readmeAction)
+        help_menu.addAction(aboutAction)
+        help_menu.addAction(readmeAction)
+        help_menu.addAction(tutorialAction)
 
         aboutAction.triggered.connect(self.open_about)
         readmeAction.triggered.connect(self.open_readme)
+        tutorialAction.triggered.connect(self.open_tutorial)
        
         self.grid_layout = QtWidgets.QGridLayout()
         self.setLayout(self.grid_layout)
@@ -646,6 +677,12 @@ class MainWindow(QtWidgets.QMainWindow):
         Shows the window of the 'ReadMe' menu. 
         """
         readme_window.show()
+
+    def open_tutorial(self):
+        """
+        Shows the window of the 'Tutorial' menu. 
+        """
+        tutorial_window.show()
 
     @QtCore.Slot(str)
     def click_function(self, whole_station_information):
@@ -737,6 +774,9 @@ class Model():
     def get_readme_text(self):
         return self.all_data.readme_text
 
+    def get_tutorial(self):
+        return self.all_data.tutorial_text
+
     def get_counts(self):
         return self.all_data.counts
 
@@ -761,6 +801,7 @@ class Data(threading.Thread):
         self.about_text = self.lode_about_text()
         self.readme_text = self.lode_readme_text()
 
+        self.tutorial_text = self.load_tutorial()
         self.stops_fern = self.lode_text('stops_fern.txt')
         self.connections_fern = self.lode_text('connections_fern.csv')
         self.gtfs_fern = self.lode_gtfs("latest_fern")
@@ -916,6 +957,16 @@ class Data(threading.Thread):
         else:
             return "no README text was found"
 
+    def load_tutorial(self):
+        # Open the 'Tutorial' file and print it in a label of a new window.
+        path_to_tutorial = os.path.dirname(__file__) + '/'+ "Data" + '/' + 'TUTORIAL.md'
+        if exists(path_to_tutorial):
+            with open(path_to_tutorial, encoding='utf8') as tutorial_file:
+                tutorial_text = tutorial_file.read()
+            return tutorial_text
+        else:
+            return "no TUTORIAL text was found"
+
     def lode_text(self,filename_routes):
         # Loads the file with the routes
 
@@ -1046,5 +1097,7 @@ if __name__ == "__main__":
     about_window.setWindowTitle("About - Über dieses Programm")
     readme_window = MenuWindowReadMe(model)
     readme_window.setWindowTitle("Read Me - Wichtig zu wissen")
+    tutorial_window = MenuWindowTutorial(model)
+    tutorial_window.setWindowTitle("Tutorial")
 
     sys.exit(app.exec())
