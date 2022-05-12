@@ -521,7 +521,6 @@ class Side_winow(QtWidgets.QMainWindow):
         self.textfield_time_dif = QtWidgets.QTimeEdit()
         self.textfield_allInfo = QtWidgets.QTextEdit()
         
-        self.textfield_allInfo.setReadOnly(True)
         self.set_text_start_values()
         self.update_text()
         
@@ -538,13 +537,10 @@ class Side_winow(QtWidgets.QMainWindow):
         self.button_fernverkehr = QtWidgets.QPushButton("Fernverkehr")
         self.button_regional = QtWidgets.QPushButton("Regional")
         self.button_recuest = QtWidgets.QPushButton("Anfrage stellen")
-        button_start = QtWidgets.QPushButton("Route planen")
-        button_delete = QtWidgets.QPushButton("Löschen")
 
         self.button_fernverkehr.clicked.connect(self.clickFunctionLongDistance)
         self.button_nahverkehr.clicked.connect(self.clickFunctionShortDistance)
         self.button_regional.clicked.connect(self.clickFunctionRegional)
-        button_delete.clicked.connect(self.deleter_textfield)
         self.button_recuest.clicked.connect(self.trainstachen_recqest)
 
         # -------------- LAYOUTS -----------------
@@ -563,9 +559,6 @@ class Side_winow(QtWidgets.QMainWindow):
         button_recuest_layout = QtWidgets.QHBoxLayout()
         button_recuest_layout.addWidget(self.button_recuest)
 
-        button_layout_interactive = QtWidgets.QHBoxLayout()
-        button_layout_interactive.addWidget(button_delete)
-        button_layout_interactive.addWidget(button_start)
         
         
         sub_layout = QtWidgets.QVBoxLayout()
@@ -581,7 +574,6 @@ class Side_winow(QtWidgets.QMainWindow):
         sub_layout.addLayout(button_recuest_layout)
         sub_layout.addWidget(label_textfield_allInfo)
         sub_layout.addWidget(self.textfield_allInfo)
-        sub_layout.addLayout(button_layout_interactive)
         
         window_content = QtWidgets.QWidget()
         window_content.setLayout(sub_layout)
@@ -594,7 +586,6 @@ class Side_winow(QtWidgets.QMainWindow):
         Sets the first strings in the text box.        
         """
         self.abfahrtsbahnhof = "noch nicht ausgewählt.."
-        self.ankunftszeit = "noch nicht berechnet.."
         
     def update_text(self):
         """
@@ -604,13 +595,6 @@ class Side_winow(QtWidgets.QMainWindow):
         text = f"Abfahrtsbahnhof: {self.abfahrtsbahnhof}"
         self.textfield_allInfo.setText(text)
         
-    def deleter_textfield(self):
-        """
-        Deletes the choice by pushing the button 'delete'.
-        """
-    
-        self.set_text_start_values()
-        self.update_text()
     
     def change_start_station(self, value):
         """
@@ -1176,17 +1160,20 @@ class Data(threading.Thread):
                 readme_text_md = markdown.markdown(readme_text)
             return readme_text_md
         else:
-            return "no README text was found"
+            return "No README text was found"
 
     def load_tutorial(self):
         # Open the 'Tutorial' file and print it in a label of a new window.
-        path_to_tutorial = os.path.dirname(__file__) + '/'+ "Data" + '/' + 'TUTORIAL.md'
+        path_str = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data")) + "\\" #[3:]
+        path_to_tutorial = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/TUTORIAL.md'))
         if exists(path_to_tutorial):
             with open(path_to_tutorial, encoding='utf8') as tutorial_file:
                 tutorial_text = tutorial_file.read()
-            return tutorial_text
-        else:
-            return "no TUTORIAL text was found"
+                tutorial_file.close()
+                tutorial_text = tutorial_text.replace("/////", path_str)
+                tutorial_text_md = markdown.markdown(tutorial_text)
+            return tutorial_text_md
+        return "No TUTORIAL text was found"
 
     def lode_text(self,filename_routes):
         # Loads the file with the routes
