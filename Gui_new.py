@@ -551,15 +551,15 @@ class Side_winow(QtWidgets.QMainWindow):
         label_button_traffic_style = QtWidgets.QLabel("Bahnart:")
         label_combobox_start = QtWidgets.QLabel("Abfahrbahnhof:")
         label_textfield_date_time = QtWidgets.QLabel("Datum und Zeit der Abfahrt:")
-        self.label_textfield_time_dif = QtWidgets.QLabel("Abfart zeit Fenster")
-        label_textfield_allInfo = QtWidgets.QLabel("Ausgewählte Informationen:")
+        self.label_textfield_time_dif = QtWidgets.QLabel("Zeitfenster")
+        label_textfield_allInfo = QtWidgets.QLabel("Besondere Informationen:")
         label_button_recuest = QtWidgets.QLabel("Daten zum Bahnhof erstellen")
 
         # -------------- BUTTONS ------------------
         self.button_nahverkehr = QtWidgets.QPushButton("Nahverkehr")
         self.button_fernverkehr = QtWidgets.QPushButton("Fernverkehr")
         self.button_regional = QtWidgets.QPushButton("Regional")
-        self.button_recuest = QtWidgets.QPushButton("Anfrafe stellen")
+        self.button_recuest = QtWidgets.QPushButton("Anfrage stellen")
         button_start = QtWidgets.QPushButton("Route planen")
         button_delete = QtWidgets.QPushButton("Löschen")
 
@@ -615,9 +615,7 @@ class Side_winow(QtWidgets.QMainWindow):
         """
         Sets the first strings in the text box.        
         """
-        self.bahnart = "noch nicht ausgewählt.."
         self.abfahrtsbahnhof = "noch nicht ausgewählt.."
-        self.zielbahnhof = "noch nicht ausgewählt.."
         self.ankunftszeit = "noch nicht berechnet.."
         
     def update_text(self):
@@ -625,8 +623,7 @@ class Side_winow(QtWidgets.QMainWindow):
         Connects the first text values of the method 'set_text_start_values'
         and changes the first strings into the choiced option.
         """
-        text = (f"Bahnart: {self.bahnart} \n"
-            + f"Abfahrtsbahnhof: {self.abfahrtsbahnhof} \n"
+        text = (f"Abfahrtsbahnhof: {self.abfahrtsbahnhof} \n"
             + f"Zielbahnhof: {self.zielbahnhof} \n"
             + f"Ankunftszeit: {self.ankunftszeit}")
         self.textfield_allInfo.setText(text)
@@ -688,9 +685,6 @@ class Side_winow(QtWidgets.QMainWindow):
 
         self.main_gui.model.change_trainstachen_info(time_span,day,hauer,min,self.abfahrtsbahnhof)
 
-# Ideen zum Verbessern der Tabelle:
-# - Überschrift: wenn auf auf einen Bahnhof gedrückt wird, werden die Werte angezeigt
-# - Headerdata leserlicher gestalten
 
 class tableCreator(QtCore.QAbstractTableModel):
     """
@@ -703,22 +697,21 @@ class tableCreator(QtCore.QAbstractTableModel):
         """
         super().__init__()
         self.dataframe = df
-        # Wenn das Datenframe steht, kann das hier auch verändert werden.
-        #self.dataframe.rename(columns = {'service_id': "Beispiel String 1", 
-                        #"exception_type": "Beispiel2", "date": "Beispiel3"}, inplace = True)
         
         
     def rowCount(self, parent = None):
         """
         Sets the amount of the rows of the read file.
         """
-        return len(self.dataframe[0:])
+        self.number = len(self.dataframe[0:])
+        return self.number
         
     def columnCount(self, parent = None):
         """
         Sets the amount of the columns of the read file.
         """
         return len(self.dataframe.keys())
+        
         
     def data(self, index, role = QtCore.Qt.DisplayRole):
         """
@@ -738,6 +731,9 @@ class tableCreator(QtCore.QAbstractTableModel):
            return None
         
         return self.dataframe.columns[index]
+      
+
+        
  
 class dataTable(QtWidgets.QMainWindow):
     """
