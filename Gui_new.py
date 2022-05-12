@@ -1217,17 +1217,21 @@ class Data(threading.Thread):
                 readme_text_md = markdown.markdown(readme_text)
             return readme_text_md
         else:
-            return "no README text was found"
+            return "No README text was found"
 
     def load_tutorial(self):
         # Open the 'Tutorial' file and print it in a label of a new window.
-        path_to_tutorial = os.path.dirname(__file__) + '/'+ "Data" + '/' + 'TUTORIAL.md'
+        path_str = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data")) + "\\" #[3:]
+        path_to_tutorial = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/TUTORIAL.md'))
         if exists(path_to_tutorial):
             with open(path_to_tutorial, encoding='utf8') as tutorial_file:
                 tutorial_text = tutorial_file.read()
-            return tutorial_text
+                tutorial_file.close()
+                tutorial_text = tutorial_text.replace("/////", path_str)
+                tutorial_text_md = markdown.markdown(tutorial_text)
+            return tutorial_text_md
         else:
-            return "no TUTORIAL text was found"
+            return "No TUTORIAL text was found"
 
     def lode_text(self,filename_routes):
         # Loads the file with the routes
