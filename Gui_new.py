@@ -700,10 +700,7 @@ class tableCreator(QtCore.QAbstractTableModel):
         if role != QtCore.Qt.DisplayRole or orientation != QtCore.Qt.Orientation.Horizontal:
            return None
         
-        return self.dataframe.columns[index]
-      
-
-        
+        return self.dataframe.columns[index] 
  
 class dataTable(QtWidgets.QMainWindow):
     """
@@ -732,10 +729,6 @@ class dataTable(QtWidgets.QMainWindow):
     def set_df(self,trainstachen_info):
         table_model = tableCreator(trainstachen_info)
         self.table_view.setModel(table_model)
-
-
-
-
 
 # Klasse um das Main Window zu erstellen
 class MainWindow(QtWidgets.QMainWindow):
@@ -828,9 +821,6 @@ class MainWindow(QtWidgets.QMainWindow):
         
         self.layout.addLayout(sub_layout)
         
-
-
-
 
 class Model():
 
@@ -934,10 +924,6 @@ class Model():
         self.trainstachen_info = self.all_data.create_trainstachen_info([day,hauer,min],trainstachen,time_span,self.cerent_gtfs)
         self.main_gui.dataTable_instace.set_df(self.trainstachen_info)
         
-
-
-
-
 
 class Data(threading.Thread):
 
@@ -1126,6 +1112,8 @@ class Data(threading.Thread):
         return self.connections_fern
 
     def gtfs(self,kategorie):
+        # the gtfs are pulled if needet
+        # if gtfs data is missing, the opchon is closed
         if kategorie == "latest_nah":
             if self.gtfs_nah == None:
                 self.gtfs_nah = self.gtfs_nah_pre.result()
@@ -1146,35 +1134,33 @@ class Data(threading.Thread):
             return self.gtfs_regional
 
     def lode_gtfs(self,kategorie):
-        pfad_start = os.path.abspath(os.path.join(os.path.dirname( __file__ ), kategorie))+ '\\'
 
+        #creats pahth
+        pfad_start = os.path.abspath(os.path.join(os.path.dirname( __file__ ), kategorie))+ '\\'
         data_names = ['agency','calendar','calendar_dates','feed_info','routes','stop_times','stops','trips']
         name_dict = {}
 
         gtfs_is_missing_files = False
 
+        # redes in all data
         for name in data_names:
             pfad = pfad_start + name + '.txt'
-
             if exists(pfad):
-
                 df = pd.read_csv(pfad)
-                pd.set_option('display.min_rows', 10) 
-                if name == 'stopshivz':
-                    pd.set_option('display.min_rows', 400) 
                 name_dict[name] = df
 
             else:
+                # if data is not found the user is toled about
                 print("Die Datei " + name + " wurde nicht Gefunden")
                 print(os.path.abspath(os.path.join(os.path.dirname( __file__ ), name + '.txt')))
                 gtfs_is_missing_files = True
 
+        # if data is not found the user is toled about
         if gtfs_is_missing_files:
             print(" \n \n")
             print("da die daten von " + kategorie + " nicht geladen werden konten \n Kann man diese auch nicht aus welen")
             return None
 
-        print(kategorie)
         return name_dict
 
     def load_map_data(self):
@@ -1187,6 +1173,7 @@ class Data(threading.Thread):
         if exists(path_to_map):
             with open(path_to_map,encoding='utf8') as f:
                 data = geojson.load(f)
+                f.close()
             states = data['features']
             return states
         else:
@@ -1201,18 +1188,20 @@ class Data(threading.Thread):
         if exists(path_to_about):
             with open(path_to_about, encoding='utf8') as about_file:
                 about_text = about_file.read()
+                about_file.close()
             return about_text
         else:
             return "No ABOUT text was found"
 
     def lode_readme_text(self):
         # Open the 'ReadMe' file and print it in a label of a new window.
-        path_str = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data")) + "\\" #[3:]
+        path_str = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data")) + "\\" 
         path_to_readme = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/README.md'))
         if exists(path_to_readme):
             with open(path_to_readme, encoding='utf8') as readme_file:
                 readme_text = readme_file.read()
                 readme_file.close()
+                # the dynemic path is inserdet
                 readme_text = readme_text.replace("/////", path_str)
                 readme_text_md = markdown.markdown(readme_text)
             return readme_text_md
@@ -1221,12 +1210,13 @@ class Data(threading.Thread):
 
     def load_tutorial(self):
         # Open the 'Tutorial' file and print it in a label of a new window.
-        path_str = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data")) + "\\" #[3:]
+        path_str = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data")) + "\\" 
         path_to_tutorial = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/TUTORIAL.md'))
         if exists(path_to_tutorial):
             with open(path_to_tutorial, encoding='utf8') as tutorial_file:
                 tutorial_text = tutorial_file.read()
                 tutorial_file.close()
+                # the dynemic path is inserdet
                 tutorial_text = tutorial_text.replace("/////", path_str)
                 tutorial_text_md = markdown.markdown(tutorial_text)
             return tutorial_text_md
@@ -1237,9 +1227,9 @@ class Data(threading.Thread):
         # Loads the file with the routes
 
         path_of_routes = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/' + filename_routes))
-
         if exists(path_of_routes):
             routes = pd.read_csv(path_of_routes, encoding='utf8')
+            # a indechachon if the reading was sucsesfull is includet
             return [routes,True]
         return [None,False]
 
