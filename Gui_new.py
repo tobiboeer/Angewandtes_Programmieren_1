@@ -90,8 +90,6 @@ class myFred(threading.Thread):
                         last_stop_id = stop_id
                     sub_stop_ids_inspected.append(sub_stop_ids)
 
-            #if done % 20 == 0:
-                #print(done,len(self.all_rout_ids))
 
      
         df = pd.DataFrame (conectons, columns = ['stachen_1','stachen_2'])
@@ -126,6 +124,15 @@ class Conectons(threading.Thread):
         if self.type == "fern":
             self.name_dict = self.data_clas.gtfs_fern
             self.name = 'connections_fern.csv'
+
+        if self.type == "regional":
+            self.name_dict = self.data_clas.gtfs_regional
+            self.name = 'connections_regional.csv'
+
+        if self.type == "nah":
+            self.name_dict = self.data_clas.gtfs_nah
+            self.name = 'connections_nah.csv'
+
 
 
     def run(self):
@@ -192,6 +199,10 @@ class Conectons(threading.Thread):
 
         if self.type == "fern":
             self.data_clas.free_fern_add_1()
+        if self.type == "regional":
+            self.data_clas.free_regional_add_1()
+        if self.type == "nah":
+            self.data_clas.free_nah_add_1()
         
 
 
@@ -353,7 +364,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
         self.line_pen = QtGui.QPen("orange")
         self.line_pen.setWidthF(0.02)
 
-    def drawRouteNetwork(self,train_stations,filename_routes):
+    def drawRouteNetwork(self,train_stations,routes):
         """
         Draws stations and routes to the base scene.
 
@@ -385,7 +396,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
 
         # Loads the file with the routes
         #routes = self.main_gui.model.all_data.lode_routes(filename_routes) # muss definitif überarbeitet werden
-        routes = self.main_gui.model.get_conectons()
+        #routes = self.main_gui.model.get_conectons()
         
         # Drawing the routes
         for start in routes.itertuples():
@@ -796,7 +807,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.grid_layout.addWidget(self.dataTable_instace,1,0,1,2)
 
         stations = self.model.get_cerent_stops()
-        self.germany_map.drawRouteNetwork(stations,'connections.csv')
+        self.germany_map.drawRouteNetwork(stations,self.model.get_conectons())
         
         window_content = QtWidgets.QWidget()
         window_content.setLayout(self.grid_layout)
@@ -862,7 +873,6 @@ class Model():
             if not (self.all_data.gtfs("latest_fern") == None):
                 self.all_data.restor("fern")
                 pass
-
             self.cerent_stops = self.all_data.get_stops_regional()
             self.cerent_connections = self.all_data.get_connections_regional()
             self.cerent_gtfs = self.all_data.gtfs("latest_regional")
@@ -901,12 +911,16 @@ class Model():
                 self.cerent_connections = self.all_data.get_connections_regional()
                 self.cerent_gtfs = self.all_data.gtfs("latest_regional")
 
-            if self.cerent_gtfs == None:
+            if (self.cerent_gtfs == None) or (self.cerent_stops[1]==False) or (self.cerent_connections[1]==False):
                 self.cerent_stops = start_veluages[0]
                 self.cerent_connections = start_veluages[1]
                 self.cerent_gtfs = start_veluages[2]
+                print("solte nicht so sein")
+                self.all_data.restor("fern")
+                self.all_data.restor("nah")
+                self.all_data.restor("regional")
             else:
-                self.main_gui.drawRouteNetwork(self.get_cerent_stops(),'connections.csv') 
+                self.main_gui.drawRouteNetwork(self.get_cerent_stops(),self.get_conectons()) 
         
     def get_about_text(self):
         return self.all_data.about_text
@@ -961,17 +975,57 @@ class Data(threading.Thread):
         time.sleep(0.1)
 
     def restor(self,key):
-        if key == "fern":
-            print("halllllooooo")
-            self.free_fern = 0
-            if self.connections_fern[1] == False:
-                Conectons(self,"fern").run() #.gtfs_fern,'connections_fern.csv'
-            else:
-                self.free_fern_add_1()
-            if self.stops_fern[1] == False:
-                pass
-            else:
-                self.free_fern_add_1()
+        if key == "fern" and ("stops_fern" in self.delited_kategorie_opchens):
+            if not (self.gtfs_fern == None):
+                self.free_fern = 0
+                if self.connections_fern[1] == False:
+                    Conectons(self,"fern").run() 
+                else:
+                    self.free_fern_add_1()
+                if self.stops_fern[1] == False:
+                    pass
+                else:
+                    self.free_fern_add_1()
+
+        if key == "nah" and ("stops_nah" in self.delited_kategorie_opchens):
+            if not (self.gtfs_nah == None):
+                self.free_nah = 0
+                if self.connections_nah[1] == False:
+                    Conectons(self,"nah").run() 
+                else:
+                    self.free_nah_add_1()
+                if self.stops_nah[1] == False:
+                    pass
+                else:
+                    self.free_nah_add_1()
+
+        if key == "regional" and ("stops_regional" in self.delited_kategorie_opchens):
+            if not (self.gtfs_regional == None):
+                self.free_regional = 0
+                if self.connections_regional[1] == False:
+                    Conectons(self,"regional").run() 
+                else:
+                    print("restoored--------------17")
+                    self.free_regional_add_1()
+                if self.stops_regional[1] == False:
+                    print("restoored--------------16")
+                    print(self.stops_regional)
+                    print("restoored--------------16")
+                    pass
+                else:
+                    print("restoored--------------17")
+                    self.free_regional_add_1()
+
+    def free_regional_add_1(self):
+        print("restoored--------------18")
+        self.free_regional += 1
+        if self.free_regional == 2:
+            print("restoored--------------19")
+            self.stops_regional = self.lode_text('stops_regional.txt')
+            self.connections_regional = self.lode_text('connections_regional.csv')
+            self.delited_kategorie_opchens.remove("stops_regional")
+
+            print("restoored--------------")
 
     def free_fern_add_1(self):
         self.free_fern += 1
@@ -979,45 +1033,72 @@ class Data(threading.Thread):
             self.stops_fern = self.lode_text('stops_fern.txt')
             self.connections_fern = self.lode_text('connections_fern.csv')
             self.delited_kategorie_opchens.remove("stops_fern")
+    
+    def free_nah_add_1(self):
+        self.free_nah += 1
+        if self.free_nah == 2:
+            self.stops_fern = self.lode_text('stops_nah.txt')
+            self.connections_fern = self.lode_text('connections_nah.csv')
+            self.delited_kategorie_opchens.remove("stops_nah")
+
+
 
 
     def gtfs_prep(self):
         with concurrent.futures.ThreadPoolExecutor() as executor:
             self.gtfs_nah_pre = executor.submit(self.lode_gtfs,"latest_nah")
             self.gtfs_regional_pre = executor.submit(self.lode_gtfs,"latest_regional")
-            self.connections_nah_pre = executor.submit(self.lode_text,'connections_og.csv')
+            self.connections_nah_pre = executor.submit(self.lode_text,'connections_nah.csv')
             self.connections_regional_pre = executor.submit(self.lode_text,'connections_regional.csv')
             self.stops_regional_pre = executor.submit(self.lode_text,'stops_regional.txt')
             self.stops_nah_pre = executor.submit(self.lode_text,'stops_nah.txt')
 
     def get_stops_fern(self):
+        if self.stops_fern[1] == False:
+            self.delited_kategorie_opchens.append("stops_fern")
+            self.restor("fern")
         return self.stops_fern
 
     def get_stops_nah(self):
         if not self.stops_nah_set:
             self.stops_nah_set = True
             self.stops_nah = self.stops_nah_pre.result()
+            if self.stops_nah[1] == False:
+                self.delited_kategorie_opchens.append("stops_nah")
+                self.restor("nah")
         return self.stops_nah
 
     def get_stops_regional(self):
         if not self.stops_regional_set:
             self.stops_regional_set = True
             self.stops_regional = self.stops_regional_pre.result()
+            if self.stops_regional[1] == False:
+                self.delited_kategorie_opchens.append("stops_regional")
+                self.restor("regional")
         return self.stops_regional
 
     def get_connections_regional(self):
         if not self.connections_regional_set:
             self.connections_regional_set = True
             self.connections_regional = self.connections_regional_pre.result()
+            if self.connections_regional[1] == False:
+                self.delited_kategorie_opchens.append("stops_regional")
+                self.restor("regional")
         return self.connections_regional
-
+        
     def get_connections_nah(self):
         if not self.connections_nah_set:
             self.connections_nah_set = True
             self.connections_nah = self.connections_nah_pre.result()
+            if self.connections_nah[1] == False:
+                self.delited_kategorie_opchens.append("stops_nah")
+                self.restor("nah")
         return self.connections_nah
 
     def get_connections_fern(self):
+        if self.connections_fern[1] == False:
+            self.delited_kategorie_opchens.append("stops_fern")
+            self.restor("fern")
         return self.connections_fern
 
     def gtfs(self,kategorie):
@@ -1112,17 +1193,20 @@ class Data(threading.Thread):
                 readme_text_md = markdown.markdown(readme_text)
             return readme_text_md
         else:
-            return "no README text was found"
+            return "No README text was found"
 
     def load_tutorial(self):
         # Open the 'Tutorial' file and print it in a label of a new window.
-        path_to_tutorial = os.path.dirname(__file__) + '/'+ "Data" + '/' + 'TUTORIAL.md'
+        path_str = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data")) + "\\" #[3:]
+        path_to_tutorial = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/TUTORIAL.md'))
         if exists(path_to_tutorial):
             with open(path_to_tutorial, encoding='utf8') as tutorial_file:
                 tutorial_text = tutorial_file.read()
-            return tutorial_text
-        else:
-            return "no TUTORIAL text was found"
+                tutorial_file.close()
+                tutorial_text = tutorial_text.replace("/////", path_str)
+                tutorial_text_md = markdown.markdown(tutorial_text)
+            return tutorial_text_md
+        return "No TUTORIAL text was found"
 
     def lode_text(self,filename_routes):
         # Loads the file with the routes
