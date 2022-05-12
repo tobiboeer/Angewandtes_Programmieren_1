@@ -87,7 +87,11 @@ class myFred(threading.Thread):
                         last_stop_id = stop_id
                     sub_stop_ids_inspected.append(sub_stop_ids)
 
+
+
+
         # reduses the cupels witch are multipl tims in the list
+
         df = pd.DataFrame (conectons, columns = ['stachen_1','stachen_2'])
         groub = df.groupby(['stachen_1','stachen_2'])
         groub = pd.DataFrame(groub.size())
@@ -122,12 +126,14 @@ class Conectons(threading.Thread):
         if self.type == "fern":
             self.name_dict = self.data_clas.gtfs_fern
             self.name = 'connections_fern.csv'
+
         if self.type == "regional":
             self.name_dict = self.data_clas.gtfs_regional
             self.name = 'connections_regional.csv'
         if self.type == "nah":
             self.name_dict = self.data_clas.gtfs_nah
             self.name = 'connections_nah.csv'
+
 
     def run(self):
         self.shreads_done = 0
@@ -195,10 +201,6 @@ class Conectons(threading.Thread):
         # depandig of the type one file is restored
         if self.type == "fern":
             self.data_clas.free_fern_add_1()
-        if self.type == "regional":
-            self.data_clas.free_regional_add_1()
-        if self.type == "nah":
-            self.data_clas.free_nah_add_1()
         
 
 
@@ -335,7 +337,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
         self.line_pen = QtGui.QPen("orange")
         self.line_pen.setWidthF(0.02)
 
-    def drawRouteNetwork(self,train_stations,routes):
+    def drawRouteNetwork(self,train_stations,filename_routes):
         """
         Draws stations and routes to the base scene.
 
@@ -367,7 +369,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
 
         # Loads the file with the routes
         #routes = self.main_gui.model.all_data.lode_routes(filename_routes) # muss definitif überarbeitet werden
-        #routes = self.main_gui.model.get_conectons()
+        routes = self.main_gui.model.get_conectons()
         
         # Drawing the routes
         for start in routes.itertuples():
@@ -446,7 +448,7 @@ class MenuWindowReadMe(QtWidgets.QGraphicsView):
     """
     Creates the window of the 'ReadMe' menu in the menubar.
     """
-    def __init__(self,all_data):
+    def __init__(self,model):
         """
         Creates a widget for the ReadMe menu.
         """
@@ -474,7 +476,7 @@ class MenuWindowTutorial(QtWidgets.QGraphicsView):
     """
     Creates the window of the 'Tutorial' menu in the menubar.
     """
-    def __init__(self,all_data):
+    def __init__(self,model):
         """
         Creates a widget for the Tutorial menu.
         """
@@ -520,7 +522,11 @@ class Side_winow(QtWidgets.QMainWindow):
         
 
         # -------------- TEXT FIELDS ----------------
-        textfield_date = QtWidgets.QDateEdit()
+        self.textfield_date = QtWidgets.QDateEdit()
+        start_date = datetime(2022, 0o1, 0o1)
+        end_date = datetime(2022, 12, 31)
+        self.textfield_date.setDateRange(start_date,end_date)
+        
         self.textfield_time = QtWidgets.QTimeEdit()
         self.textfield_time_dif = QtWidgets.QTimeEdit()
         self.textfield_allInfo = QtWidgets.QTextEdit()
@@ -534,7 +540,7 @@ class Side_winow(QtWidgets.QMainWindow):
         label_textfield_date_time = QtWidgets.QLabel("Datum und Zeit der Abfahrt:")
         self.label_textfield_time_dif = QtWidgets.QLabel("Zeitfenster")
         label_textfield_allInfo = QtWidgets.QLabel("Besondere Informationen:")
-        label_button_recuest = QtWidgets.QLabel("Daten zum Bahnhof erstellen")
+        label_button_recuest = QtWidgets.QLabel("Daten zum Bahnhof erstellen:")
 
         # -------------- BUTTONS ------------------
         self.button_nahverkehr = QtWidgets.QPushButton("Nahverkehr")
@@ -554,7 +560,7 @@ class Side_winow(QtWidgets.QMainWindow):
         button_layout_traffic.addWidget(self.button_regional)
         
         date_time_layout = QtWidgets.QHBoxLayout()
-        date_time_layout.addWidget(textfield_date)
+        date_time_layout.addWidget(self.textfield_date)
         date_time_layout.addWidget(self.textfield_time)
 
         time_dif_layout = QtWidgets.QHBoxLayout()
@@ -642,13 +648,13 @@ class Side_winow(QtWidgets.QMainWindow):
 
     def trainstachen_recqest(self):
         time_span = self.textfield_time_dif.time().toString()
+        print(self.textfield_date.dateTime().toString())
 
         day = datetime.today().weekday()
         hauer = int(datetime.now().strftime("%H"))
         min = int(datetime.now().strftime("%M"))
 
         self.main_gui.model.change_trainstachen_info(time_span,day,hauer,min,self.abfahrtsbahnhof)
-
 
 class tableCreator(QtCore.QAbstractTableModel):
     """
@@ -778,7 +784,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.grid_layout.addWidget(self.dataTable_instace,1,0,1,2)
 
         stations = self.model.get_cerent_stops()
-        self.germany_map.drawRouteNetwork(stations,self.model.get_conectons())
+        self.germany_map.drawRouteNetwork(stations,'connections.csv')
         
         window_content = QtWidgets.QWidget()
         window_content.setLayout(self.grid_layout)
@@ -847,6 +853,7 @@ class Model():
             # try to restor lost data
             if not (self.all_data.gtfs("latest_fern") == None):
                 self.all_data.restor("fern")
+
 
             # lodes new data 
             self.cerent_stops = self.all_data.get_stops_regional()
@@ -1027,7 +1034,7 @@ class Data(threading.Thread):
             self.stops_fern = self.lode_text('stops_fern.txt')
             self.connections_fern = self.lode_text('connections_fern.csv')
             self.delited_kategorie_opchens.remove("stops_fern")
-    
+
     def free_nah_add_1(self):
         self.free_nah += 1
         if self.free_nah == 2:
@@ -1040,7 +1047,7 @@ class Data(threading.Thread):
         with concurrent.futures.ThreadPoolExecutor() as executor:
             self.gtfs_nah_pre = executor.submit(self.lode_gtfs,"latest_nah")
             self.gtfs_regional_pre = executor.submit(self.lode_gtfs,"latest_regional")
-            self.connections_nah_pre = executor.submit(self.lode_text,'connections_nah.csv')
+            self.connections_nah_pre = executor.submit(self.lode_text,'connections_og.csv')
             self.connections_regional_pre = executor.submit(self.lode_text,'connections_regional.csv')
             self.stops_regional_pre = executor.submit(self.lode_text,'stops_regional.txt')
             self.stops_nah_pre = executor.submit(self.lode_text,'stops_nah.txt')
@@ -1052,6 +1059,7 @@ class Data(threading.Thread):
             if not ("stops_fern" in self.delited_kategorie_opchens):
                 self.delited_kategorie_opchens.append("stops_fern")
             self.restor("fern")
+
         return self.stops_fern
 
     def get_stops_nah(self):
@@ -1078,6 +1086,7 @@ class Data(threading.Thread):
                 if not ("stops_regional" in self.delited_kategorie_opchens):
                     self.delited_kategorie_opchens.append("stops_regional")
                 self.restor("regional")
+
         return self.stops_regional
 
     def get_connections_regional(self):
@@ -1091,8 +1100,9 @@ class Data(threading.Thread):
                 if not ("stops_regional" in self.delited_kategorie_opchens):
                     self.delited_kategorie_opchens.append("stops_regional")
                 self.restor("regional")
+
         return self.connections_regional
-        
+
     def get_connections_nah(self):
         # if the valuue is not pulled, its done now
         # if the valuue is incorecht, the kategory option is delited
@@ -1207,20 +1217,17 @@ class Data(threading.Thread):
                 readme_text_md = markdown.markdown(readme_text)
             return readme_text_md
         else:
-            return "No README text was found"
+            return "no README text was found"
 
     def load_tutorial(self):
         # Open the 'Tutorial' file and print it in a label of a new window.
-        path_str = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data")) + "\\" #[3:]
-        path_to_tutorial = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/TUTORIAL.md'))
+        path_to_tutorial = os.path.dirname(__file__) + '/'+ "Data" + '/' + 'TUTORIAL.md'
         if exists(path_to_tutorial):
             with open(path_to_tutorial, encoding='utf8') as tutorial_file:
                 tutorial_text = tutorial_file.read()
-                tutorial_file.close()
-                tutorial_text = tutorial_text.replace("/////", path_str)
-                tutorial_text_md = markdown.markdown(tutorial_text)
-            return tutorial_text_md
-        return "No TUTORIAL text was found"
+            return tutorial_text
+        else:
+            return "no TUTORIAL text was found"
 
     def lode_text(self,filename_routes):
         # Loads the file with the routes
