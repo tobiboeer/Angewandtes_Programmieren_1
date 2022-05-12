@@ -54,6 +54,7 @@ import time
 import calendar
 import threading
 import concurrent.futures
+import markdown
 
 
 
@@ -485,6 +486,7 @@ class Side_winow(QtWidgets.QMainWindow):
 
     def set_train_stations_list(self):  
         stations = self.main_gui.model.get_cerent_stops()
+        print("stations \n",stations)                          #------------------------------
         train_stations = stations['stop_name']
         self.combobox_start.addItems(train_stations)
 
@@ -670,19 +672,38 @@ class Model():
 
     def __init__(self,all_data):
         self.all_data = all_data
-        self.cerent_stops = self.all_data.stops_fern
-        self.cerent_connections = self.all_data.connections_fern
-        self.cerent_gtfs = self.all_data.gtfs("latest_fern")
         self.trainstachen_info = None
+        self.get_first_data()
+
+    def get_first_data(self):
+        if self.all_data.lode_first:
+            self.cerent_stops = self.all_data.get_stops_fern()
+            self.cerent_connections = self.all_data.get_connections_fern()
+            self.cerent_gtfs = self.all_data.gtfs("latest_fern")
+        else:
+            self.all_data.delited_kategorie_opchens.append("stops_fern")
+            self.cerent_stops = self.all_data.get_stops_regional()
+            self.cerent_connections = self.all_data.get_connections_regional()
+            self.cerent_gtfs = self.all_data.gtfs("latest_regional")
+            if (self.cerent_stops[1] == False) or (self.cerent_connections[1] == False) or (self.cerent_gtfs == None):
+                self.all_data.delited_kategorie_opchens.append("stops_regional")
+                self.cerent_stops = self.all_data.get_stops_nah()
+                self.cerent_connections = self.all_data.get_connections_nah()
+                self.cerent_gtfs = self.all_data.gtfs("latest_nah")
+                if (self.cerent_stops[1] == False) or (self.cerent_connections[1] == False) or (self.cerent_gtfs == None):
+                    self.all_data.delited_kategorie_opchens.append("stops_nah")
+                    print(" alle daten sets sind felerhaft. Die bedinbarkeit ist eingeschrenkt.")
+        
+        
 
     def set_main_gui(self,main_gui):
         self.main_gui = main_gui
 
     def get_cerent_stops(self):
-        return self.cerent_stops
+        return self.cerent_stops[0]
 
     def get_conectons(self):
-        return self.cerent_connections
+        return self.cerent_connections[0]
 
     def change_cerent_stops(self,new_type):
         if not (new_type in self.all_data.delited_kategorie_opchens):
@@ -706,7 +727,9 @@ class Model():
                 self.cerent_connections = start_veluages[1]
                 self.cerent_gtfs = start_veluages[2]
             else:
-                self.main_gui.drawRouteNetwork(self.cerent_stops,'connections.csv') 
+                print("pppppppppppppppppppppppppppp")
+                print(self.cerent_stops)
+                self.main_gui.drawRouteNetwork(self.get_cerent_stops(),'connections.csv') 
         
     def get_about_text(self):
         return self.all_data.about_text
@@ -737,9 +760,16 @@ class Data(threading.Thread):
         self.counts = self.load_map_data()
         self.about_text = self.lode_about_text()
         self.readme_text = self.lode_readme_text()
+
         self.stops_fern = self.lode_text('stops_fern.txt')
         self.connections_fern = self.lode_text('connections_fern.csv')
-        self.gtfs_fern = self.lode_gtfs,"latest_fern"
+        self.gtfs_fern = self.lode_gtfs("latest_fern")
+
+        self.lode_first = True
+        if (self.stops_fern[1] == False) or (self.connections_fern[1] == False) or (self.gtfs_fern == None):
+            self.lode_first = False
+
+
         
         self.gtfs_nah = None
         self.gtfs_regional = None
@@ -749,6 +779,7 @@ class Data(threading.Thread):
         self.stops_nah_set = False
 
         threading.Thread(target=self.gtfs_prep).start()
+        time.sleep(0.1)
 
     def gtfs_prep(self):
         with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -758,6 +789,7 @@ class Data(threading.Thread):
             self.connections_regional_pre = executor.submit(self.lode_text,'connections_regional.csv')
             self.stops_regional_pre = executor.submit(self.lode_text,'stops_regional.txt')
             self.stops_nah_pre = executor.submit(self.lode_text,'stops_nah.txt')
+
 
     def get_stops_fern(self):
         return self.stops_fern
@@ -847,7 +879,7 @@ class Data(threading.Thread):
         Source of the file:
         http://opendatalab.de/projects/geojson-utilities/
         """
-        path_to_map = os.path.dirname(__file__) + '/'+ "Data" + '/landkreise_simplify200.geojson'
+        path_to_map = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/landkreise_simplify200.geojson'))
         if exists(path_to_map):
             with open(path_to_map,encoding='utf8') as f:
                 data = geojson.load(f)
@@ -861,7 +893,7 @@ class Data(threading.Thread):
 
     def lode_about_text(self):
         # Open the 'About' file and print it in a label of a new window.
-        path_to_about = os.path.dirname(__file__) + '/'+ "Data" +  '/' + 'ABOUT.md'
+        path_to_about = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/ABOUT.md'))
         if exists(path_to_about):
             with open(path_to_about, encoding='utf8') as about_file:
                 about_text = about_file.read()
@@ -871,22 +903,28 @@ class Data(threading.Thread):
 
     def lode_readme_text(self):
         # Open the 'ReadMe' file and print it in a label of a new window.
-        path_to_readme = os.path.dirname(__file__) + '/'+ "Data" + '/' + 'README.md'
+        path_str = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data")) + "\\" #[3:]
+        path_to_readme = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/README.md'))
         if exists(path_to_readme):
             with open(path_to_readme, encoding='utf8') as readme_file:
                 readme_text = readme_file.read()
-            return readme_text
+                readme_file.close()
+                readme_text = readme_text.replace("/////", path_str)
+                print(readme_text)
+                readme_text_md = markdown.markdown(readme_text)
+            return readme_text_md
         else:
             return "no README text was found"
 
     def lode_text(self,filename_routes):
         # Loads the file with the routes
 
-        path_of_routes = os.path.dirname(__file__) + '/'+ "Data" + '/' + filename_routes
+        path_of_routes = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/' + filename_routes))
+
         if exists(path_of_routes):
             routes = pd.read_csv(path_of_routes, encoding='utf8')
-            return routes
-        return False
+            return [routes,True]
+        return [None,False]
 
     def create_trainstachen_info(self,date,trainstachen_name,time_spane,name_dict):
 
@@ -964,7 +1002,7 @@ class Data(threading.Thread):
                         departure_time = trip_id_stops['departure_time'].to_numpy()[0]
 
                         if conactions_df_counter == 0:
-                            conactions_df = pd.DataFrame([[agency_name_instanz, route_long_name,end_station_name,arrival_time,departure_time]], columns=["agency_name_instanz","route_long_name","end_station_name","arrival_time","departure_time"])
+                            conactions_df = pd.DataFrame([[agency_name_instanz, route_long_name,end_station_name,arrival_time,departure_time]], columns=["Betreiber","Zugbezeichnung","Endstation","Einfahrtzeit","Abfahrtzeit"])
                         else:
                             conactions_df.loc[conactions_df_counter] = [agency_name_instanz, route_long_name,end_station_name,arrival_time,departure_time]
                         conactions_df_counter += 1
