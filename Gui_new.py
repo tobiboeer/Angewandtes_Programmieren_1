@@ -740,9 +740,7 @@ class Data(threading.Thread):
         self.stops_fern = self.lode_text('stops_fern.txt')
         self.connections_fern = self.lode_text('connections_fern.csv')
         self.gtfs_fern = self.lode_gtfs,"latest_fern"
-        self.lode_rest()
-
-    def lode_rest(self):        
+        
         self.gtfs_nah = None
         self.gtfs_regional = None
         self.connections_nah_set = False
@@ -849,7 +847,7 @@ class Data(threading.Thread):
         Source of the file:
         http://opendatalab.de/projects/geojson-utilities/
         """
-        path_to_map = os.path.dirname(__file__) + '/landkreise_simplify200.geojson'
+        path_to_map = os.path.dirname(__file__) + '/'+ "Data" + '/landkreise_simplify200.geojson'
         if exists(path_to_map):
             with open(path_to_map,encoding='utf8') as f:
                 data = geojson.load(f)
@@ -863,7 +861,7 @@ class Data(threading.Thread):
 
     def lode_about_text(self):
         # Open the 'About' file and print it in a label of a new window.
-        path_to_about = os.path.dirname(__file__) + '/' + 'ABOUT.md'
+        path_to_about = os.path.dirname(__file__) + '/'+ "Data" +  '/' + 'ABOUT.md'
         if exists(path_to_about):
             with open(path_to_about, encoding='utf8') as about_file:
                 about_text = about_file.read()
@@ -873,7 +871,7 @@ class Data(threading.Thread):
 
     def lode_readme_text(self):
         # Open the 'ReadMe' file and print it in a label of a new window.
-        path_to_readme = os.path.dirname(__file__) + '/' + 'README.md'
+        path_to_readme = os.path.dirname(__file__) + '/'+ "Data" + '/' + 'README.md'
         if exists(path_to_readme):
             with open(path_to_readme, encoding='utf8') as readme_file:
                 readme_text = readme_file.read()
@@ -884,7 +882,7 @@ class Data(threading.Thread):
     def lode_text(self,filename_routes):
         # Loads the file with the routes
 
-        path_of_routes = os.path.dirname(__file__) + '/' + filename_routes
+        path_of_routes = os.path.dirname(__file__) + '/'+ "Data" + '/' + filename_routes
         if exists(path_of_routes):
             routes = pd.read_csv(path_of_routes, encoding='utf8')
             return routes

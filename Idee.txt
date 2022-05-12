@@ -19,4 +19,14 @@ Folgende Dateien sollen am Ende vorhanden sein:
 2. GUI - Map
 3. Menü - Tobis Teil rechts
 4. Tabelle - die unten hinkommt
+
 -------------
+#######################################################
+- Desktop Icon
+- gewünschte Route farblich hervorheben
+- Musik ?! :-D 
+- Abbild einer Bahn auf der GUI 
+- Programmieraufgabe2 schon integrieren
+- Deutschlandkarte zeichnen
+- grße Städte hervorheben
+- Wetterlage ? 
