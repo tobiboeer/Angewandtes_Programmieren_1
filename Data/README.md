@@ -1,14 +1,13 @@
-# README
+# README <br/>
+**Date:** 13. May 2022 <br/>
 
-**Date:** 13. May 2022
-
-**Authors:** Fabian Kessener, Tobias Boeer, Timon Fass
+**Authors:** Fabian Kessener, Tobias Boeer, Timon Fass <br/>
 
 **Version:** 1.0
 
 ---
 
-**Executing the Program**
+**Executing the Program** <br/>
 
 This program was only tested with Windows 10 (was habt ihr für
 Betriebssysteme?) and Python 3.10.2 (Welche Version habt ihr?).
