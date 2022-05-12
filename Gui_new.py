@@ -66,15 +66,20 @@ class myFred(threading.Thread):
         self.amount_of_trets = amount_of_trets
 
     def run(self):
+        # based on the rood id the choneckchens betwen the trainstachens are put togeter
         conectons = []
 
         for done, rout_id in enumerate(self.all_rout_ids):
+            # gets all trip ids from the roout id 
             trip_id_example_list = self.name_dict["trips"].loc[self.name_dict["trips"]["route_id"] == rout_id]['trip_id'].to_numpy()
+            # reduses the number trip ids to reduce the runtime.  
             trip_id_example_list = set(trip_id_example_list)
             sub_stop_ids_inspected = []
             for trip_id_example in trip_id_example_list:
+                # gets all stops from the trip id
                 all_stops = self.name_dict["stop_times"][self.name_dict["stop_times"].trip_id == trip_id_example]
                 sub_stop_ids = list(all_stops["stop_id"].to_numpy())
+                # creats a list of al trainstacen conechons
                 if not (sub_stop_ids in sub_stop_ids_inspected):
                     for count, stop_id in enumerate(sub_stop_ids):
                         if count != 0:
@@ -82,26 +87,27 @@ class myFred(threading.Thread):
                         last_stop_id = stop_id
                     sub_stop_ids_inspected.append(sub_stop_ids)
 
-
-     
+        # reduses the cupels witch are multipl tims in the list
         df = pd.DataFrame (conectons, columns = ['stachen_1','stachen_2'])
         groub = df.groupby(['stachen_1','stachen_2'])
         groub = pd.DataFrame(groub.size())
         groub.reset_index(inplace=True)
         groub = groub.drop(labels=[0], axis=1)
 
+        # re asembels the list
         stachen_1 = list(groub["stachen_1"].to_numpy())
         stachen_2 = list(groub["stachen_2"].to_numpy())
         conectons = [stachen_1,stachen_2]
         
         print("conectons in Tret erstellt")
 
+        # writes to the main class
         while True:
             if self.parent.add_conectons(conectons):
                 break
             time.sleep(0.01)
 
-
+        # if all treda are done the main code can be run
         self.parent.shreads_done += 1
         if self.parent.shreads_done == self.amount_of_trets:
             self.parent.ceap_going()
@@ -112,49 +118,45 @@ class Conectons(threading.Thread):
         self.data_clas = data_clas
         self.type = type
 
-        #Conectons(self,"fern").run() #.gtfs_fern,'connections_fern.csv'
+        # sets the variables to the needet typ
         if self.type == "fern":
             self.name_dict = self.data_clas.gtfs_fern
             self.name = 'connections_fern.csv'
-
         if self.type == "regional":
             self.name_dict = self.data_clas.gtfs_regional
             self.name = 'connections_regional.csv'
-
         if self.type == "nah":
             self.name_dict = self.data_clas.gtfs_nah
             self.name = 'connections_nah.csv'
 
-
-
     def run(self):
         self.shreads_done = 0
-
         self.add_conectons_actif = 0
         self.conectons = [[],[]]
 
+        # gets the rout_ids to get the conections
         all_rout_ids = self.name_dict["routes"]["route_id"].to_numpy()
-        all_rout_ids = all_rout_ids[0:200]
 
+        # if the all_rout_ids 
         if len(all_rout_ids) <= 1:
             print("len(all_rout_ids) ",len(all_rout_ids))
             exit()
 
+        # starts with 64 treds, for big dats sets, if needet the amound is redused
         amount_of_trets = 64
         while amount_of_trets > len(all_rout_ids):
             amount_of_trets = int(amount_of_trets/2)
 
-        print("amount_of_trets ", amount_of_trets)
-
+        # the therds are set end stardet
         step_sise = int(len(all_rout_ids)/(amount_of_trets-1))
         for i in range(amount_of_trets-1):
             to_check_all_rout_ids = all_rout_ids[0:step_sise]
             all_rout_ids =  all_rout_ids[step_sise:]
             myFred(to_check_all_rout_ids,self,amount_of_trets,self.name_dict).start()
         myFred(all_rout_ids,self,amount_of_trets,self.name_dict).start()
-        print("loob done")
 
     def add_conectons(self,add):
+        # to reduse conflics only one tred is aloud to wreid at a time
         if self.add_conectons_actif == 0:
             self.add_conectons_actif = 1
 
@@ -162,19 +164,22 @@ class Conectons(threading.Thread):
             self.conectons[1] = self.conectons[1] + add[1]
 
             self.add_conectons_actif = 0
+
+            # fedback if the riting was suxsesfull
             return True
         else:
             return False
 
     def ceap_going(self):
-        print(len(self.conectons))
 
+        # reduses the cupels witch are multipl tims in the list
         d = {'stachen_1':self.conectons[0],'stop_id':self.conectons[1]}
         df = pd.DataFrame (d)
         groub = df.groupby(['stachen_1','stop_id'])
         groub = pd.DataFrame(groub.size())
         groub.reset_index(inplace=True)
         groub = groub.drop(labels=[0], axis=1)
+        # replases the stop ids with the lon and lat veluages
         new_df = pd.merge(self.name_dict["stops"],groub)
         new_df.rename(columns = {'stop_lat':'Station1_lat', 'stop_lon':'Station1_lon'}, inplace = True)
         new_df = new_df.drop(['stop_name', 'stop_id'], axis=1)
@@ -182,13 +187,12 @@ class Conectons(threading.Thread):
         new_df = pd.merge(self.name_dict["stops"],new_df)
         new_df = new_df.drop(['stop_name', 'stop_id'], axis=1)
         new_df.rename(columns = {'stop_lat':'Station2_lat', 'stop_lon':'Station2_lon'}, inplace = True)
-        #print("new_df \n", new_df)
 
+        # writes data
         pfad = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data/" + self.name))
         new_df.to_csv(pfad)
 
-        print(" Die Datei wurde erstellt ------------")
-
+        # depandig of the type one file is restored
         if self.type == "fern":
             self.data_clas.free_fern_add_1()
         if self.type == "regional":
@@ -825,31 +829,41 @@ class MainWindow(QtWidgets.QMainWindow):
 class Model():
 
     def __init__(self,all_data):
+        # sets base veluages
         self.all_data = all_data
         self.trainstachen_info = None
         self.get_first_data()
 
     def get_first_data(self):
+        # dependig if the data set is corect the set is lodet
         if self.all_data.lode_first:
+            # set is coreckt and is lodet
             self.cerent_stops = self.all_data.get_stops_fern()
             self.cerent_connections = self.all_data.get_connections_fern()
             self.cerent_gtfs = self.all_data.gtfs("latest_fern")
         else:
+            #set incoreckt and is blockt
             self.all_data.delited_kategorie_opchens.append("stops_fern")
-
+            # try to restor lost data
             if not (self.all_data.gtfs("latest_fern") == None):
                 self.all_data.restor("fern")
-                pass
+
+            # lodes new data 
             self.cerent_stops = self.all_data.get_stops_regional()
             self.cerent_connections = self.all_data.get_connections_regional()
             self.cerent_gtfs = self.all_data.gtfs("latest_regional")
+            # checks data
             if (self.cerent_stops[1] == False) or (self.cerent_connections[1] == False) or (self.cerent_gtfs == None):
                 self.all_data.delited_kategorie_opchens.append("stops_regional")
+                if not (self.all_data.gtfs("latest_regional") == None):
+                    self.all_data.restor("regional")
                 self.cerent_stops = self.all_data.get_stops_nah()
                 self.cerent_connections = self.all_data.get_connections_nah()
                 self.cerent_gtfs = self.all_data.gtfs("latest_nah")
                 if (self.cerent_stops[1] == False) or (self.cerent_connections[1] == False) or (self.cerent_gtfs == None):
                     self.all_data.delited_kategorie_opchens.append("stops_nah")
+                    if not (self.all_data.gtfs("latest_nah") == None):
+                        self.all_data.restor("nah")
                     print(" alle daten sets sind felerhaft. Die bedinbarkeit ist eingeschrenkt.")
         
     def set_main_gui(self,main_gui):
@@ -862,9 +876,12 @@ class Model():
         return self.cerent_connections[0]
 
     def change_cerent_stops(self,new_type):
+        # if the katigorie is avaleble it can be chosen
         if not (new_type in self.all_data.delited_kategorie_opchens):
+            # saves curend status, as a backup
             start_veluages = [self.cerent_stops,self.cerent_connections,self.cerent_gtfs]
 
+            # lodes data baset on the type
             if new_type == "stops_fern":
                 self.cerent_stops = self.all_data.get_stops_fern()
                 self.cerent_connections = self.all_data.get_connections_fern()
@@ -878,15 +895,19 @@ class Model():
                 self.cerent_connections = self.all_data.get_connections_regional()
                 self.cerent_gtfs = self.all_data.gtfs("latest_regional")
 
+            # if data is incoreckt
             if (self.cerent_gtfs == None) or (self.cerent_stops[1]==False) or (self.cerent_connections[1]==False):
+                # the backup is used to resor the og veluages
                 self.cerent_stops = start_veluages[0]
                 self.cerent_connections = start_veluages[1]
                 self.cerent_gtfs = start_veluages[2]
-                print("solte nicht so sein")
+
+                # is tyt to resor data form every kategory, mait not be nasesery most times
                 self.all_data.restor("fern")
                 self.all_data.restor("nah")
                 self.all_data.restor("regional")
             else:
+                # the gui lodes new data and shows it
                 self.main_gui.drawRouteNetwork(self.get_cerent_stops(),self.get_conectons()) 
         
     def get_about_text(self):
@@ -902,6 +923,7 @@ class Model():
         return self.all_data.counts
 
     def change_trainstachen_info(self,time_span,day,hauer,min,trainstachen):
+        # calculates new trainstachen data and fills it in
         self.trainstachen_info = self.all_data.create_trainstachen_info([day,hauer,min],trainstachen,time_span,self.cerent_gtfs)
         self.main_gui.dataTable_instace.set_df(self.trainstachen_info)
         
