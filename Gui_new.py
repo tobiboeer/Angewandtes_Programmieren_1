@@ -57,14 +57,6 @@ import concurrent.futures
 import markdown
 
 
-
-
-
-
-
-
-
-
 class myFred(threading.Thread):
     def __init__(self,all_rout_ids,parent,amount_of_trets,name_dict_input):
         threading.Thread.__init__(self)
@@ -204,31 +196,6 @@ class Conectons(threading.Thread):
         if self.type == "nah":
             self.data_clas.free_nah_add_1()
         
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 class Map(QtWidgets.QMainWindow):
