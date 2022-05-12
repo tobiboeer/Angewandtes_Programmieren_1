@@ -52,6 +52,8 @@ import random
 from datetime import datetime
 import time
 import calendar
+import threading
+import concurrent.futures
 
 
 
@@ -69,7 +71,7 @@ class Map(QtWidgets.QMainWindow):
     def drawRouteNetwork(self,train_stations,filename_routes):
         self.germany_map.drawRouteNetwork(train_stations,filename_routes)
 
-
+# Klasse für die Deutschlandkarte
 class GermanyMap(QtWidgets.QGraphicsView):
     """
     Graphicsscene of the map of Germany.
@@ -175,6 +177,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
         """
         Contains all pens and brushes.
         """
+
         self.ocean_brush = QtGui.QBrush("lightblue", QtCore.Qt.BrushStyle.BDiagPattern)
         self.country_pen = QtGui.QPen("black")
         self.country_pen.setWidthF(0.01)
@@ -218,7 +221,8 @@ class GermanyMap(QtWidgets.QGraphicsView):
                     print('Kein Bahnhof ausgewählt.')
 
         # Loads the file with the routes
-        routes = self.main_gui.all_data.lode_routes(filename_routes)
+        #routes = self.main_gui.model.all_data.lode_routes(filename_routes) # muss definitif überarbeitet werden
+        routes = self.main_gui.model.get_conectons()
         
         # Drawing the routes
         for start in routes.itertuples():
@@ -242,7 +246,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
         """
 
         self.map_gui.scene = QtWidgets.QGraphicsScene(5.8, 47.3, 9.4, 7.9) 
-        states = self.main_gui.all_data.counts
+        states = self.main_gui.model.get_counts()
 
         # Drawing map of Germany
         for state in states:
@@ -267,27 +271,21 @@ class GermanyMap(QtWidgets.QGraphicsView):
 
 
 
-
-
-
 class MenuWindowAbout(QtWidgets.QGraphicsView):
     """
     Creates the window of the 'About' menu in the menubar.
-
-    Functions:
-        sizeHint: Contains the preferred default size of the window.
     """
-    def __init__(self,all_data):
+    def __init__(self,model):
         """
         Creates a widget for the About menu.
         """
         super().__init__()
-        self.all_data = all_data
+        self.model = model
         self.setMinimumSize(300, 300)
 
         self.label = QtWidgets.QTextEdit()
         self.label.setReadOnly(True)
-        self.label.setMarkdown(self.all_data.about_text)
+        self.label.setMarkdown(self.model.get_about_text())
 
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.label)
@@ -302,21 +300,18 @@ class MenuWindowAbout(QtWidgets.QGraphicsView):
 class MenuWindowReadMe(QtWidgets.QGraphicsView):
     """
     Creates the window of the 'ReadMe' menu in the menubar.
-
-    Functions:
-        sizeHint: Contains the preferred default size of the window.
     """
     def __init__(self,all_data):
         """
         Creates a widget for the ReadMe menu.
         """
         super().__init__()
-        self.all_data = all_data
+        self.model = model
         self.setMinimumSize(300, 300)
         
         self.label = QtWidgets.QTextEdit()
         self.label.setReadOnly(True)
-        self.label.setMarkdown(self.all_data.readme_text)
+        self.label.setMarkdown(self.model.get_readme_text())
 
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.label)
@@ -330,16 +325,35 @@ class MenuWindowReadMe(QtWidgets.QGraphicsView):
         """
         return QtCore.QSize(600, 600)
 
+class MenuWindowTutorial(QtWidgets.QGraphicsView):
+    """
+    Creates the window of the 'Tutorial' menu in the menubar.
+    """
+    def __init__(self,all_data):
+        """
+        Creates a widget for the Tutorial menu.
+        """
+        super().__init__()
+        self.model = model
+        self.setMinimumSize(300, 300)
+        
+        self.label = QtWidgets.QTextEdit()
+        self.label.setReadOnly(True)
+        self.label.setMarkdown(self.model.get_tutorial())
+
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+
+    
+
+    def sizeHint(self):
+        """
+        Contains the preferred default size of the window.
+        """
+        return QtCore.QSize(1000, 1000)
 
 
-
-
-
-#############################################
-# Notiz für uns: Ab hier beginnt Tobis Code #
-#############################################
-
-# Klasse für die Deutschlandkarte
 class Side_winow(QtWidgets.QMainWindow):
     """
     Creating an interactive widget next to the german map.
@@ -347,7 +361,7 @@ class Side_winow(QtWidgets.QMainWindow):
 
     def __init__(self,main_gui):
         """
-        Instantiate the main aspects of an interactive planer. 
+        Instantiate the main aspects of an interactive planner. 
         It contains the comboboxes, textfields, labels, layouts and buttons.       
         """
         super().__init__()
@@ -431,9 +445,8 @@ class Side_winow(QtWidgets.QMainWindow):
         window_content = QtWidgets.QWidget()
         window_content.setLayout(sub_layout)
         self.setCentralWidget(window_content)
-        
-    def bla(self, value):
-        print(value)
+
+        self.set_train_stations_list()
 
     def set_text_start_values(self):
         """
@@ -481,33 +494,36 @@ class Side_winow(QtWidgets.QMainWindow):
         """
         Loads long distance data, if button 'Fernverkehr' is clicked.
         """
-        self.clickFunction(self.main_gui.all_data.stops_fern) 
+        self.main_gui.model.change_cerent_stops("stops_fern")
+        self.set_train_stations_list()
 
     def clickFunctionShortDistance(self):
         """
         Loads short distance data, if button 'Nahverkehr' is clicked.
         """
-        self.clickFunction(self.main_gui.all_data.stops_nah)  
+        self.main_gui.model.change_cerent_stops("stops_nah")
+        self.set_train_stations_list()
 
     def clickFunctionRegional(self):
         """
         Loads regional data, if button 'Regionalverkehr' is clicked.
         """
-        self.clickFunction(self.main_gui.all_data.stops_regional) 
+        self.main_gui.model.change_cerent_stops("stops_regional")
+        self.set_train_stations_list()
 
-    def clickFunction(self,stations):  
-        print(self.textfield_time_dif.time().toString())  # bitte drin lassen
-
-        self.main_gui.drawRouteNetwork(stations,'connections.csv') 
+    def set_train_stations_list(self):  
+        stations = self.main_gui.model.get_cerent_stops()
         train_stations = stations['stop_name']
         self.combobox_start.addItems(train_stations)
 
     def trainstachen_recqest(self):
-        pass
-    
+        time_span = self.textfield_time_dif.time().toString()
 
+        day = datetime.today().weekday()
+        hauer = int(datetime.now().strftime("%H"))
+        min = int(datetime.now().strftime("%M"))
 
-
+        self.main_gui.model.change_trainstachen_info(time_span,day,hauer,min,self.abfahrtsbahnhof)
 
 # Ideen zum Verbessern der Tabelle:
 # - Überschrift: wenn auf auf einen Bahnhof gedrückt wird, werden die Werte angezeigt
@@ -575,33 +591,18 @@ class dataTable(QtWidgets.QMainWindow):
 
         self.setMinimumSize(140, 250)
         
-        table_view = QtWidgets.QTableView()
-        day = datetime.today().weekday()
-        hauer = int(self.main_gui.side_winow_instnz.textfield_time.time().toString()[0:2])
-        print("hauer",hauer)
-        min = int(datetime.now().strftime("%M"))
-        time_span = self.main_gui.side_winow_instnz.textfield_time_dif.time().toString()
-        df = self.main_gui.all_data.get_trainstachen_info([day,hauer,min],"Hamburg Hbf",time_span)
-        table_model = tableCreator(df)
-        table_view.setModel(table_model)
-        
+        self.table_view = QtWidgets.QTableView()
+                
         layout = QtWidgets.QHBoxLayout()
-        layout.addWidget(table_view)
+        layout.addWidget(self.table_view)
         
         window_content = QtWidgets.QWidget()
         window_content.setLayout(layout)
         self.setCentralWidget(window_content)
 
-
-
-
-
-
-
-
-
-
-
+    def set_df(self,trainstachen_info):
+        table_model = tableCreator(trainstachen_info)
+        self.table_view.setModel(table_model)
 
 
 
@@ -609,26 +610,39 @@ class dataTable(QtWidgets.QMainWindow):
 
 # Klasse um das Main Window zu erstellen
 class MainWindow(QtWidgets.QMainWindow):
+    """
+    Creates the main window of the GUI.
+    """
     
-    def __init__(self,all_data):
+    def __init__(self,model):
         super().__init__()
 
-        self.all_data = all_data
+        self.model = model
+        self.model.set_main_gui(self)
 
+#--------------- Statusbar ---------------------------------------------
         self.status_bar = self.statusBar()
-        
+
+#--------------- Menubar -----------------------------------------------
+# According to:
+# https://realpython.com/python-menus-toolbars/#populating-menus-with-actions
+# https://pythonprogramming.net/menubar-pyqt-tutorial/
+
         menuBar = self.menuBar()
-        about_menu = QtWidgets.QMenu("Help",self)
-        menuBar.addMenu(about_menu)
+        help_menu = QtWidgets.QMenu("Help",self)
+        menuBar.addMenu(help_menu)
     
         aboutAction = QtGui.QAction("About/Licence", self)
         readmeAction = QtGui.QAction("ReadMe", self)
+        tutorialAction = QtGui.QAction("Tutorial", self)
 
-        about_menu.addAction(aboutAction)
-        about_menu.addAction(readmeAction)
+        help_menu.addAction(aboutAction)
+        help_menu.addAction(readmeAction)
+        help_menu.addAction(tutorialAction)
 
         aboutAction.triggered.connect(self.open_about)
         readmeAction.triggered.connect(self.open_readme)
+        tutorialAction.triggered.connect(self.open_tutorial)
        
         self.grid_layout = QtWidgets.QGridLayout()
         self.setLayout(self.grid_layout)
@@ -640,11 +654,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.dataTable_instace = dataTable(self)
         self.grid_layout.addWidget(self.dataTable_instace,1,0,1,2)
 
-        stations = self.all_data.stops_fern
+        stations = self.model.get_cerent_stops()
         self.germany_map.drawRouteNetwork(stations,'connections.csv')
         
-        
-
         window_content = QtWidgets.QWidget()
         window_content.setLayout(self.grid_layout)
         self.setCentralWidget(window_content)
@@ -663,6 +675,12 @@ class MainWindow(QtWidgets.QMainWindow):
         Shows the window of the 'ReadMe' menu. 
         """
         readme_window.show()
+
+    def open_tutorial(self):
+        """
+        Shows the window of the 'Tutorial' menu. 
+        """
+        tutorial_window.show()
 
     @QtCore.Slot(str)
     def click_function(self, whole_station_information):
@@ -685,31 +703,160 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 
+class Model():
+
+    def __init__(self,all_data):
+        self.all_data = all_data
+        self.cerent_stops = self.all_data.stops_fern
+        self.cerent_connections = self.all_data.connections_fern
+        self.cerent_gtfs = self.all_data.gtfs("latest_fern")
+        self.trainstachen_info = None
+
+    def set_main_gui(self,main_gui):
+        self.main_gui = main_gui
+
+    def get_cerent_stops(self):
+        return self.cerent_stops
+
+    def get_conectons(self):
+        return self.cerent_connections
+
+    def change_cerent_stops(self,new_type):
+        if not (new_type in self.all_data.delited_kategorie_opchens):
+            start_veluages = [self.cerent_stops,self.cerent_connections,self.cerent_gtfs]
+
+            if new_type == "stops_fern":
+                self.cerent_stops = self.all_data.get_stops_fern()
+                self.cerent_connections = self.all_data.get_connections_fern()
+                self.cerent_gtfs = self.all_data.gtfs("latest_fern")
+            if new_type == "stops_nah":
+                self.cerent_stops = self.all_data.get_stops_nah()
+                self.cerent_connections = self.all_data.get_connections_nah()
+                self.cerent_gtfs = self.all_data.gtfs("latest_nah")
+            if new_type == "stops_regional":
+                self.cerent_stops = self.all_data.get_stops_regional()
+                self.cerent_connections = self.all_data.get_connections_regional()
+                self.cerent_gtfs = self.all_data.gtfs("latest_regional")
+
+            if self.cerent_gtfs == None:
+                self.cerent_stops = start_veluages[0]
+                self.cerent_connections = start_veluages[1]
+                self.cerent_gtfs = start_veluages[2]
+            else:
+                self.main_gui.drawRouteNetwork(self.cerent_stops,'connections.csv') 
+        
+    def get_about_text(self):
+        return self.all_data.about_text
+
+    def get_readme_text(self):
+        return self.all_data.readme_text
+
+    def get_tutorial(self):
+        return self.all_data.tutorial_text
+
+    def get_counts(self):
+        return self.all_data.counts
+
+    def change_trainstachen_info(self,time_span,day,hauer,min,trainstachen):
+        self.trainstachen_info = self.all_data.create_trainstachen_info([day,hauer,min],trainstachen,time_span,self.cerent_gtfs)
+        self.main_gui.dataTable_instace.set_df(self.trainstachen_info)
+        
 
 
 
 
-class Data():
+
+class Data(threading.Thread):
 
     def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        self.delited_kategorie_opchens = []
+
         self.counts = self.load_map_data()
         self.about_text = self.lode_about_text()
         self.readme_text = self.lode_readme_text()
-        self.stops_fern = self.lode_routes('stops_fern.txt')
+        self.tutorial_text = self.load_tutorial()
+        self.stops_fern = self.lode_text('stops_fern.txt')
+        self.connections_fern = self.lode_text('connections_fern.csv')
+        self.gtfs_fern = self.lode_gtfs,"latest_fern"
+        
+        self.gtfs_nah = None
+        self.gtfs_regional = None
+        self.connections_nah_set = False
+        self.connections_regional_set = False
+        self.stops_regional_set = False
+        self.stops_nah_set = False
 
-        self.lode_rest()
-        self.gtfs_fern = self.lode_gtfs("latest_fern")
-        self.gtfs_regional = self.lode_gtfs("latest_regional")
+        threading.Thread(target=self.gtfs_prep).start()
 
-    def lode_rest(self):
-        self.stops_nah = self.lode_routes('stops_nah.txt')
-        self.stops_regional = self.lode_routes('stops_regional.txt')
+    def gtfs_prep(self):
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            self.gtfs_nah_pre = executor.submit(self.lode_gtfs,"latest_nah")
+            self.gtfs_regional_pre = executor.submit(self.lode_gtfs,"latest_regional")
+            self.connections_nah_pre = executor.submit(self.lode_text,'connections_og.csv')
+            self.connections_regional_pre = executor.submit(self.lode_text,'connections_regional.csv')
+            self.stops_regional_pre = executor.submit(self.lode_text,'stops_regional.txt')
+            self.stops_nah_pre = executor.submit(self.lode_text,'stops_nah.txt')
+
+    def get_stops_fern(self):
+        return self.stops_fern
+
+    def get_stops_nah(self):
+        if not self.stops_nah_set:
+            self.stops_nah_set = True
+            self.stops_nah = self.stops_nah_pre.result()
+        return self.stops_nah
+
+    def get_stops_regional(self):
+        if not self.stops_regional_set:
+            self.stops_regional_set = True
+            self.stops_regional = self.stops_regional_pre.result()
+        return self.stops_regional
+
+    def get_connections_regional(self):
+        if not self.connections_regional_set:
+            self.connections_regional_set = True
+            self.connections_regional = self.connections_regional_pre.result()
+        return self.connections_regional
+
+    def get_connections_nah(self):
+        if not self.connections_nah_set:
+            self.connections_nah_set = True
+            self.connections_nah = self.connections_nah_pre.result()
+        return self.connections_nah
+
+    def get_connections_fern(self):
+        return self.connections_fern
+
+    def gtfs(self,kategorie):
+        if kategorie == "latest_nah":
+            if self.gtfs_nah == None:
+                self.gtfs_nah = self.gtfs_nah_pre.result()
+                if self.gtfs_nah == None:
+                    self.delited_kategorie_opchens.append("stops_nah")
+            return self.gtfs_nah
+
+        if kategorie == "latest_fern":
+            if self.gtfs_fern == None:
+                self.delited_kategorie_opchens.append("stops_fern")
+            return self.gtfs_fern
+
+        if kategorie == "latest_regional":
+            if self.gtfs_regional == None:
+                self.gtfs_regional = self.gtfs_regional_pre.result()
+                if self.gtfs_regional == None:
+                    self.delited_kategorie_opchens.append("stops_regional")
+            return self.gtfs_regional
 
     def lode_gtfs(self,kategorie):
         pfad_start = os.path.abspath(os.path.join(os.path.dirname( __file__ ), kategorie))+ '\\'
 
         data_names = ['agency','calendar','calendar_dates','feed_info','routes','stop_times','stops','trips']
         name_dict = {}
+
+        gtfs_is_missing_files = False
 
         for name in data_names:
             pfad = pfad_start + name + '.txt'
@@ -725,7 +872,14 @@ class Data():
             else:
                 print("Die Datei " + name + " wurde nicht Gefunden")
                 print(os.path.abspath(os.path.join(os.path.dirname( __file__ ), name + '.txt')))
+                gtfs_is_missing_files = True
 
+        if gtfs_is_missing_files:
+            print(" \n \n")
+            print("da die daten von " + kategorie + " nicht geladen werden konten \n Kann man diese auch nicht aus welen")
+            return None
+
+        print(kategorie)
         return name_dict
 
     def load_map_data(self):
@@ -734,42 +888,62 @@ class Data():
         Source of the file:
         http://opendatalab.de/projects/geojson-utilities/
         """
-        path_to_map = os.path.dirname(__file__) + '/landkreise_simplify200.geojson'
-        with open(path_to_map,encoding='utf8') as f:
-            data = geojson.load(f)
-        states = data['features']
-        return states
+        path_to_map = os.path.dirname(__file__) + '/'+ "Data" + '/landkreise_simplify200.geojson'
+        if exists(path_to_map):
+            with open(path_to_map,encoding='utf8') as f:
+                data = geojson.load(f)
+            states = data['features']
+            return states
+        else:
+            print("the landkreise_simplify200.geojson file is missing.")
+            print("ists a criticel pat, therfor the program is shatig down.")
+            print("the data is awaleble at http://opendatalab.de/projects/geojson-utilities/")
+            exit()
 
     def lode_about_text(self):
         # Open the 'About' file and print it in a label of a new window.
-        path_to_about = os.path.dirname(__file__) + '/' + 'ABOUT.md'
-        with open(path_to_about, encoding='utf8') as about_file:
-            about_text = about_file.read()
-        return about_text
+        path_to_about = os.path.dirname(__file__) + '/'+ "Data" +  '/' + 'ABOUT.md'
+        if exists(path_to_about):
+            with open(path_to_about, encoding='utf8') as about_file:
+                about_text = about_file.read()
+            return about_text
+        else:
+            return "No ABOUT text was found"
 
     def lode_readme_text(self):
         # Open the 'ReadMe' file and print it in a label of a new window.
-        path_to_readme = os.path.dirname(__file__) + '/' + 'README.md'
-        with open(path_to_readme, encoding='utf8') as readme_file:
-            readme_text = readme_file.read()
-        return readme_text
+        path_to_readme = os.path.dirname(__file__) + '/'+ "Data" + '/' + 'README.md'
+        if exists(path_to_readme):
+            with open(path_to_readme, encoding='utf8') as readme_file:
+                readme_text = readme_file.read()
+            return readme_text
+        else:
+            return "no README text was found"
 
-    def lode_routes(self,filename_routes):
+    def load_tutorial(self):
+        # Open the 'Tutorial' file and print it in a label of a new window.
+        path_to_tutorial = os.path.dirname(__file__) + '/'+ "Data" + '/' + 'TUTORIAL.md'
+        if exists(path_to_tutorial):
+            with open(path_to_tutorial, encoding='utf8') as tutorial_file:
+                tutorial_text = tutorial_file.read()
+            return tutorial_text
+        else:
+            return "no TUTORIAL text was found"
+
+    def lode_text(self,filename_routes):
         # Loads the file with the routes
-        #filename_routes = "bla"
 
-        path_of_routes = os.path.dirname(__file__) + '/' + filename_routes
-        routes = pd.read_csv(path_of_routes, encoding='utf8')
-        return routes
+        path_of_routes = os.path.dirname(__file__) + '/'+ "Data" + '/' + filename_routes
+        if exists(path_of_routes):
+            routes = pd.read_csv(path_of_routes, encoding='utf8')
+            return routes
+        return False
 
-    def get_trainstachen_info(self,date,trainstachen_name,time_spane):
+    def create_trainstachen_info(self,date,trainstachen_name,time_spane,name_dict):
 
-        name_dict = self.gtfs_fern
-
-        time_spane = int(time_spane[3:5])
+        time_spane = int(time_spane[0:2])
         if time_spane == 0:
             time_spane = 1
-        print("time_spane " , time_spane)
 
         day_given = date[0]
         hauer = date[1]
@@ -846,22 +1020,20 @@ class Data():
                             conactions_df.loc[conactions_df_counter] = [agency_name_instanz, route_long_name,end_station_name,arrival_time,departure_time]
                         conactions_df_counter += 1
 
-        conactions_df = conactions_df.sort_values(by=['arrival_time'])
-        actuell_time = str(hauer) + ":" + str(min) + ":00"
+        if conactions_df_counter > 0:
 
-        conactions_df_firs = conactions_df.loc[conactions_df["arrival_time"] >= actuell_time]
-        conactions_df_sec = conactions_df.loc[conactions_df["arrival_time"] < actuell_time]
+            conactions_df = conactions_df.sort_values(by=['arrival_time'])
+            actuell_time = str(hauer) + ":" + str(min) + ":00"
 
-        conactions_df = pd.concat([conactions_df_firs,conactions_df_sec])
+            conactions_df_firs = conactions_df.loc[conactions_df["arrival_time"] >= actuell_time]
+            conactions_df_sec = conactions_df.loc[conactions_df["arrival_time"] < actuell_time]
 
-        return conactions_df
+            conactions_df = pd.concat([conactions_df_firs,conactions_df_sec])
 
-
-
-
-
-
-
+            return conactions_df
+        else:
+            fetback_df = pd.DataFrame([["Keiene Züge gefunden"]], columns=["Info"])
+            return fetback_df
 
 
 
@@ -871,16 +1043,23 @@ class Data():
 # and display them as windows
 if __name__ == "__main__":
     all_data = Data()
+    all_data.run()
+
+    print("baljdbdfbsojlvböadbvöob")
+
+    model = Model(all_data)
 
     app = QtWidgets.QApplication(sys.argv)
 
-    window = MainWindow(all_data)
+    window = MainWindow(model)
     window.setWindowTitle("Deutsches Bahnnetz")
     window.show()
 
-    about_window = MenuWindowAbout(all_data)
+    about_window = MenuWindowAbout(model)
     about_window.setWindowTitle("About - Über dieses Programm")
-    readme_window = MenuWindowReadMe(all_data)
+    readme_window = MenuWindowReadMe(model)
     readme_window.setWindowTitle("Read Me - Wichtig zu wissen")
+    tutorial_window = MenuWindowTutorial(model)
+    tutorial_window.setWindowTitle("Tutorial")
 
     sys.exit(app.exec())

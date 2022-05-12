@@ -27,7 +27,7 @@ Data preparation can be done with XXXX.py but this takes a long time.
 
 If you execute the program, you get the following window: (hier wird natürlich am Ende ein aktuelles Bild hingepackt)
 
-![ScreenShot](ScreenshotProgramm.png)
+![ScreenShot](images/ScreenshotProgramm.png)
 
 In the center you can see the map of Germany, which shows stations and
 routes for different train networks. This map is interactive. You can
