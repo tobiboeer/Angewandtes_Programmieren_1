@@ -42,7 +42,7 @@ for name in data_names:
 
 print("---------------------------------------------------------")
 
-if 1 == 0:
+if 1 == 1:
     df = pd.DataFrame(name_dict["stops"],columns=['stop_name'])
     df = df.drop_duplicates(subset = ["stop_name"])
     pd.set_option('display.min_rows', 50)
@@ -167,7 +167,6 @@ class Conectons():
 
         d = {'stachen_1':self.conectons[0],'stop_id':self.conectons[1]}
         df = pd.DataFrame (d)
-        #df = pd.DataFrame (self.conectons, columns = ['stachen_1','stop_id'])
         groub = df.groupby(['stachen_1','stop_id'])
         groub = pd.DataFrame(groub.size())
         groub.reset_index(inplace=True)
@@ -184,7 +183,7 @@ class Conectons():
         pfad = os.path.dirname(__file__) + '/' + 'connections.csv'
         new_df.to_csv(pfad)
 
-conect = Conectons()
+#conect = Conectons()
 
 
 

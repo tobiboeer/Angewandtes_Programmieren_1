@@ -241,7 +241,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
         self.setMouseTracking(True)
         self.previous_item = None
  
-        self.pens_and_brushes() # werden alle davon verwendet
+        self.pens_and_brushes() 
 
         self.zoom = 0
         self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
@@ -337,7 +337,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
         self.line_pen = QtGui.QPen("orange")
         self.line_pen.setWidthF(0.02)
 
-    def drawRouteNetwork(self,train_stations,filename_routes):
+    def drawRouteNetwork(self,train_stations,routes):
         """
         Draws stations and routes to the base scene.
 
@@ -366,10 +366,6 @@ class GermanyMap(QtWidgets.QGraphicsView):
                     point_item.station = whole_station_information[1]
                 else:
                     print('Kein Bahnhof ausgewählt.')
-
-        # Loads the file with the routes
-        #routes = self.main_gui.model.all_data.lode_routes(filename_routes) # muss definitif überarbeitet werden
-        routes = self.main_gui.model.get_conectons()
         
         # Drawing the routes
         for start in routes.itertuples():
@@ -776,8 +772,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.dataTable_instace = dataTable(self)
         self.grid_layout.addWidget(self.dataTable_instace,1,0,1,2)
 
-        stations = self.model.get_cerent_stops()
-        self.germany_map.drawRouteNetwork(stations,'connections.csv')
+        self.model.change_cerent_stops("stops_fern")
         
         window_content = QtWidgets.QWidget()
         window_content.setLayout(self.grid_layout)
@@ -977,7 +972,7 @@ class Data(threading.Thread):
                     # connections_fern is coreckt
                     self.free_fern_add_1()
                 if self.stops_fern[1] == False:
-                    pass
+                    self.restor_trainsatchen_by_typ("fern")
                 else:
                     self.free_fern_add_1()
 
@@ -989,7 +984,7 @@ class Data(threading.Thread):
                 else:
                     self.free_nah_add_1()
                 if self.stops_nah[1] == False:
-                    pass
+                    self.restor_trainsatchen_by_typ("nah")
                 else:
                     self.free_nah_add_1()
 
@@ -1001,9 +996,30 @@ class Data(threading.Thread):
                 else:
                     self.free_regional_add_1()
                 if self.stops_regional[1] == False:
-                    pass
+                    self.restor_trainsatchen_by_typ("regional")
                 else:
                     self.free_regional_add_1()
+
+    def restor_trainsatchen_by_typ(self,typ):
+        if typ == "fern":
+            self.restor_trainsatchen_by_name(self.gtfs_fern,'stops_fern.txt')
+            self.free_fern_add_1()
+        if typ == "nah":
+            self.restor_trainsatchen_by_name(self.gtfs_nah,'stops_nah.txt')
+            self.free_nah_add_1()
+        if typ == "regional":
+            self.restor_trainsatchen_by_name(self.gtfs_regional,'stops_regional.txt')
+            self.free_regional_add_1()
+
+    def restor_trainsatchen_by_name(self,name_dict,name):
+        df = pd.DataFrame(name_dict["stops"],columns=['stop_name'])
+        df = df.drop_duplicates(subset = ["stop_name"])
+        index = df.index
+        df = name_dict["stops"].loc[index]
+        train_stachen = df.drop(labels=["stop_id"], axis=1)
+
+        pfad = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data/" + name))
+        pd.DataFrame(train_stachen).to_csv(pfad)
 
     def free_regional_add_1(self):
         self.free_regional += 1
