@@ -543,7 +543,6 @@ class Side_winow(QtWidgets.QMainWindow):
         self.textfield_time_dif = QtWidgets.QTimeEdit()
         self.textfield_allInfo = QtWidgets.QTextEdit()
         
-        self.textfield_allInfo.setReadOnly(True)
         self.set_text_start_values()
         self.update_text()
         
@@ -560,13 +559,10 @@ class Side_winow(QtWidgets.QMainWindow):
         self.button_fernverkehr = QtWidgets.QPushButton("Fernverkehr")
         self.button_regional = QtWidgets.QPushButton("Regional")
         self.button_recuest = QtWidgets.QPushButton("Anfrage stellen")
-        button_start = QtWidgets.QPushButton("Route planen")
-        button_delete = QtWidgets.QPushButton("Löschen")
 
         self.button_fernverkehr.clicked.connect(self.clickFunctionLongDistance)
         self.button_nahverkehr.clicked.connect(self.clickFunctionShortDistance)
         self.button_regional.clicked.connect(self.clickFunctionRegional)
-        button_delete.clicked.connect(self.deleter_textfield)
         self.button_recuest.clicked.connect(self.trainstachen_recqest)
 
         # -------------- LAYOUTS -----------------
@@ -585,9 +581,6 @@ class Side_winow(QtWidgets.QMainWindow):
         button_recuest_layout = QtWidgets.QHBoxLayout()
         button_recuest_layout.addWidget(self.button_recuest)
 
-        button_layout_interactive = QtWidgets.QHBoxLayout()
-        button_layout_interactive.addWidget(button_delete)
-        button_layout_interactive.addWidget(button_start)
         
         
         sub_layout = QtWidgets.QVBoxLayout()
@@ -603,7 +596,6 @@ class Side_winow(QtWidgets.QMainWindow):
         sub_layout.addLayout(button_recuest_layout)
         sub_layout.addWidget(label_textfield_allInfo)
         sub_layout.addWidget(self.textfield_allInfo)
-        sub_layout.addLayout(button_layout_interactive)
         
         window_content = QtWidgets.QWidget()
         window_content.setLayout(sub_layout)
@@ -616,7 +608,6 @@ class Side_winow(QtWidgets.QMainWindow):
         Sets the first strings in the text box.        
         """
         self.abfahrtsbahnhof = "noch nicht ausgewählt.."
-        self.ankunftszeit = "noch nicht berechnet.."
         
     def update_text(self):
         """
@@ -626,13 +617,6 @@ class Side_winow(QtWidgets.QMainWindow):
         text = f"Abfahrtsbahnhof: {self.abfahrtsbahnhof}"
         self.textfield_allInfo.setText(text)
         
-    def deleter_textfield(self):
-        """
-        Deletes the choice by pushing the button 'delete'.
-        """
-    
-        self.set_text_start_values()
-        self.update_text()
     
     def change_start_station(self, value):
         """
