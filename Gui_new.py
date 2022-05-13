@@ -140,18 +140,21 @@ class connections(threading.Thread):
         self.data_type = data_type
 
         # Sets the variables to the needed type.
-        if self.data_type == "fern":
+        if self.data_type == "long_distance":
             self.name_dict = self.data_class.gtfs_fern
             self.name = 'connections_fern.csv'
 
         if self.data_type == "regional":
             self.name_dict = self.data_class.gtfs_regional
             self.name = 'connections_regional.csv'
-        if self.data_type == "nah":
+        if self.data_type == "short_distance":
             self.name_dict = self.data_class.gtfs_nah
             self.name = 'connections_nah.csv'
 
     def run(self):
+        """
+        Gets the list of route ids and distributes them to new threads.
+        """
         self.threads_done = 0
         self.add_connections_active = 0
         self.connections = [[],[]]
@@ -159,9 +162,7 @@ class connections(threading.Thread):
         # Gets the route id's to get the connections.
         all_route_ids = self.name_dict["routes"]["route_id"].to_numpy()
 
-        # if the all_rout_ids 
-        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
-        # If 
+        # If all_route_ids is smaller than 2 the list is incorrect
         if len(all_route_ids) <= 1:
             print("len(all_route_ids) ",len(all_route_ids))
             exit()
@@ -182,10 +183,8 @@ class connections(threading.Thread):
         myThread(all_route_ids, self, amount_of_threads, self.name_dict).start()
 
     def add_connections(self, add):
-        # to reduse conflics only one tred is aloud to wreid at a time
-        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER
         """
-        Reduces the conflicts only one thread is allowed to write simultaneously.
+        To avoid conflicts only one thread is allowed to write at a time.
         """
         
         if self.add_connections_active == 0:
@@ -196,18 +195,16 @@ class connections(threading.Thread):
 
             self.add_connections_active = 0
 
-            # Feedback, if the writing was successful.
             return True
         else:
             return False
 
     def keep_going(self):
-        # reduses the cupels witch are multipl tims in the list
-        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
         """
-        Reduces the recurrent station names in the list.
+        Based on the collected train station couples a new dataframe of longitude
+        and latitude values is created and printed to a csv file.
         """
-        
+        # Reduces the couples of recurrent station names in the list.
         d = {'station_1':self.connections[0], 'stop_id':self.connections[1]}
         df = pd.DataFrame (d)
         group = df.groupby(['station_1', 'stop_id'])
@@ -215,9 +212,7 @@ class connections(threading.Thread):
         group.reset_index(inplace = True)
         group = group.drop(labels= [0], axis = 1)
 
-        # replases the stop ids with the lon and lat veluages
-        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
-        # Replaces the stop id's with the lon and lat values.
+        # Replaces the stop id's with the longitude and latitude values.
         new_df = pd.merge(self.name_dict["stops"],group)
         new_df.rename(columns = {'stop_lat':'Station1_lat', 'stop_lon':'Station1_lon'}, inplace = True)
         new_df = new_df.drop(['stop_name', 'stop_id'], axis=1)
@@ -231,8 +226,14 @@ class connections(threading.Thread):
         new_df.to_csv(path)
 
         # Depending of the type, one file is restored.
-        if self.data_type == "fern":
+        if self.data_type == "long_distance":
             self.data_class.free_fern_add_1()
+        
+        if self.data_type == "short_distance":
+            self.data_class.free_nah_add_1()
+        
+        if self.data_type == "regional":
+            self.data_class.free_regional_add_1()
         
 class mapWidget(QtWidgets.QMainWindow):
     """
@@ -317,6 +318,7 @@ class germanyMap(QtWidgets.QGraphicsView):
         
         item = self.itemAt(event.pos())
 
+        # If all error messages are ignored, there are no error messages left.
         if self.previous_item is not None:
             try:
                 self.previous_item.setBrush(QtGui.QBrush("white", QtCore.Qt.BrushStyle.SolidPattern))
@@ -396,8 +398,6 @@ class germanyMap(QtWidgets.QGraphicsView):
 
                 if point_item.station in whole_station_information:
                     point_item.station = whole_station_information[1]
-                else:
-                    print('Kein Bahnhof ausgewählt.')
         
         # Drawing the routes
         for start in routes.itertuples():
@@ -544,6 +544,7 @@ class sideWindow(QtWidgets.QMainWindow):
         
         super().__init__()
         self.main_gui = main_gui
+        self.setMinimumSize(250, 450)
         
         # -------------- COMBOBOXES ----------------
         self.combobox_start = QtWidgets.QComboBox()
@@ -560,7 +561,6 @@ class sideWindow(QtWidgets.QMainWindow):
         self.textfield_time_dif = QtWidgets.QTimeEdit()
         self.textfield_allInfo = QtWidgets.QTextEdit()
         
-        self.set_text_start_values()
         self.text = ""
         self.update_text(" ")
         
@@ -578,11 +578,11 @@ class sideWindow(QtWidgets.QMainWindow):
         self.button_regional = QtWidgets.QPushButton("Regional")
         self.button_request = QtWidgets.QPushButton("Anfrage stellen")
         # Anpassen des Knopfes, weil er noch zu groß ist.
-        # self.button_request.setWidth()
+        # self.button_request.QtCore.QSize(40,40)
 
-        self.button_fernverkehr.clicked.connect(self.clickFunctionLongDistance)
-        self.button_nahverkehr.clicked.connect(self.clickFunctionShortDistance)
-        self.button_regional.clicked.connect(self.clickFunctionRegional)
+        self.button_fernverkehr.clicked.connect(self.click_function_long_distance)
+        self.button_nahverkehr.clicked.connect(self.click_function_short_distance)
+        self.button_regional.clicked.connect(self.click_function_regional)
         self.button_request.clicked.connect(self.train_station_request)
 
         # -------------- LAYOUTS ------------------------------------
@@ -624,63 +624,64 @@ class sideWindow(QtWidgets.QMainWindow):
         Changes the station in the sidebar and requests new station information
         """
         self.combobox_start.setCurrentText(new_station)
-        self.abfahrtsbahnhof = new_station
+        self.start_station = new_station
         self.train_station_request()
 
-    def set_text_start_values(self):
-        """
-        Sets the first strings in the text box.        
-        """
         
-        self.abfahrtsbahnhof = "noch nicht ausgewählt.."
-        
-    def update_text(self,nue_info):
+    def update_text(self, new_info):
         """
-        Connects the first text values of the method 'set_text_start_values'
-        and changes the first strings into the choiced option.
+        Puts the new information into the text and if necessary, deletes the old
+        ones.
         """
-        self.text = self.text + nue_info + "\n"
-        splited = self.text.splitlines( )
-        lin_sub = len(splited) - 10
-        if len(splited) > 10:
+        self.text = self.text + new_info + "\n"
+        splitted = self.text.splitlines( )
+        lin_sub = len(splitted) - 10
+        if len(splitted) > 10:
             self.text = ""
             for i in range(10):
-                self.text = self.text + splited[i+lin_sub] + "\n"
+                self.text = self.text + splitted[i+lin_sub] + "\n"
         self.textfield_allInfo.setText(self.text)
         
     def change_start_station(self, value):
         """
         Noted the selected start trainstation and updates the text box.        
         """
-        self.abfahrtsbahnhof = value
+        self.start_station = value
   
-    def clickFunctionLongDistance(self):
+    def click_function_long_distance(self):
         """
         Loads long distance data, if button 'Fernverkehr' is clicked.
         """
         self.main_gui.model.change_current_stops("stops_fern")
         self.set_train_stations_list()
 
-    def clickFunctionShortDistance(self):
+    def click_function_short_distance(self):
         """
         Loads short distance data, if button 'Nahverkehr' is clicked.
         """
         self.main_gui.model.change_current_stops("stops_nah")
         self.set_train_stations_list()
 
-    def clickFunctionRegional(self):
+    def click_function_regional(self):
         """
         Loads regional data, if button 'Regionalverkehr' is clicked.
         """
         self.main_gui.model.change_current_stops("stops_regional")
         self.set_train_stations_list()
 
-    def set_train_stations_list(self):  
+    def set_train_stations_list(self): 
+        """
+        Train station list is added to the combobox.
+        """ 
         stations = self.main_gui.model.get_current_stops()
         train_stations = stations['stop_name']
         self.combobox_start.addItems(train_stations)
 
     def train_station_request(self):
+        """
+        Requestes train station information based on the train station,
+        the date and the time.
+        """
         time_span = self.textfield_time_dif.time().toString()
         day_str = self.textfield_date.dateTime().toString()
         time_str = self.textfield_time.time().toString()
@@ -697,7 +698,7 @@ class sideWindow(QtWidgets.QMainWindow):
         hour = int(time_str[0:2])
         minute = int(time_str[3:5])
 
-        self.main_gui.model.change_train_station_info(time_span, day, hour, minute, self.abfahrtsbahnhof)
+        self.main_gui.model.change_train_station_info(time_span, day, hour, minute, self.start_station)
 
 class tableCreator(QtCore.QAbstractTableModel):
     """
@@ -707,20 +708,20 @@ class tableCreator(QtCore.QAbstractTableModel):
     
     def __init__(self, df):
         """
-        Defines the path in the directory and renames the columns for the clearancy.
+        Sets the dataframe for the table view.
         """
         super().__init__()
         self.dataframe = df
         
         
-    def rowCount(self, parent = None):
+    def rowCount(self, parent = None): 
         """
         Sets the amount of the rows of the read file.
         """
         self.number = len(self.dataframe[0:])
         return self.number
         
-    def columnCount(self, parent = None):
+    def columnCount(self, parent = None): 
         """
         Sets the amount of the columns of the read file.
         """
@@ -747,13 +748,13 @@ class tableCreator(QtCore.QAbstractTableModel):
  
 class dataTable(QtWidgets.QMainWindow):
     """
-    Creates a widget of the 'tableCreator'. 
+    Contains data table for train station information.
     """
 
     def __init__(self, main_gui):
         """
-        Loads the file components of the 'tableCreator', creates a widget and merges
-        the together. 
+        Takes the file components of the 'tableCreator', creates a widget and merges
+        them together. 
         """
         super().__init__()
         self.main_gui = main_gui
@@ -769,7 +770,10 @@ class dataTable(QtWidgets.QMainWindow):
         window_content.setLayout(layout)
         self.setCentralWidget(window_content)
 
-    def set_df(self, train_station_info):
+    def set_dataframe(self, train_station_info):
+        """
+        Sets the dataframe.
+        """
         table_model = tableCreator(train_station_info)
         self.table_view.setModel(table_model)
 
@@ -779,15 +783,18 @@ class mainWindow(QtWidgets.QMainWindow):
     """
     
     def __init__(self, model):
+        """
+        Creates the main frame of the GUI with grid layout and adds all subframes.
+        """
         super().__init__()
 
         self.model = model
         self.model.set_main_gui(self)
 
-        #--------------- Statusbar ----------------------------------
+        #--------------- STATUSBAR ----------------------------------
         self.status_bar = self.statusBar()
 
-        #--------------- Menubar ------------------------------------
+        #--------------- MENUBAR ------------------------------------
         # According to:
         # https://realpython.com/python-menus-toolbars/#populating-menus-with-actions
         # https://pythonprogramming.net/menubar-pyqt-tutorial/
@@ -988,7 +995,7 @@ class model():
         Calculates new train station data and fills it in.
         """
         self.train_station_info = self.all_data.create_train_station_info([day, hour, minute], train_station, time_span, self.current_gtfs)
-        self.main_gui.dataTable_instance.set_df(self.train_station_info)
+        self.main_gui.dataTable_instance.set_dataframe(self.train_station_info)
         
 
 class data(threading.Thread):
@@ -1050,7 +1057,7 @@ class data(threading.Thread):
                 
                 # If 'connections_fern' is wrong, a new file is created.
                 if self.connections_fern[1] == False:
-                    connections(self,"fern").run() 
+                    connections(self,"long_distance").run() 
                 else:
                     # 'Connections_fern' is correct.
                     self.free_fern_add_1()
@@ -1064,7 +1071,7 @@ class data(threading.Thread):
             if not (self.gtfs_nah == None):
                 self.free_nah = 0
                 if self.connections_nah[1] == False:
-                    connections(self,"nah").run() 
+                    connections(self,"short_distance").run() 
                 else:
                     self.free_nah_add_1()
                 if self.stops_nah[1] == False:
