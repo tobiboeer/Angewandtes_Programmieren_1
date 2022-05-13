@@ -135,8 +135,13 @@ class connections(threading.Thread):
         Determines which GTFS data is used and sets the name
         of the resulting file.
 
-            data   :data_class : containing all data
-            String :data_type  : name of typ
+        Parameters
+        ----------
+        data_class : data
+            containing all data
+
+        data_type : String
+            name of type
         """
         threading.Thread.__init__(self)
         self.data_class = data_class
@@ -187,8 +192,11 @@ class connections(threading.Thread):
     def add_connections(self, add):
         """
         To avoid conflicts only one thread is allowed to write at a time.
-        
-            List   :add : pers of train stachen
+
+        Parameters
+        ----------
+        add : List
+            couples of train stations
         """
         
         if self.add_connections_active == 0:
@@ -246,8 +254,12 @@ class mapWidget(QtWidgets.QMainWindow):
 
     def __init__(self, main_gui):
         """
+        Initializes QtWidgets.
 
-            mainWindow   :main_gui : the main Window off the gui
+        Parameters
+        ----------
+        main_gui : mainWindow
+            the main Window of the GUI
         """
         super().__init__()
         self.main_gui = main_gui
@@ -255,9 +267,15 @@ class mapWidget(QtWidgets.QMainWindow):
 
     def draw_route_network(self, train_stations, routes):
         """
-
-            dataframe   :train_stations  : train stations (name)
-            dataframe   :routes          : routes in lon and len
+        Starts draw_route_network of germany_map.
+          
+        Parameters
+        ----------
+        train_stations : dataframe
+            name of the train stations
+        
+        routes : dataframe
+            routes in longitude and latitude
         """
         self.germany_map.draw_route_network(train_stations, routes)
 
@@ -275,6 +293,11 @@ class germanyMap(QtWidgets.QGraphicsView):
         Creates a widget for the map.
 
             mainWindow   :map_gui : mainWindow of the germany map
+
+        Parameters
+        ----------
+        map_gui : mainWindow
+            the main Window of the GUI
         """
         super().__init__()
 
