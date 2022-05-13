@@ -134,6 +134,9 @@ class connections(threading.Thread):
         """
         Determines which GTFS data is used and sets the name
         of the resulting file.
+
+            data   :data_class : containing all data
+            String :data_type  : name of typ
         """
         threading.Thread.__init__(self)
         self.data_class = data_class
@@ -184,6 +187,8 @@ class connections(threading.Thread):
     def add_connections(self, add):
         """
         To avoid conflicts only one thread is allowed to write at a time.
+        
+            List   :add : pers of train stachen
         """
         
         if self.add_connections_active == 0:
@@ -240,12 +245,21 @@ class mapWidget(QtWidgets.QMainWindow):
     """
 
     def __init__(self, main_gui):
+        """
+
+            mainWindow   :main_gui : the main Window off the gui
+        """
         super().__init__()
         self.main_gui = main_gui
         self.germany_map = germanyMap(self)
 
-    def draw_route_network(self, train_stations, filename_routes):
-        self.germany_map.draw_route_network(train_stations, filename_routes)
+    def draw_route_network(self, train_stations, routes):
+        """
+
+            dataframe   :train_stations  : train stations (name)
+            dataframe   :routes          : routes in lon and len
+        """
+        self.germany_map.draw_route_network(train_stations, routes)
 
 class germanyMap(QtWidgets.QGraphicsView):
     """
@@ -259,6 +273,8 @@ class germanyMap(QtWidgets.QGraphicsView):
     def __init__(self, map_gui):
         """
         Creates a widget for the map.
+
+            mainWindow   :map_gui : mainWindow of the germany map
         """
         super().__init__()
 
@@ -450,6 +466,8 @@ class menuWindowAbout(QtWidgets.QGraphicsView):
     def __init__(self,model):
         """
         Creates a widget for the About menu.
+
+            model   :model : interaktions classe
         """
         
         super().__init__()
@@ -479,6 +497,8 @@ class menuWindowReadMe(QtWidgets.QGraphicsView):
     def __init__(self,model):
         """
         Creates a widget for the ReadMe menu.
+
+            model   :model : interaktions classe
         """
         super().__init__()
         self.model = model
@@ -506,6 +526,8 @@ class menuWindowTutorial(QtWidgets.QGraphicsView):
     def __init__(self, model):
         """
         Creates a widget for the Tutorial menu.
+
+            model   :model : interaktions classe
         """
         
         super().__init__()
@@ -535,7 +557,9 @@ class sideWindow(QtWidgets.QMainWindow):
     def __init__(self, main_gui):
         """
         Instantiate the main aspects of an interactive planner. 
-        It contains the comboboxes, textfields, labels, layouts and buttons.       
+        It contains the comboboxes, textfields, labels, layouts and buttons. 
+
+            mainWindow   :main_gui : main Window of the gui     
         """
         
         super().__init__()
@@ -618,6 +642,8 @@ class sideWindow(QtWidgets.QMainWindow):
     def set_train_station(self, new_station):
         """
         Changes the station in the sidebar and requests new station information
+
+            string   :new_station : name of the selectet trainstachen
         """
         self.combobox_start.setCurrentText(new_station)
         self.start_station = new_station
@@ -627,6 +653,8 @@ class sideWindow(QtWidgets.QMainWindow):
         """
         Puts the new information into the text and if necessary, deletes the old
         ones.
+
+            string   :new_info : new info
         """
         self.text = self.text + new_info + "\n"
         splitted = self.text.splitlines( )
@@ -639,7 +667,9 @@ class sideWindow(QtWidgets.QMainWindow):
         
     def change_start_station(self, value):
         """
-        Noted the selected start trainstation and updates the text box.        
+        Noted the selected start trainstation and updates the text box.      
+
+            string   :value : name of the selectet trainstachen  
         """
         self.start_station = value
   
@@ -704,6 +734,8 @@ class tableCreator(QtCore.QAbstractTableModel):
     def __init__(self, df):
         """
         Sets the dataframe for the table view.
+
+            dataframe   :df : train stachen informachen
         """
         super().__init__()
         self.dataframe = df
@@ -826,8 +858,6 @@ class mainWindow(QtWidgets.QMainWindow):
         window_content = QtWidgets.QWidget()
         window_content.setLayout(self.grid_layout)
         self.setCentralWidget(window_content)
-
-        
 
     def draw_route_network(self, train_stations, filename_routes):
         self.germany_map.draw_route_network(train_stations, filename_routes)
@@ -1055,7 +1085,6 @@ class data(threading.Thread):
             self.model.text_feald_update(new_text)
         else:
             self.q_text = self.q_text + "\n" + new_text
-
 
     def restore(self, key):
         """
