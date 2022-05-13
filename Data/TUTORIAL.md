@@ -28,6 +28,10 @@ The search is easier if you type the searched station in. In this case we will c
 
 ![ScreenShot](/////Dropdown.png)<br/>
 <br/>
+You can also choose a date and a time. This will limit your search results. To this week day, time and time span
+around the time, by putting an hour number in the field 'Zeitfenster'. <br/>
+![ScreenShot](/////example.png)<br/>
+<br/>
 ### Get information<br/> 
 The information of these trains will be shown in the table below the map if you click the button 'Anfrage stellen'.<br/>
 
@@ -38,5 +42,7 @@ The menu bar on the top left corner allows you to view the 'About/Licence' menu,
 
 ![ScreenShot](/////Menubar.png)<br/>
 <br/>
+
+# Thank you for Reading our Tutorial!
 
 

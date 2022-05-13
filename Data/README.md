@@ -1,5 +1,7 @@
 # README <br/>
 <br/>
+Please read this window in fullscreen to avoid graphical errors.<br/>
+<br/>
 **Date:** 13. May 2022 <br/>
 
 **Authors:** Fabian Kessener, Tobias Boeer, Timon Fass <br/>
@@ -15,8 +17,11 @@ Before use you need to install following modules: <br/>
  - PySide6<br/>
  - numpy<br/>
  - markdown<br/>
-To start the program you need to execute the file XXXX.py.
-Data preparation can be done with XXXX.py but this takes a long time.<br/>
+To start the program you need to execute the file start_program.py.<br/>
+*Keep in mind:* If you delete one of the directories with 'latest' at the beginning,
+the programm is able to calculate them again. But especially in the case of the 'Nahverkehr'
+data this can take a very long time (around 6 hours). To trigger the calculation you need to
+start the program and click one of the three buttons (Nahverkehr, Fernverkehr, Regional). <br/>
 <br/>
 **Using the Program** <br/>
 
@@ -43,14 +48,15 @@ or regional distance ("Regional") train stations by clicking the buttons. The
 map and the dropdown menu below will change and show the associated stations.<br/>
 
 *Important:* Keep in mind, it will take a long time to load the local 
-transport data and the program might hang up for a couple of seconds. If you
-keep it running, it will do its work, but the navigation will be slow.<br/>
+transport data . If the data is missing it will calculate it, but this does
+take a long time and your CPU is fully occupied.<br/>
 
 If you select a type of trains by using the three buttons on top, you can
 choose the starting station ('Abfahrbahnhof') in the dropdown menu below.
-When using this menu you can type the first letter of your wanted station
-to jump to this point of the list. The selected items will be shown in the
-small information window below.<br/>  
+When using this menu you can type letters of your wanted station
+to jump to this point of the list. You can also choose a date a time and a time span.
+After clicking 'Anfrage stellen' you get the wanted information in the table below. The time span is the time
+in hours before and after the 'Zeit der Abfahrt'. Only these trains will be shown. <br/>  
 <br/>
 **Special Features**<br/>
 
@@ -64,8 +70,9 @@ List of special features: <br/>
  - Dropdown Menu with train stations<br/>
 	Allows to select the wanted station from a list instead of clicking it.<br/>
 	Also reacts to typing, to make the search easier.<br/>
- - Overview window<br/>
-	Shows every selected item in a small overview. Can be cleared, by using the button 'Löschen'<br/>
+ - Overview Window<br/>
+	Shows messages for the user. For example if data is missing<br/>
+ - Tutorial<br/>
+	An image Tutorial in the Menubar will show you the usage of this program a little bit more detailed.
 
 <br/>
-Änderungshistorie?
