@@ -24,7 +24,7 @@ on top can be used to load different train networks. In the example below, you s
 <br/>
 ## Choosing Stations<br/>
 Stations from the train network can be chosen manually in the dropdown menu down below.
-The search is easier if you type the searched station in. In this case we will chose 'Hamburg Hbf'. <br/>
+The search is easier if you type the searched station in. In this case we will choose 'Hamburg Hbf'. <br/>
 
 ![ScreenShot](/////Dropdown.png)<br/>
 <br/>
@@ -34,7 +34,7 @@ The information of these trains will be shown in the table below the map if you 
 ![ScreenShot](/////Table.png)<br/>
 <br/>
 # Help Menu<br/>
-The menu bar on the top left corner allows you to view the 'About/Licence' menu, the 'README' and this tutorial.<br/> 
+The menu bar on the top left corner allows you to view the 'About/Licence' menu, the 'ReadMe' and this tutorial.<br/> 
 
 ![ScreenShot](/////Menubar.png)<br/>
 <br/>
