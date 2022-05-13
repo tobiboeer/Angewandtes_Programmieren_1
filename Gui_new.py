@@ -1036,7 +1036,7 @@ class data(threading.Thread):
                 
                 # If 'connections_fern' is wrong, a new file is created.
                 if self.connections_fern[1] == False:
-                    Connections(self,"fern").run() 
+                    connections(self,"fern").run() 
                 else:
                     # 'Connections_fern' is correct.
                     self.free_fern_add_1()
@@ -1050,7 +1050,7 @@ class data(threading.Thread):
             if not (self.gtfs_nah == None):
                 self.free_nah = 0
                 if self.connections_nah[1] == False:
-                    Connections(self,"nah").run() 
+                    connections(self,"nah").run() 
                 else:
                     self.free_nah_add_1()
                 if self.stops_nah[1] == False:
@@ -1063,7 +1063,7 @@ class data(threading.Thread):
             if not (self.gtfs_regional == None):
                 self.free_regional = 0
                 if self.connections_regional[1] == False:
-                    Connections(self,"regional").run() 
+                    connections(self,"regional").run() 
                 else:
                     self.free_regional_add_1()
                 if self.stops_regional[1] == False:
@@ -1092,7 +1092,7 @@ class data(threading.Thread):
         train_station = df.drop(labels=["stop_id"], axis=1)
 
         path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data/" + name))
-        pd.DataFrame(train_stachen).to_csv(path)
+        pd.DataFrame(train_station).to_csv(path)
 
     def free_regional_add_1(self):
         self.free_regional += 1
