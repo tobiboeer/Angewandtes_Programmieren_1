@@ -57,15 +57,26 @@ in hours before and after the 'Zeit der Abfahrt'. Only these trains will be show
 
 List of special features: 
  - Map of Germany shows every district
+	
 	Showing the station and the districts in the bottom left corner if the mouse hovers over them.
+	
  - Markdown 'Help' Menu
+	
 	Allows to open an 'About/Licence' page and this ReadMe-file as a new window in the program.
+	
  - Switching between different train types
+	
 	By using the buttons 'Nahverkehr', 'Fernverkehr' and 'Regional'
+	
  - Dropdown Menu with train stations
+	
 	Allows to select the wanted station from a list instead of clicking it.
 	Also reacts to typing, to make the search easier.
+	
  - Overview Window
+	
 	Shows messages for the user. For example if data is missing
+	
  - Tutorial
+	
 	An image Tutorial in the Menubar will show you the usage of this program a little bit more detailed.
