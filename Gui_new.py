@@ -563,7 +563,8 @@ class sideWindow(QtWidgets.QMainWindow):
         self.textfield_allInfo = QtWidgets.QTextEdit()
         
         self.set_text_start_values()
-        self.update_text()
+        self.text = ""
+        self.update_text(" ")
         
         # -------------- LABELS  ------------------
         label_button_traffic_style = QtWidgets.QLabel("Bahnart:")
@@ -611,7 +612,6 @@ class sideWindow(QtWidgets.QMainWindow):
         sub_layout.addLayout(date_time_layout)
         sub_layout.addWidget(self.label_textfield_time_dif)
         sub_layout.addLayout(time_dif_layout)
-        #sub_layout.addWidget(button_request_layout)
         sub_layout.addLayout(button_request_layout)
         sub_layout.addWidget(label_textfield_allInfo)
         sub_layout.addWidget(self.textfield_allInfo)
@@ -636,27 +636,25 @@ class sideWindow(QtWidgets.QMainWindow):
         
         self.abfahrtsbahnhof = "noch nicht ausgewählt.."
         
-    def update_text(self):
+    def update_text(self,nue_info):
         """
         Connects the first text values of the method 'set_text_start_values'
         and changes the first strings into the choiced option.
         """
-        text = f"Abfahrtsbahnhof: {self.abfahrtsbahnhof}"
-        self.textfield_allInfo.setText(text)
+        self.text = self.text + nue_info + "\n"
+        splited = self.text.splitlines( )
+        lin_sub = len(splited) - 10
+        if len(splited) > 10:
+            self.text = ""
+            for i in range(10):
+                self.text = self.text + splited[i+lin_sub] + "\n"
+        self.textfield_allInfo.setText(self.text)
         
     def change_start_station(self, value):
         """
         Noted the selected start trainstation and updates the text box.        
         """
         self.abfahrtsbahnhof = value
-        self.update_text()
-        
-    def change_end_station(self, value):
-        """
-        Noted the selected end station and updates the text box.
-        """
-        self.zielbahnhof = value
-        self.update_text()
   
     def clickFunctionLongDistance(self):
         """
@@ -686,11 +684,20 @@ class sideWindow(QtWidgets.QMainWindow):
 
     def train_station_request(self):
         time_span = self.textfield_time_dif.time().toString()
-        #print(self.textfield_date.dateTime().toString())
-
-        day = datetime.today().weekday()
-        hour = int(datetime.now().strftime("%H"))
-        minute = int(datetime.now().strftime("%M"))
+        day_str = self.textfield_date.dateTime().toString()
+        time_str = self.textfield_time.time().toString()
+        days_dic =	{
+            "Mon": 0,
+            "Tue": 1,
+            "Wed": 2,
+            "Thu": 3,
+            "Fri": 4,
+            "Sat": 5,
+            "Sun": 6
+        }
+        day = days_dic[day_str[0:3]]
+        hour = int(time_str[0:2])
+        minute = int(time_str[3:5])
 
         self.main_gui.model.change_train_station_info(time_span, day, hour, minute, self.abfahrtsbahnhof)
 
@@ -845,7 +852,6 @@ class mainWindow(QtWidgets.QMainWindow):
         """
         Reacts to clicking of the mouse.
         """
-        print(whole_station_information + ' geklickt')
         if whole_station_information in self.model.get_current_stops()["stop_name"].to_numpy():
             self.side_window_instance.set_train_station(whole_station_information)
 
@@ -862,8 +868,7 @@ class mainWindow(QtWidgets.QMainWindow):
 
 class model():
     """
-    Creates a model of the bla bla bla ?
-    HIER NOCH EIN KOMMENTAR EINFÜGEN 
+    modell is 
     """
 
     def __init__(self,all_data):
