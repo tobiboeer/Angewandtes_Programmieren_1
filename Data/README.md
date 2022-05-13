@@ -23,6 +23,9 @@ the programm is able to calculate them again. But especially in the case of the 
 data this can take a very long time (around 6 hours). To trigger the calculation you need to
 start the program and click one of the three buttons (Nahverkehr, Fernverkehr, Regional). <br/>
 <br/>
+**The Nahverkehr data is not included in the GIT repository, because it takes up too much space.**<br/>
+**But you can easily add it just by adding the directory 'latest_nah' manually. ** <br/>
+<br/>
 **Using the Program** <br/>
 
 If you execute the program, you get the following window:<br/>

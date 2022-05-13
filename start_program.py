@@ -1,18 +1,5 @@
 """
-Does everything related to the map.
-
-Classes:
-    GermanyMap: QGraphicsView
-        Contains the Graphicsscene of the map of Germany.
-
-    MainWindow: QMainWindow
-        Contains the main window of the program
-
-    MenuWindowAbout: QGraphicsView
-        Contains the Graphicsscene of the 'About' menu.
-
-    MenuWindowReadMe: QGraphicsView
-        Contains the Graphicsscene of the 'ReadMe' menu.
+Starts the entire program.
 
 Date: 13. May 2022
 
@@ -44,12 +31,14 @@ from DB_data import data as data
 from DB_model import model as model
 from DB_mainWindow import mainWindow as mainWindow
 
-# Calling the MainWindow, MenuWindowAbout and MenuWindowReadMe classes
-# and display them as windows
+# Starts the program
 if __name__ == "__main__":
+    
+    # Reads all files and manages the data
     all_data = data()
     all_data.run()
 
+    # Intermediates between the data and the GUI
     model = model(all_data)
 
     app = QtWidgets.QApplication(sys.argv)

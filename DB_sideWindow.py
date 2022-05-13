@@ -1,3 +1,28 @@
+"""
+Creates the widget for the interactive side window.
+
+Date: 13. May 2022
+
+Authors:
+    Fabian Kessener
+    Tobias Boeer
+    Timon Fass
+
+Emails:
+    fabian.kessener@student.jade-hs.de
+    tobias.boeer@student.jade-hs.de
+    timon.fass@student.jade-hs.de
+
+Version: 1.0
+
+Licence: 
+    
+    Copyright: (c) 2022, Kessener, Boeer, Fass
+    This code is published under the terms of the 3-Clause BSD License.
+    The full text can be seen in ABOUT.md or the 'About/Licence' dropdown
+    menu.
+"""
+
 from PySide6 import QtWidgets
 from datetime import datetime
 

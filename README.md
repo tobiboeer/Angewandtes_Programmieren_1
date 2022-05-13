@@ -1,5 +1,8 @@
 # README
 
+**Note:** This is a short ReadMe. The extented version can be found in the menubar
+while running the program or in the 'Data' directory.
+
 **Date:** 13. May 2022 
 
 **Authors:** Fabian Kessener, Tobias Boeer, Timon Fass 
@@ -17,10 +20,14 @@ Before use you need to install following modules:
  - markdown
  
 To start the program you need to execute the file start_program.py.
-*Keep in mind:* If you delete one of the directories with 'latest' at the beginning,
-the programm is able to calculate them again. But especially in the case of the 'Nahverkehr'
-data this can take a very long time (around 6 hours). To trigger the calculation you need to
-start the program and click one of the three buttons (Nahverkehr, Fernverkehr, Regional). 
+*Keep in mind:* If you delete one of the 'stops', 'connections' files in the directory
+'Data' at the beginning, the programm is able to calculate them again by using the 
+'latest' directories. But especially in the case of the 'Nahverkehr' data this can take
+a very long time (around 6 hours). To trigger the calculation you need to start the program
+and click one of the three buttons (Nahverkehr, Fernverkehr, Regional).
+
+**The Nahverkehr data is not included in the GIT repository, because it takes up too much space.**
+**But you can easily add it just by adding the directory 'latest_nah' manually. **
 
 **Using the Program** 
 
