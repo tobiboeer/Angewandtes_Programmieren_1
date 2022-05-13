@@ -1023,7 +1023,8 @@ class data(threading.Thread):
     def restore(self, key):
         """
         HIER NOCH EIN KOMMENTAR WAS DIESE METHODE TUT.
-        """
+        """# based on the key, if files are missing they are recreatet and can be uese after that
+
         # If the key fits and there is data to be restored.
         if key == "fern" and ("stops_fern" in self.delighted_category_options):
         
@@ -1085,16 +1086,24 @@ class data(threading.Thread):
             self.free_regional_add_1()
 
     def restore_train_station_by_name(self, name_dict, name):
+        # baist of the given data and name, a new data set is created and saived
+
+        #gets all train stachn names and drops all mutepils
         df = pd.DataFrame(name_dict["stops"], columns =['stop_name'])
         df = df.drop_duplicates(subset = ["stop_name"])
+        # based on the index the informachen of the trainstachen is colected
         index = df.index
         df = name_dict["stops"].loc[index]
+        # the (überflüssige) colum is droped
         train_station = df.drop(labels=["stop_id"], axis=1)
 
+        # writing the new data set
         path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data/" + name))
         pd.DataFrame(train_station).to_csv(path)
 
     def free_regional_add_1(self):
+        # increases the number of restored files by 1.
+        # if all files are restored, the data is riten and the option is reinsated
         self.free_regional += 1
         
         # The dataset is fully restored and can be loaded and the category is available again.
@@ -1122,7 +1131,7 @@ class data(threading.Thread):
     def gtfs_prep(self):
         """
         Every file gets its own loading thread, which is safer in the variable on the left.
-        """
+        """# Every file gets its own loading thread, which is saifed in the variable.
         with concurrent.futures.ThreadPoolExecutor() as executor:
             self.gtfs_nah_pre = executor.submit(self.load_gtfs, "latest_nah")
             self.gtfs_regional_pre = executor.submit(self.load_gtfs, "latest_regional")
@@ -1144,9 +1153,9 @@ class data(threading.Thread):
         return self.stops_fern
 
     def get_stops_nah(self):
-        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+        ## HIER BIN ICH MIR BEI DER ÜBERSEETZUNG UNSICHER.
         """
-        If the value is not pulled, its done now. if the value is incorecht, the kategory option is delited
+        If the value is not pulled, its done now. if the value is incorecht, the kategory option is closed
         and a restrachen is tryed
         """
         if not self.stops_nah_set:
@@ -1162,9 +1171,9 @@ class data(threading.Thread):
         return self.stops_nah
 
     def get_stops_regional(self):
-        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+        ## HIER BIN ICH MIR BEI DER ÜBERSEETZUNG UNSICHER.
         """
-        If the value is not pulled, its done now. If the value is incorrect, the category option is delighted
+        If the value is not pulled, its done now. If the value is incorrect, the category option is closed
         and a restrachen is tryed
         """
         if not self.stops_regional_set:
@@ -1180,9 +1189,9 @@ class data(threading.Thread):
         return self.stops_regional
 
     def get_connections_regional(self):
-        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+        ## HIER BIN ICH MIR BEI DER ÜBERSEETZUNG UNSICHER.
         """
-        If the value is not pulled, it's done now. If the value is incorrect, the category option is delighted
+        If the value is not pulled, it's done now. If the value is incorrect, the category option is closed
         and a restrachen is tryed
         """
         if not self.connections_regional_set:
@@ -1198,9 +1207,9 @@ class data(threading.Thread):
         return self.connections_regional
 
     def get_connections_nah(self):
-        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+        ## HIER BIN ICH MIR BEI DER ÜBERSEETZUNG UNSICHER.
         """
-        If the value is not pulled, its done now.If the value is incorrect, the category option is delighted
+        If the value is not pulled, its done now.If the value is incorrect, the category option is closed
         and a restrachen is tryed
         """
         if not self.connections_nah_set:
@@ -1216,9 +1225,9 @@ class data(threading.Thread):
         return self.connections_nah
 
     def get_connections_fern(self):
-        ## HIER BIN ICH MIR NICHT SICHER.
+        ## HIER BIN ICH MIR BEI DER ÜBERSEETZUNG UNSICHER.
         """
-        If the valuue is incorecht, the kategory option is delited and a restrachen is tryed
+        If the valuue is incorecht, the kategory option is closed and a restrachen is tryed
         """
         if self.connections_fern[1] == False:
         
@@ -1231,8 +1240,8 @@ class data(threading.Thread):
 
     def gtfs(self, category):
         """
-        # The gtfs are pulled if needed. If gtfs data is missing, the option is closed.
-        """
+        The gtfs are pulled if needed. If gtfs data is missing, the option is closed.
+        """ # The gtfs are pulled if needed. If gtfs data is missing, the option to uste the given kategorie is closed.
         if category == "latest_nah":
         
             if self.gtfs_nah == None:
@@ -1317,7 +1326,7 @@ class data(threading.Thread):
     def load_about_text(self):
         """
         Opens the 'About' file and prints it in a label of a new window.
-        """
+        """# lodes the 'About' file and reterns it
         
         path_to_about = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/ABOUT.md'))
         
@@ -1334,7 +1343,8 @@ class data(threading.Thread):
     def load_readme_text(self):
         """
         Opens the 'ReadMe' file and prints it in a label of a new window.
-        """
+        """ # Opens the 'ReadMe' file and ajust the path to a dynamic one.
+        #and reterns the result.
         
         path_str = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data")) + "\\" 
         path_to_readme = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/README.md'))
@@ -1378,11 +1388,11 @@ class data(threading.Thread):
     def load_text(self, filename_routes):
         """
         Loads the file with the routes.
-        """
-        path_of_routes = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/' + filename_routes))
+        """# Loads a given file and reterns it.
+        path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/' + filename_routes))
         
-        if exists(path_of_routes):
-            routes = pd.read_csv(path_of_routes, encoding='utf8')
+        if exists(path):
+            routes = pd.read_csv(path, encoding='utf8')
             
             # An indication, if the reading was successfull, it is included.
             return [routes,True]
@@ -1498,8 +1508,6 @@ class data(threading.Thread):
 if __name__ == "__main__":
     all_data = data()
     all_data.run()
-
-    print("baljdbdfbsojlvböadbvöob")
 
     model = model(all_data)
 
