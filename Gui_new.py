@@ -247,7 +247,6 @@ class mapWidget(QtWidgets.QMainWindow):
     def draw_route_network(self, train_stations, filename_routes):
         self.germany_map.draw_route_network(train_stations, filename_routes)
 
-
 class germanyMap(QtWidgets.QGraphicsView):
     """
     Graphicsscene of the map of Germany.
@@ -443,8 +442,6 @@ class germanyMap(QtWidgets.QGraphicsView):
                        
                     self.map_gui.scene.setBackgroundBrush(self.ocean_brush)
 
-
-
 class menuWindowAbout(QtWidgets.QGraphicsView):
     """
     Creates the window of the 'About' menu in the menubar.
@@ -625,8 +622,7 @@ class sideWindow(QtWidgets.QMainWindow):
         self.combobox_start.setCurrentText(new_station)
         self.start_station = new_station
         self.train_station_request()
-
-        
+ 
     def update_text(self, new_info):
         """
         Puts the new information into the text and if necessary, deletes the old
@@ -788,7 +784,6 @@ class mainWindow(QtWidgets.QMainWindow):
         super().__init__()
 
         self.model = model
-        self.model.set_main_gui(self)
 
         #--------------- STATUSBAR ----------------------------------
         self.status_bar = self.statusBar()
@@ -821,6 +816,8 @@ class mainWindow(QtWidgets.QMainWindow):
         self.side_window_instance = sideWindow(self)
         self.grid_layout.addWidget(self.side_window_instance,0,1)
 
+        self.model.set_main_gui(self)
+
         self.dataTable_instance = dataTable(self)
         self.grid_layout.addWidget(self.dataTable_instance,1,0,1,2)
 
@@ -829,6 +826,8 @@ class mainWindow(QtWidgets.QMainWindow):
         window_content = QtWidgets.QWidget()
         window_content.setLayout(self.grid_layout)
         self.setCentralWidget(window_content)
+
+        
 
     def draw_route_network(self, train_stations, filename_routes):
         self.germany_map.draw_route_network(train_stations, filename_routes)
@@ -869,7 +868,6 @@ class mainWindow(QtWidgets.QMainWindow):
         
         self.layout.addLayout(sub_layout)
         
-
 class model():
     """
     modell is 
@@ -880,6 +878,7 @@ class model():
         Sets the basic values.
         """
         self.all_data = all_data
+        self.all_data.set_model(self)
         self.train_station_info = None
         self.get_first_data()
 
@@ -926,6 +925,7 @@ class model():
         
     def set_main_gui(self, main_gui):
         self.main_gui = main_gui
+        self.all_data.text_feald_update(" ")
 
     def get_current_stops(self):
         return self.current_stops[0]
@@ -996,6 +996,8 @@ class model():
         self.train_station_info = self.all_data.create_train_station_info([day, hour, minute], train_station, time_span, self.current_gtfs)
         self.main_gui.dataTable_instance.set_dataframe(self.train_station_info)
         
+    def text_feald_update(self,new_info):
+        self.main_gui.side_window_instance.update_text(new_info)
 
 class data(threading.Thread):
 
@@ -1004,6 +1006,8 @@ class data(threading.Thread):
 
     def run(self):
         self.delighted_category_options = []
+        self.model_set = False
+        self.q_text = " "
 
         # Loads necessary and little data for the first overview.
         self.counts = self.load_map_data()
@@ -1038,6 +1042,20 @@ class data(threading.Thread):
         # HIER BIN ICH MIR BEI DER ÜBERSEETZUNG NICHT SICHER.
         # This is necessary, becaus the class 'model' made access them.
         time.sleep(0.1)
+
+    def set_model(self,model):
+        self.model = model
+        self.model_set = True
+
+    def text_feald_update(self,new_text):
+        if self.model_set == True:
+            if self.q_text != " ":
+                self.model.text_feald_update(self.q_text)
+                self.q_text = " "
+            self.model.text_feald_update(new_text)
+        else:
+            self.q_text = self.q_text + "\n" + new_text
+
 
     def restore(self, key):
         """
@@ -1333,14 +1351,16 @@ class data(threading.Thread):
                 data = geojson.load(f)
                 f.close()
             states = data['features']
-            
+
             return states
             
         else:
-            print("the landkreise_simplify200.geojson file is missing.")
-            print("ists a criticel pat, therfor the program is shatig down.")
-            print("the data is awaleble at http://opendatalab.de/projects/geojson-utilities/")
-            exit()
+            text = "the landkreise_simplify200.geojson file is missing."
+            text = text + "\n" + "ists a criticel pat, therfor the program is shatig down."
+            text = text + "\n" + "the data is awaleble at http://opendatalab.de/projects/geojson-utilities/"
+            self.text_feald_update(text)
+            print(text)
+            #exit()
 
     def load_about_text(self):
         """
