@@ -57,9 +57,6 @@ from PySide6 import QtGui
 from os.path import exists
 from datetime import datetime
 
-# snake_case -> variablen und functionen
-# camelCase -> Klassen und Typen
-
 
 class myThread(threading.Thread):
     """
@@ -102,9 +99,7 @@ class myThread(threading.Thread):
                         last_stop_id = stop_id
                     sub_stop_ids_inspected.append(sub_stop_ids)
 
-        # reduses the cupels witch are multipl tims in the list
-        ## HIER BIN ICH BEI DER ÜBERSETZUNG NICHT SICHER.
-        # Reduces the recurrent station names in the list.
+        # Reduces the couples of recurrent station names in the list.
         df = pd.DataFrame (connections, columns = ['station_1', 'station_2'])
         group = df.groupby(['station_1', 'station_2'])
         group = pd.DataFrame(group.size())
@@ -124,8 +119,6 @@ class myThread(threading.Thread):
                 break
             time.sleep(0.01)
         
-        # if all treda are done the main code can be run
-        ## HIER BIN ICH BEI DER ÜBERSETZUNG NICHT SICHER.
         # If all threads are done the main code can be run.
         self.parent.threads_done += 1
         if self.parent.threads_done == self.amount_of_threads:
@@ -133,10 +126,15 @@ class myThread(threading.Thread):
 
 class connections(threading.Thread):
     """
-    HIER NOCH EIN KOMMENTAR WAS DIESE KLASSE TUT. 
+    Calculates a list of connections between train stations,
+    based of GTFS data
     """
     
     def __init__(self, data_class, data_type):
+        """
+        Determines which GTFS data is used and sets the name
+        of the resulting file.
+        """
         threading.Thread.__init__(self)
         self.data_class = data_class
         self.data_type = data_type
