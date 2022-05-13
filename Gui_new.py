@@ -1331,8 +1331,10 @@ class data(threading.Thread):
 
         # If the data is not found, the user is informed.
         if gtfs_is_missing_files:
-            print(" \n \n")
-            print("da die daten von " + category + " nicht geladen werden konten \n Kann man diese auch nicht aus welen")
+            text = "da die daten von " + category + " nicht geladen werden konten \n Kann man diese auch nicht aus welen"
+            print(text)
+            self.text_feald_update(text)
+            
             return None
 
         return name_dict
@@ -1360,7 +1362,7 @@ class data(threading.Thread):
             text = text + "\n" + "the data is awaleble at http://opendatalab.de/projects/geojson-utilities/"
             self.text_feald_update(text)
             print(text)
-            #exit()
+            exit()
 
     def load_about_text(self):
         """
