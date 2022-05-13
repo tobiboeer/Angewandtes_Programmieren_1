@@ -41,185 +41,216 @@ import pandas as pd
 import sys
 import geojson
 import os
-from PySide6 import QtCore
-from PySide6 import QtWidgets
-from PySide6 import QtGui
 import json
 import csv
-import numpy as np
-from os.path import exists
 import random
-from datetime import datetime
 import time
 import calendar
 import threading
 import concurrent.futures
 import markdown
+import numpy as np
+
+from PySide6 import QtCore
+from PySide6 import QtWidgets
+from PySide6 import QtGui
+from os.path import exists
+from datetime import datetime
+
+# snake_case -> variablen und functionen
+# camelCase -> Klassen und Typen
 
 
-class myFred(threading.Thread):
-    def __init__(self,all_rout_ids,parent,amount_of_trets,name_dict_input):
+class myThread(threading.Thread):
+    """
+    Creating a multithread.
+    """
+    
+    def __init__(self, all_route_ids, parent, amount_of_threads, name_dict_input):
         threading.Thread.__init__(self)
         self.name_dict = name_dict_input
-        self.all_rout_ids = all_rout_ids
+        self.all_route_ids = all_route_ids
         self.parent = parent
-        self.amount_of_trets = amount_of_trets
+        self.amount_of_threads = amount_of_threads
 
     def run(self):
-        # based on the rood id the choneckchens betwen the trainstachens are put togeter
-        conectons = []
+        """
+        Based on the 'route id'. The connections between the train stations are put together.
+        """
+        connections = []
 
-        for done, rout_id in enumerate(self.all_rout_ids):
-            # gets all trip ids from the roout id 
-            trip_id_example_list = self.name_dict["trips"].loc[self.name_dict["trips"]["route_id"] == rout_id]['trip_id'].to_numpy()
-            # reduses the number trip ids to reduce the runtime.  
+        for done, route_id in enumerate(self.all_route_ids):
+        
+            # Gets all the trip id's from the 'route id'.
+            trip_id_example_list = self.name_dict["trips"].loc[self.name_dict["trips"]["route_id"] == route_id]['trip_id'].to_numpy()
+            
+            # Reducing the number of trip id's to reduce the runtime.
             trip_id_example_list = set(trip_id_example_list)
             sub_stop_ids_inspected = []
+            
             for trip_id_example in trip_id_example_list:
-                # gets all stops from the trip id
+            
+                # Gets all the stop names from the trip id.
                 all_stops = self.name_dict["stop_times"][self.name_dict["stop_times"].trip_id == trip_id_example]
                 sub_stop_ids = list(all_stops["stop_id"].to_numpy())
-                # creats a list of al trainstacen conechons
+                
+                # Creates a list of all train station connections.
                 if not (sub_stop_ids in sub_stop_ids_inspected):
                     for count, stop_id in enumerate(sub_stop_ids):
                         if count != 0:
-                            conectons.append([stop_id,last_stop_id])
+                            connections.append([stop_id,last_stop_id])
                         last_stop_id = stop_id
                     sub_stop_ids_inspected.append(sub_stop_ids)
 
-
-
-
         # reduses the cupels witch are multipl tims in the list
+        ## HIER BIN ICH BEI DER ÜBERSETZUNG NICHT SICHER.
+        # Reduces the recurrent station names in the list.
+        df = pd.DataFrame (connections, columns = ['station_1', 'station_2'])
+        group = df.groupby(['station_1', 'station_2'])
+        group = pd.DataFrame(group.size())
+        group.reset_index(inplace = True)
+        group = group.drop(labels = [0], axis=1)
 
-        df = pd.DataFrame (conectons, columns = ['stachen_1','stachen_2'])
-        groub = df.groupby(['stachen_1','stachen_2'])
-        groub = pd.DataFrame(groub.size())
-        groub.reset_index(inplace=True)
-        groub = groub.drop(labels=[0], axis=1)
-
-        # re asembels the list
-        stachen_1 = list(groub["stachen_1"].to_numpy())
-        stachen_2 = list(groub["stachen_2"].to_numpy())
-        conectons = [stachen_1,stachen_2]
+        # Reassembles the list.
+        station_1 = list(group["station_1"].to_numpy())
+        station_2 = list(group["station_2"].to_numpy())
+        connections = [station_1,station_2]
         
-        print("conectons in Tret erstellt")
+        print(" Verbindungen im Thread erstellt.")
 
-        # writes to the main class
+        # Writes to the main class
         while True:
-            if self.parent.add_conectons(conectons):
+            if self.parent.add_connections(connections):
                 break
             time.sleep(0.01)
-
+        
         # if all treda are done the main code can be run
-        self.parent.shreads_done += 1
-        if self.parent.shreads_done == self.amount_of_trets:
-            self.parent.ceap_going()
+        ## HIER BIN ICH BEI DER ÜBERSETZUNG NICHT SICHER.
+        # If all threads are done the main code can be run.
+        self.parent.threads_done += 1
+        if self.parent.threads_done == self.amount_of_threads:
+            self.parent.keep_going()
 
-class Conectons(threading.Thread):
-    def __init__(self,data_clas,type):
+class connections(threading.Thread):
+    """
+    HIER NOCH EIN KOMMENTAR WAS DIESE KLASSE TUT. 
+    """
+    
+    def __init__(self, data_class, data_type):
         threading.Thread.__init__(self)
-        self.data_clas = data_clas
-        self.type = type
+        self.data_class = data_class
+        self.data_type = data_type
 
-        # sets the variables to the needet typ
-        if self.type == "fern":
-            self.name_dict = self.data_clas.gtfs_fern
+        # Sets the variables to the needed type.
+        if self.data_type == "fern":
+            self.name_dict = self.data_class.gtfs_fern
             self.name = 'connections_fern.csv'
 
-        if self.type == "regional":
-            self.name_dict = self.data_clas.gtfs_regional
+        if self.data_type == "regional":
+            self.name_dict = self.data_class.gtfs_regional
             self.name = 'connections_regional.csv'
-        if self.type == "nah":
-            self.name_dict = self.data_clas.gtfs_nah
+        if self.data_type == "nah":
+            self.name_dict = self.data_class.gtfs_nah
             self.name = 'connections_nah.csv'
 
-
     def run(self):
-        self.shreads_done = 0
-        self.add_conectons_actif = 0
-        self.conectons = [[],[]]
-
-        # gets the rout_ids to get the conections
-        all_rout_ids = self.name_dict["routes"]["route_id"].to_numpy()
+        self.threads_done = 0
+        self.add_connections_active = 0
+        self.connections = [[],[]]
+        
+        # Gets the route id's to get the connections.
+        all_route_ids = self.name_dict["routes"]["route_id"].to_numpy()
 
         # if the all_rout_ids 
-        if len(all_rout_ids) <= 1:
-            print("len(all_rout_ids) ",len(all_rout_ids))
+        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+        # If 
+        if len(all_route_ids) <= 1:
+            print("len(all_route_ids) ",len(all_route_ids))
             exit()
 
-        # starts with 64 treds, for big dats sets, if needet the amound is redused
-        amount_of_trets = 64
-        while amount_of_trets > len(all_rout_ids):
-            amount_of_trets = int(amount_of_trets/2)
+        # Starts with 64 threads for big data sets, if needed the amount is reduced.
+        amount_of_threads = 64
+        
+        while amount_of_threads > len(all_route_ids):
+            amount_of_threads = int(amount_of_threads/2)
 
-        # the therds are set end stardet
-        step_sise = int(len(all_rout_ids)/(amount_of_trets-1))
-        for i in range(amount_of_trets-1):
-            to_check_all_rout_ids = all_rout_ids[0:step_sise]
-            all_rout_ids =  all_rout_ids[step_sise:]
-            myFred(to_check_all_rout_ids,self,amount_of_trets,self.name_dict).start()
-        myFred(all_rout_ids,self,amount_of_trets,self.name_dict).start()
+        # The threads are set and started.
+        step_size = int(len(all_route_ids)/(amount_of_threads-1))
+        
+        for i in range(amount_of_threads-1):
+            to_check_all_route_ids = all_route_ids[0:step_size]
+            all_route_ids =  all_route_ids[step_size:]
+            myThread(to_check_all_route_ids, self, amount_of_threads, self.name_dict).start()
+        myThread(all_route_ids, self, amount_of_threads, self.name_dict).start()
 
-    def add_conectons(self,add):
+    def add_connections(self, add):
         # to reduse conflics only one tred is aloud to wreid at a time
-        if self.add_conectons_actif == 0:
-            self.add_conectons_actif = 1
+        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER
+        """
+        Reduces the conflicts only one thread is allowed to write simultaneously.
+        """
+        
+        if self.add_connections_active == 0:
+            self.add_connections_active = 1
 
-            self.conectons[0] = self.conectons[0] + add[0]
-            self.conectons[1] = self.conectons[1] + add[1]
+            self.connections[0] = self.connections[0] + add[0]
+            self.connections[1] = self.connections[1] + add[1]
 
-            self.add_conectons_actif = 0
+            self.add_connections_active = 0
 
-            # fedback if the riting was suxsesfull
+            # Feedback, if the writing was successful.
             return True
         else:
             return False
 
-    def ceap_going(self):
-
+    def keep_going(self):
         # reduses the cupels witch are multipl tims in the list
-        d = {'stachen_1':self.conectons[0],'stop_id':self.conectons[1]}
+        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+        """
+        Reduces the recurrent station names in the list.
+        """
+        
+        d = {'station_1':self.connections[0], 'stop_id':self.connections[1]}
         df = pd.DataFrame (d)
-        groub = df.groupby(['stachen_1','stop_id'])
-        groub = pd.DataFrame(groub.size())
-        groub.reset_index(inplace=True)
-        groub = groub.drop(labels=[0], axis=1)
+        group = df.groupby(['station_1', 'stop_id'])
+        group = pd.DataFrame(group.size())
+        group.reset_index(inplace = True)
+        group = group.drop(labels= [0], axis = 1)
+
         # replases the stop ids with the lon and lat veluages
-        new_df = pd.merge(self.name_dict["stops"],groub)
+        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+        # Replaces the stop id's with the lon and lat values.
+        new_df = pd.merge(self.name_dict["stops"],group)
         new_df.rename(columns = {'stop_lat':'Station1_lat', 'stop_lon':'Station1_lon'}, inplace = True)
         new_df = new_df.drop(['stop_name', 'stop_id'], axis=1)
-        new_df.rename(columns = {'stachen_1':'stop_id'}, inplace = True)
+        new_df.rename(columns = {'stachen_1': 'stop_id'}, inplace = True)
         new_df = pd.merge(self.name_dict["stops"],new_df)
         new_df = new_df.drop(['stop_name', 'stop_id'], axis=1)
         new_df.rename(columns = {'stop_lat':'Station2_lat', 'stop_lon':'Station2_lon'}, inplace = True)
 
-        # writes data
-        pfad = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data/" + self.name))
-        new_df.to_csv(pfad)
+        # Writes the data.
+        path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data/" + self.name))
+        new_df.to_csv(path)
 
-        # depandig of the type one file is restored
-        if self.type == "fern":
-            self.data_clas.free_fern_add_1()
+        # Depending of the type, one file is restored.
+        if self.data_type == "fern":
+            self.data_class.free_fern_add_1()
         
-
-
-class Map(QtWidgets.QMainWindow):
+class mapWidget(QtWidgets.QMainWindow):
     """
     Creates the main window for the map.
     """
 
-    def __init__(self,main_gui):
-  
+    def __init__(self, main_gui):
         super().__init__()
         self.main_gui = main_gui
-        self.germany_map = GermanyMap(self)
+        self.germany_map = germanyMap(self)
 
-    def drawRouteNetwork(self,train_stations,filename_routes):
-        self.germany_map.drawRouteNetwork(train_stations,filename_routes)
+    def draw_route_network(self, train_stations, filename_routes):
+        self.germany_map.draw_route_network(train_stations, filename_routes)
 
-# Klasse für die Deutschlandkarte
-class GermanyMap(QtWidgets.QGraphicsView):
+
+class germanyMap(QtWidgets.QGraphicsView):
     """
     Graphicsscene of the map of Germany.
     """
@@ -228,7 +259,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
     currentStation = QtCore.Signal(str)
     stationClicked = QtCore.Signal(str)
 
-    def __init__(self,map_gui):
+    def __init__(self, map_gui):
         """
         Creates a widget for the map.
         """
@@ -254,8 +285,8 @@ class GermanyMap(QtWidgets.QGraphicsView):
         Enables Zoom while using the mouse wheel.
         According to:
         https://stackoverflow.com/questions/35508711/how-to-enable-pan-and-zoom-in-a-qgraphicsview
-        
         """
+        
         if event.angleDelta().y() > 0:
             factor = 1.25
             self.zoom += 1
@@ -294,6 +325,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
             except:
                 pass
             self.previous_item = None
+            
         if item is not None:
             try:
                 item.setBrush(QtGui.QBrush("grey", QtCore.Qt.BrushStyle.SolidPattern))
@@ -309,6 +341,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
         """
         Enables the widget to be resized properly.
         """
+        
         scene_size = self.sceneRect()
         dx = (self.width()-4)/scene_size.width()
         dy = (self.height()-4)/scene_size.height()
@@ -318,6 +351,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
         """
         Return of the preferred default size of the widget.
         """
+        
         return QtCore.QSize(140*4, 180*4)
 
     def pens_and_brushes(self):
@@ -337,7 +371,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
         self.line_pen = QtGui.QPen("orange")
         self.line_pen.setWidthF(0.02)
 
-    def drawRouteNetwork(self,train_stations,routes):
+    def draw_route_network(self, train_stations, routes):
         """
         Draws stations and routes to the base scene.
 
@@ -374,7 +408,7 @@ class GermanyMap(QtWidgets.QGraphicsView):
             y2,x2 = [start.Station2_lat, start.Station2_lon]
             self.map_gui.scene.addLine(x1,y1,x2,y2, pen=self.line_pen)
             
-        self = GermanyMap(self.map_gui) 
+        self = germanyMap(self.map_gui)
         self.setScene(self.map_gui.scene)
         self.scale(10, -10)
         self.setRenderHint(QtGui.QPainter.Antialiasing)
@@ -414,14 +448,16 @@ class GermanyMap(QtWidgets.QGraphicsView):
 
 
 
-class MenuWindowAbout(QtWidgets.QGraphicsView):
+class menuWindowAbout(QtWidgets.QGraphicsView):
     """
     Creates the window of the 'About' menu in the menubar.
     """
+    
     def __init__(self,model):
         """
         Creates a widget for the About menu.
         """
+        
         super().__init__()
         self.model = model
         self.setMinimumSize(300, 300)
@@ -438,12 +474,14 @@ class MenuWindowAbout(QtWidgets.QGraphicsView):
         """
         Contains the preferred default size of the window.
         """
+        
         return QtCore.QSize(700, 600)
 
-class MenuWindowReadMe(QtWidgets.QGraphicsView):
+class menuWindowReadMe(QtWidgets.QGraphicsView):
     """
     Creates the window of the 'ReadMe' menu in the menubar.
     """
+    
     def __init__(self,model):
         """
         Creates a widget for the ReadMe menu.
@@ -460,22 +498,22 @@ class MenuWindowReadMe(QtWidgets.QGraphicsView):
         layout.addWidget(self.label)
         self.setLayout(layout)
 
-    
-
     def sizeHint(self):
         """
         Contains the preferred default size of the window.
         """
         return QtCore.QSize(600, 600)
 
-class MenuWindowTutorial(QtWidgets.QGraphicsView):
+class menuWindowTutorial(QtWidgets.QGraphicsView):
     """
     Creates the window of the 'Tutorial' menu in the menubar.
     """
-    def __init__(self,model):
+    
+    def __init__(self, model):
         """
         Creates a widget for the Tutorial menu.
         """
+        
         super().__init__()
         self.model = model
         self.setMinimumSize(300, 300)
@@ -488,27 +526,25 @@ class MenuWindowTutorial(QtWidgets.QGraphicsView):
         layout.addWidget(self.label)
         self.setLayout(layout)
 
-    
-
     def sizeHint(self):
         """
         Contains the preferred default size of the window.
         """
+        
         return QtCore.QSize(1000, 1000)
 
-
-class Side_winow(QtWidgets.QMainWindow):
+class sideWindow(QtWidgets.QMainWindow):
     """
     Creating an interactive widget next to the german map.
     """
 
-    def __init__(self,main_gui):
+    def __init__(self, main_gui):
         """
         Instantiate the main aspects of an interactive planner. 
         It contains the comboboxes, textfields, labels, layouts and buttons.       
         """
+        
         super().__init__()
-            
         self.main_gui = main_gui
         
         # -------------- COMBOBOXES ----------------
@@ -516,7 +552,6 @@ class Side_winow(QtWidgets.QMainWindow):
         self.combobox_start.setPlaceholderText("- Bahnhof wählen -")
         self.combobox_start.currentTextChanged.connect(self.change_start_station)
         
-
         # -------------- TEXT FIELDS ----------------
         self.textfield_date = QtWidgets.QDateEdit()
         start_date = datetime(2022, 0o1, 0o1)
@@ -536,20 +571,22 @@ class Side_winow(QtWidgets.QMainWindow):
         label_textfield_date_time = QtWidgets.QLabel("Datum und Zeit der Abfahrt:")
         self.label_textfield_time_dif = QtWidgets.QLabel("Zeitfenster")
         label_textfield_allInfo = QtWidgets.QLabel("Besondere Informationen:")
-        label_button_recuest = QtWidgets.QLabel("Daten zum Bahnhof erstellen:")
+        label_button_request = QtWidgets.QLabel("Daten zum Bahnhof erstellen:")
 
         # -------------- BUTTONS ------------------
         self.button_nahverkehr = QtWidgets.QPushButton("Nahverkehr")
         self.button_fernverkehr = QtWidgets.QPushButton("Fernverkehr")
         self.button_regional = QtWidgets.QPushButton("Regional")
-        self.button_recuest = QtWidgets.QPushButton("Anfrage stellen")
+        self.button_request = QtWidgets.QPushButton("Anfrage stellen")
+        # Anpassen des Knopfes, weil er noch zu groß ist.
+        # self.button_request.setWidth()
 
         self.button_fernverkehr.clicked.connect(self.clickFunctionLongDistance)
         self.button_nahverkehr.clicked.connect(self.clickFunctionShortDistance)
         self.button_regional.clicked.connect(self.clickFunctionRegional)
-        self.button_recuest.clicked.connect(self.trainstachen_recqest)
+        self.button_request.clicked.connect(self.train_station_request)
 
-        # -------------- LAYOUTS -----------------
+        # -------------- LAYOUTS ------------------------------------
         button_layout_traffic = QtWidgets.QHBoxLayout()
         button_layout_traffic.addWidget(self.button_nahverkehr)
         button_layout_traffic.addWidget(self.button_fernverkehr)
@@ -562,11 +599,9 @@ class Side_winow(QtWidgets.QMainWindow):
         time_dif_layout = QtWidgets.QHBoxLayout()
         time_dif_layout.addWidget(self.textfield_time_dif)
 
-        button_recuest_layout = QtWidgets.QHBoxLayout()
-        button_recuest_layout.addWidget(self.button_recuest)
+        button_request_layout = QtWidgets.QHBoxLayout()
+        button_request_layout.addWidget(self.button_request)
 
-        
-        
         sub_layout = QtWidgets.QVBoxLayout()
         sub_layout.addWidget(label_button_traffic_style)
         sub_layout.addLayout(button_layout_traffic)
@@ -576,21 +611,21 @@ class Side_winow(QtWidgets.QMainWindow):
         sub_layout.addLayout(date_time_layout)
         sub_layout.addWidget(self.label_textfield_time_dif)
         sub_layout.addLayout(time_dif_layout)
-        sub_layout.addWidget(label_button_recuest)
-        sub_layout.addLayout(button_recuest_layout)
+        #sub_layout.addWidget(button_request_layout)
+        sub_layout.addLayout(button_request_layout)
         sub_layout.addWidget(label_textfield_allInfo)
         sub_layout.addWidget(self.textfield_allInfo)
         
         window_content = QtWidgets.QWidget()
         window_content.setLayout(sub_layout)
         self.setCentralWidget(window_content)
-
         self.set_train_stations_list()
 
     def set_text_start_values(self):
         """
         Sets the first strings in the text box.        
         """
+        
         self.abfahrtsbahnhof = "noch nicht ausgewählt.."
         
     def update_text(self):
@@ -601,7 +636,6 @@ class Side_winow(QtWidgets.QMainWindow):
         text = f"Abfahrtsbahnhof: {self.abfahrtsbahnhof}"
         self.textfield_allInfo.setText(text)
         
-    
     def change_start_station(self, value):
         """
         Noted the selected start trainstation and updates the text box.        
@@ -609,7 +643,7 @@ class Side_winow(QtWidgets.QMainWindow):
         self.abfahrtsbahnhof = value
         self.update_text()
         
-    def change_end_station(self,value):
+    def change_end_station(self, value):
         """
         Noted the selected end station and updates the text box.
         """
@@ -620,44 +654,45 @@ class Side_winow(QtWidgets.QMainWindow):
         """
         Loads long distance data, if button 'Fernverkehr' is clicked.
         """
-        self.main_gui.model.change_cerent_stops("stops_fern")
+        self.main_gui.model.change_current_stops("stops_fern")
         self.set_train_stations_list()
 
     def clickFunctionShortDistance(self):
         """
         Loads short distance data, if button 'Nahverkehr' is clicked.
         """
-        self.main_gui.model.change_cerent_stops("stops_nah")
+        self.main_gui.model.change_current_stops("stops_nah")
         self.set_train_stations_list()
 
     def clickFunctionRegional(self):
         """
         Loads regional data, if button 'Regionalverkehr' is clicked.
         """
-        self.main_gui.model.change_cerent_stops("stops_regional")
+        self.main_gui.model.change_current_stops("stops_regional")
         self.set_train_stations_list()
 
     def set_train_stations_list(self):  
-        stations = self.main_gui.model.get_cerent_stops()
+        stations = self.main_gui.model.get_current_stops()
         train_stations = stations['stop_name']
         self.combobox_start.addItems(train_stations)
 
-    def trainstachen_recqest(self):
+    def train_station_request(self):
         time_span = self.textfield_time_dif.time().toString()
-        print(self.textfield_date.dateTime().toString())
+        #print(self.textfield_date.dateTime().toString())
 
         day = datetime.today().weekday()
-        hauer = int(datetime.now().strftime("%H"))
-        min = int(datetime.now().strftime("%M"))
+        hour = int(datetime.now().strftime("%H"))
+        minute = int(datetime.now().strftime("%M"))
 
-        self.main_gui.model.change_trainstachen_info(time_span,day,hauer,min,self.abfahrtsbahnhof)
+        self.main_gui.model.change_train_station_info(time_span, day, hour, minute, self.abfahrtsbahnhof)
 
 class tableCreator(QtCore.QAbstractTableModel):
     """
     Creates a table with the main functions: rowCount, columnCount, data and headerData.
     These functions are setting the size of the matrix and a clear arrangement.
     """
-    def __init__(self,df):
+    
+    def __init__(self, df):
         """
         Defines the path in the directory and renames the columns for the clearancy.
         """
@@ -677,7 +712,6 @@ class tableCreator(QtCore.QAbstractTableModel):
         Sets the amount of the columns of the read file.
         """
         return len(self.dataframe.keys())
-        
         
     def data(self, index, role = QtCore.Qt.DisplayRole):
         """
@@ -703,7 +737,7 @@ class dataTable(QtWidgets.QMainWindow):
     Creates a widget of the 'tableCreator'. 
     """
 
-    def __init__(self,main_gui):
+    def __init__(self, main_gui):
         """
         Loads the file components of the 'tableCreator', creates a widget and merges
         the together. 
@@ -722,32 +756,31 @@ class dataTable(QtWidgets.QMainWindow):
         window_content.setLayout(layout)
         self.setCentralWidget(window_content)
 
-    def set_df(self,trainstachen_info):
-        table_model = tableCreator(trainstachen_info)
+    def set_df(self, train_station_info):
+        table_model = tableCreator(train_station_info)
         self.table_view.setModel(table_model)
 
-# Klasse um das Main Window zu erstellen
-class MainWindow(QtWidgets.QMainWindow):
+class mainWindow(QtWidgets.QMainWindow):
     """
     Creates the main window of the GUI.
     """
     
-    def __init__(self,model):
+    def __init__(self, model):
         super().__init__()
 
         self.model = model
         self.model.set_main_gui(self)
 
-#--------------- Statusbar ---------------------------------------------
+        #--------------- Statusbar ----------------------------------
         self.status_bar = self.statusBar()
 
-#--------------- Menubar -----------------------------------------------
-# According to:
-# https://realpython.com/python-menus-toolbars/#populating-menus-with-actions
-# https://pythonprogramming.net/menubar-pyqt-tutorial/
+        #--------------- Menubar ------------------------------------
+        # According to:
+        # https://realpython.com/python-menus-toolbars/#populating-menus-with-actions
+        # https://pythonprogramming.net/menubar-pyqt-tutorial/
 
         menuBar = self.menuBar()
-        help_menu = QtWidgets.QMenu("Help",self)
+        help_menu = QtWidgets.QMenu("Help", self)
         menuBar.addMenu(help_menu)
     
         aboutAction = QtGui.QAction("About/Licence", self)
@@ -764,22 +797,22 @@ class MainWindow(QtWidgets.QMainWindow):
        
         self.grid_layout = QtWidgets.QGridLayout()
         self.setLayout(self.grid_layout)
-        self.germany_map = Map(self)
+        self.germany_map = mapWidget(self)
         
-        self.side_winow_instnz = Side_winow(self)
-        self.grid_layout.addWidget(self.side_winow_instnz,0,1)
+        self.side_window_instance = sideWindow(self)
+        self.grid_layout.addWidget(self.side_window_instance,0,1)
 
-        self.dataTable_instace = dataTable(self)
-        self.grid_layout.addWidget(self.dataTable_instace,1,0,1,2)
+        self.dataTable_instance = dataTable(self)
+        self.grid_layout.addWidget(self.dataTable_instance,1,0,1,2)
 
-        self.model.change_cerent_stops("stops_fern")
+        self.model.change_current_stops("stops_fern")
         
         window_content = QtWidgets.QWidget()
         window_content.setLayout(self.grid_layout)
         self.setCentralWidget(window_content)
 
-    def drawRouteNetwork(self,train_stations,filename_routes):
-        self.germany_map.drawRouteNetwork(train_stations,filename_routes)
+    def draw_route_network(self, train_stations, filename_routes):
+        self.germany_map.draw_route_network(train_stations, filename_routes)
         
     def open_about(self):
         """
@@ -806,7 +839,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         print(whole_station_information + ' geklickt')
 
-    def transtachen_show(self):
+    def train_station_show(self):
         table_view = QtWidgets.QTableView()
         table_model = tableCreator()
         table_view.setModel(table_model)
@@ -817,90 +850,113 @@ class MainWindow(QtWidgets.QMainWindow):
         self.layout.addLayout(sub_layout)
         
 
-class Model():
+class model():
+    """
+    Creates a model of the bla bla bla ?
+    HIER NOCH EIN KOMMENTAR EINFÜGEN 
+    """
 
     def __init__(self,all_data):
-        # sets base veluages
+        """
+        Sets the basic values.
+        """
         self.all_data = all_data
-        self.trainstachen_info = None
+        self.train_station_info = None
         self.get_first_data()
 
     def get_first_data(self):
         # dependig if the data set is corect the set is lodet
-        if self.all_data.lode_first:
+        ## HIER BIN ICH MIR WEGEN DER ÜBERSETZUNG NICHT SICHER.
+        """
+        Depending on the data. If the set is correct, it will be loaded.
+        """
+
+        if self.all_data.load_first:
             # set is coreckt and is lodet
-            self.cerent_stops = self.all_data.get_stops_fern()
-            self.cerent_connections = self.all_data.get_connections_fern()
-            self.cerent_gtfs = self.all_data.gtfs("latest_fern")
+            # Checks for correctness and loads the data.
+            self.current_stops = self.all_data.get_stops_fern()
+            self.current_connections = self.all_data.get_connections_fern()
+            self.current_gtfs = self.all_data.gtfs("latest_fern")
         else:
             #set incoreckt and is blockt
-            self.all_data.delited_kategorie_opchens.append("stops_fern")
-            # try to restor lost data
+            # The incorrect data set is blocked.
+            self.all_data.delighted_category_options.append("stops_fern")
+            
+            # Tries to restore the lost data.
             if not (self.all_data.gtfs("latest_fern") == None):
-                self.all_data.restor("fern")
+                self.all_data.restore("fern")
 
-
-            # lodes new data 
-            self.cerent_stops = self.all_data.get_stops_regional()
-            self.cerent_connections = self.all_data.get_connections_regional()
-            self.cerent_gtfs = self.all_data.gtfs("latest_regional")
-            # checks data
-            if (self.cerent_stops[1] == False) or (self.cerent_connections[1] == False) or (self.cerent_gtfs == None):
-                self.all_data.delited_kategorie_opchens.append("stops_regional")
+            # Loads the new data.
+            self.current_stops = self.all_data.get_stops_regional()
+            self.current_connections = self.all_data.get_connections_regional()
+            self.current_gtfs = self.all_data.gtfs("latest_regional")
+            
+            # Checks the new data.
+            if (self.current_stops[1] == False) or (self.current_connections[1] == False) or (self.current_gtfs == None):
+                self.all_data.delighted_category_options.append("stops_regional")
                 if not (self.all_data.gtfs("latest_regional") == None):
-                    self.all_data.restor("regional")
-                self.cerent_stops = self.all_data.get_stops_nah()
-                self.cerent_connections = self.all_data.get_connections_nah()
-                self.cerent_gtfs = self.all_data.gtfs("latest_nah")
-                if (self.cerent_stops[1] == False) or (self.cerent_connections[1] == False) or (self.cerent_gtfs == None):
-                    self.all_data.delited_kategorie_opchens.append("stops_nah")
+                    self.all_data.restore("regional")
+                self.current_stops = self.all_data.get_stops_nah()
+                self.current_connections = self.all_data.get_connections_nah()
+                self.current_gtfs = self.all_data.gtfs("latest_nah")
+                if (self.current_stops[1] == False) or (self.current_connections[1] == False) or (self.current_gtfs == None):
+                    self.all_data.delighted_category_options.append("stops_nah")
                     if not (self.all_data.gtfs("latest_nah") == None):
-                        self.all_data.restor("nah")
-                    print(" alle daten sets sind felerhaft. Die bedinbarkeit ist eingeschrenkt.")
+                        self.all_data.restore("nah")
+                    print("Es sind unvollständige Datensets vorhanden. Daraus folgt eine Einschränkung der Bedienbarkeit.")
         
-    def set_main_gui(self,main_gui):
+    def set_main_gui(self, main_gui):
         self.main_gui = main_gui
 
-    def get_cerent_stops(self):
-        return self.cerent_stops[0]
+    def get_current_stops(self):
+        return self.current_stops[0]
 
-    def get_conectons(self):
-        return self.cerent_connections[0]
+    def get_connections(self):
+        return self.current_connections[0]
 
-    def change_cerent_stops(self,new_type):
-        # if the katigorie is avaleble it can be chosen
-        if not (new_type in self.all_data.delited_kategorie_opchens):
-            # saves curend status, as a backup
-            start_veluages = [self.cerent_stops,self.cerent_connections,self.cerent_gtfs]
+    def change_current_stops(self, new_type):
+        """
+        If the category is available, it can be chosen.
+        """
 
-            # lodes data baset on the type
+        if not (new_type in self.all_data.delighted_category_options):
+        
+            # Saves the current status as a backup
+            start_values = [self.current_stops,self.current_connections,self.current_gtfs]
+
+            # Loads the data, based on the type
             if new_type == "stops_fern":
-                self.cerent_stops = self.all_data.get_stops_fern()
-                self.cerent_connections = self.all_data.get_connections_fern()
-                self.cerent_gtfs = self.all_data.gtfs("latest_fern")
+                self.current_stops = self.all_data.get_stops_fern()
+                self.current_connections = self.all_data.get_connections_fern()
+                self.current_gtfs = self.all_data.gtfs("latest_fern")
+                
             if new_type == "stops_nah":
-                self.cerent_stops = self.all_data.get_stops_nah()
-                self.cerent_connections = self.all_data.get_connections_nah()
-                self.cerent_gtfs = self.all_data.gtfs("latest_nah")
+                self.current_stops = self.all_data.get_stops_nah()
+                self.current_connections = self.all_data.get_connections_nah()
+                self.current_gtfs = self.all_data.gtfs("latest_nah")
+                
             if new_type == "stops_regional":
-                self.cerent_stops = self.all_data.get_stops_regional()
-                self.cerent_connections = self.all_data.get_connections_regional()
-                self.cerent_gtfs = self.all_data.gtfs("latest_regional")
+                self.current_stops = self.all_data.get_stops_regional()
+                self.current_connections = self.all_data.get_connections_regional()
+                self.current_gtfs = self.all_data.gtfs("latest_regional")
 
-            # if data is incoreckt
-            if (self.cerent_gtfs == None) or (self.cerent_stops[1]==False) or (self.cerent_connections[1]==False):
-                # the backup is used to resor the og veluages
-                self.cerent_stops = start_veluages[0]
-                self.cerent_connections = start_veluages[1]
-                self.cerent_gtfs = start_veluages[2]
-
+            # If the data is incorrect
+            if (self.current_gtfs == None) or (self.current_stops[1]==False) or (self.current_connections[1]==False):
+                
+                # The backup is used to restore the first values
+                self.current_stops = start_values[0]
+                self.current_connections = start_values[1]
+                self.current_gtfs = start_values[2]
+                
                 # is tyt to resor data form every kategory, mait not be nasesery most times
-                self.all_data.restor("fern")
-                self.all_data.restor("nah")
-                self.all_data.restor("regional")
+                ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+                # Is typed to restore data from every category, might not be necessary mostly.
+                self.all_data.restore("fern")
+                self.all_data.restore("nah")
+                self.all_data.restore("regional")
             else:
-                # the gui lodes new data and shows it
-                self.main_gui.drawRouteNetwork(self.get_cerent_stops(),self.get_conectons()) 
+                # The gui loades new data and shows it.
+                self.main_gui.draw_route_network(self.get_current_stops(),self.get_connections()) 
         
     def get_about_text(self):
         return self.all_data.about_text
@@ -914,267 +970,323 @@ class Model():
     def get_counts(self):
         return self.all_data.counts
 
-    def change_trainstachen_info(self,time_span,day,hauer,min,trainstachen):
-        # calculates new trainstachen data and fills it in
-        self.trainstachen_info = self.all_data.create_trainstachen_info([day,hauer,min],trainstachen,time_span,self.cerent_gtfs)
-        self.main_gui.dataTable_instace.set_df(self.trainstachen_info)
+    def change_train_station_info(self, time_span, day, hour, minute, train_station):
+        """
+        Calculates new train station data and fills it in.
+        """
+        self.train_station_info = self.all_data.create_train_station_info([day, hour, minute], train_station, time_span, self.current_gtfs)
+        self.main_gui.dataTable_instance.set_df(self.train_station_info)
         
 
-class Data(threading.Thread):
+class data(threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self)
 
     def run(self):
-        self.delited_kategorie_opchens = []
+        self.delighted_category_options = []
 
-        # lodes nesesry and lite data, for the first vue
+        # Loads necessary and little data for the first overview.
         self.counts = self.load_map_data()
-        self.about_text = self.lode_about_text()
-        self.readme_text = self.lode_readme_text()
+        self.about_text = self.load_about_text()
+        self.readme_text = self.load_readme_text()
 
         self.tutorial_text = self.load_tutorial()
-        self.stops_fern = self.lode_text('stops_fern.txt')
-        self.connections_fern = self.lode_text('connections_fern.csv')
-        self.gtfs_fern = self.lode_gtfs("latest_fern")
+        self.stops_fern = self.load_text('stops_fern.txt')
+        self.connections_fern = self.load_text('connections_fern.csv')
+        self.gtfs_fern = self.load_gtfs("latest_fern")
 
-        # checks if the first files are ok, or if (at a later date) diferend files nedes to be chosen
-        self.lode_first = True
+        # Checks if the first files are ok, or if a different files needed to be chosen.
+        self.load_first = True
         if (self.stops_fern[1] == False) or (self.connections_fern[1] == False) or (self.gtfs_fern == None):
-            self.lode_first = False
+            self.load_first = False
 
-        # presets the gtfs variables, thrfor thy can be chckt if they alredy have bin lodet
+        # Presents the gtfs variables, therefore they can be checked, if they already have been loaded.
         self.gtfs_nah = None
         self.gtfs_regional = None
-        # veluages determenig if the variable is set 
+        
+        # Values determing, if the variable is set. 
         self.connections_nah_set = False
         self.connections_regional_set = False
         self.stops_regional_set = False
         self.stops_nah_set = False
 
-        # the lodig of the rest of the data is stadet
-        threading.Thread(target=self.gtfs_prep).start()
-        # the time dilay is needet, tho every pre (runnig proses) is stardet.
+        # The loading of the rest of the data is stated.
+        threading.Thread(target = self.gtfs_prep).start()
+        
+        # The time delay is needed, though every running process is started.
         # thes nesesry becas the modell class myd aces them
+        # HIER BIN ICH MIR BEI DER ÜBERSEETZUNG NICHT SICHER.
+        # This is necessary, becaus the class 'model' made access them.
         time.sleep(0.1)
 
-    def restor(self,key):
-        # if the key fits, and ther is data to be restrd
-        if key == "fern" and ("stops_fern" in self.delited_kategorie_opchens):
-            # if the main data set is ther (nedert for restoring)
+    def restore(self, key):
+        """
+        HIER NOCH EIN KOMMENTAR WAS DIESE METHODE TUT.
+        """
+        # If the key fits and there is data to be restored.
+        if key == "fern" and ("stops_fern" in self.delighted_category_options):
+        
+            # If the main data set is there. 
+            #(nedert for restoring)HIER BIN ICH MIR NICHT SICHER, WAS DAS BEDEUTET.
             if not (self.gtfs_fern == None):
-                # veluage represents how mutch of the typ is coreckt
+            
+                # Value represents how much of the type is correct.
                 self.free_fern = 0
-                # if connections_fern is wrong, a new file is created
+                
+                # If 'connections_fern' is wrong, a new file is created.
                 if self.connections_fern[1] == False:
-                    Conectons(self,"fern").run() 
+                    Connections(self,"fern").run() 
                 else:
-                    # connections_fern is coreckt
+                    # 'Connections_fern' is correct.
                     self.free_fern_add_1()
+                    
                 if self.stops_fern[1] == False:
-                    self.restor_trainsatchen_by_typ("fern")
+                    self.restore_train_station_by_type("fern")
                 else:
                     self.free_fern_add_1()
 
-        if key == "nah" and ("stops_nah" in self.delited_kategorie_opchens):
+        if key == "nah" and ("stops_nah" in self.delighted_category_options):
             if not (self.gtfs_nah == None):
                 self.free_nah = 0
                 if self.connections_nah[1] == False:
-                    Conectons(self,"nah").run() 
+                    Connections(self,"nah").run() 
                 else:
                     self.free_nah_add_1()
                 if self.stops_nah[1] == False:
-                    self.restor_trainsatchen_by_typ("nah")
+                    self.restore_train_station_by_type("nah")
                 else:
                     self.free_nah_add_1()
 
-        if key == "regional" and ("stops_regional" in self.delited_kategorie_opchens):
+        if key == "regional" and ("stops_regional" in self.delighted_category_options):
+        
             if not (self.gtfs_regional == None):
                 self.free_regional = 0
                 if self.connections_regional[1] == False:
-                    Conectons(self,"regional").run() 
+                    Connections(self,"regional").run() 
                 else:
                     self.free_regional_add_1()
                 if self.stops_regional[1] == False:
-                    self.restor_trainsatchen_by_typ("regional")
+                    self.restore_train_station_by_type("regional")
                 else:
                     self.free_regional_add_1()
 
-    def restor_trainsatchen_by_typ(self,typ):
-        if typ == "fern":
-            self.restor_trainsatchen_by_name(self.gtfs_fern,'stops_fern.txt')
+    def restore_train_station_by_type(self, data_type):
+        if data_type == "fern":
+            self.restore_train_station_by_name(self.gtfs_fern, 'stops_fern.txt')
             self.free_fern_add_1()
-        if typ == "nah":
-            self.restor_trainsatchen_by_name(self.gtfs_nah,'stops_nah.txt')
+            
+        if data_type == "nah":
+            self.restore_train_station_by_name(self.gtfs_nah, 'stops_nah.txt')
             self.free_nah_add_1()
-        if typ == "regional":
-            self.restor_trainsatchen_by_name(self.gtfs_regional,'stops_regional.txt')
+            
+        if data_type == "regional":
+            self.restore_train_station_by_name(self.gtfs_regional, 'stops_regional.txt')
             self.free_regional_add_1()
 
-    def restor_trainsatchen_by_name(self,name_dict,name):
-        df = pd.DataFrame(name_dict["stops"],columns=['stop_name'])
+    def restore_train_station_by_name(self, name_dict, name):
+        df = pd.DataFrame(name_dict["stops"], columns =['stop_name'])
         df = df.drop_duplicates(subset = ["stop_name"])
         index = df.index
         df = name_dict["stops"].loc[index]
-        train_stachen = df.drop(labels=["stop_id"], axis=1)
+        train_station = df.drop(labels=["stop_id"], axis=1)
 
-        pfad = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data/" + name))
-        pd.DataFrame(train_stachen).to_csv(pfad)
+        path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data/" + name))
+        pd.DataFrame(train_stachen).to_csv(path)
 
     def free_regional_add_1(self):
         self.free_regional += 1
-        # the dataset is fully restored and can be lodet
-        # and the kategory is avaleble agan
+        
+        # The dataset is fully restored and can be loaded and the category is available again.
         if self.free_regional == 2:
-            self.stops_regional = self.lode_text('stops_regional.txt')
-            self.connections_regional = self.lode_text('connections_regional.csv')
-            self.delited_kategorie_opchens.remove("stops_regional")
+            self.stops_regional = self.load_text('stops_regional.txt')
+            self.connections_regional = self.load_text('connections_regional.csv')
+            self.delighted_category_options.remove("stops_regional")
 
     def free_fern_add_1(self):
         self.free_fern += 1
+        
         if self.free_fern == 2:
-            self.stops_fern = self.lode_text('stops_fern.txt')
-            self.connections_fern = self.lode_text('connections_fern.csv')
+            self.stops_fern = self.load_text('stops_fern.txt')
+            self.connections_fern = self.load_text('connections_fern.csv')
             self.delited_kategorie_opchens.remove("stops_fern")
 
     def free_nah_add_1(self):
         self.free_nah += 1
+        
         if self.free_nah == 2:
             self.stops_fern = self.lode_text('stops_nah.txt')
             self.connections_fern = self.lode_text('connections_nah.csv')
-            self.delited_kategorie_opchens.remove("stops_nah")
+            self.delighted_category_options.remove("stops_nah")
 
     def gtfs_prep(self):
-        # every file gets ists owen loding thet, wich is saver in the variabe on the left
+        """
+        Every file gets its own loading thread, which is safer in the variable on the left.
+        """
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            self.gtfs_nah_pre = executor.submit(self.lode_gtfs,"latest_nah")
-            self.gtfs_regional_pre = executor.submit(self.lode_gtfs,"latest_regional")
-            self.connections_nah_pre = executor.submit(self.lode_text,'connections_og.csv')
-            self.connections_regional_pre = executor.submit(self.lode_text,'connections_regional.csv')
-            self.stops_regional_pre = executor.submit(self.lode_text,'stops_regional.txt')
-            self.stops_nah_pre = executor.submit(self.lode_text,'stops_nah.txt')
+            self.gtfs_nah_pre = executor.submit(self.load_gtfs, "latest_nah")
+            self.gtfs_regional_pre = executor.submit(self.load_gtfs, "latest_regional")
+            self.connections_nah_pre = executor.submit(self.load_text, "connections_og.csv")
+            self.connections_regional_pre = executor.submit(self.load_text, "connections_regional.csv")
+            self.stops_regional_pre = executor.submit(self.load_text, "stops_regional.txt")
+            self.stops_nah_pre = executor.submit(self.load_text, "stops_nah.txt")
 
     def get_stops_fern(self):
-        # if the valuue is incorecht, the kategory option is delited
-        # and a restrachen is tryed
+        ## HIER BIN ICH MIR BEI DER ÜBERSEETZUNG UNSICHER.
+        """
+        If the value is incorrect, the category option is delighted and a (restrachen) ?? is tried
+        """
         if self.stops_fern[1] == False:
-            if not ("stops_fern" in self.delited_kategorie_opchens):
-                self.delited_kategorie_opchens.append("stops_fern")
-            self.restor("fern")
+            if not ("stops_fern" in self.delighted_category_options):
+                self.delighted_category_options.append("stops_fern")
+            self.restore("fern")
 
         return self.stops_fern
 
     def get_stops_nah(self):
-        # if the valuue is not pulled, its done now
-        # if the valuue is incorecht, the kategory option is delited
-        # and a restrachen is tryed
+        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+        """
+        If the value is not pulled, its done now. if the value is incorecht, the kategory option is delited
+        and a restrachen is tryed
+        """
         if not self.stops_nah_set:
             self.stops_nah_set = True
             self.stops_nah = self.stops_nah_pre.result()
+            
             if self.stops_nah[1] == False:
-                if not ("stops_nah" in self.delited_kategorie_opchens):
-                    self.delited_kategorie_opchens.append("stops_nah")
-                self.restor("nah")
+            
+                if not ("stops_nah" in self.delighted_category_options):
+                    self.delighted_category_options.append("stops_nah")
+                self.restore("nah")
+                
         return self.stops_nah
 
     def get_stops_regional(self):
-        # if the valuue is not pulled, its done now
-        # if the valuue is incorecht, the kategory option is delited
-        # and a restrachen is tryed
+        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+        """
+        If the value is not pulled, its done now. If the value is incorrect, the category option is delighted
+        and a restrachen is tryed
+        """
         if not self.stops_regional_set:
             self.stops_regional_set = True
             self.stops_regional = self.stops_regional_pre.result()
+            
             if self.stops_regional[1] == False:
-                if not ("stops_regional" in self.delited_kategorie_opchens):
-                    self.delited_kategorie_opchens.append("stops_regional")
-                self.restor("regional")
+            
+                if not ("stops_regional" in self.delighted_category_options):
+                    self.delighted_category_options.append("stops_regional")
+                self.restore("regional")
 
         return self.stops_regional
 
     def get_connections_regional(self):
-        # if the valuue is not pulled, its done now
-        # if the valuue is incorecht, the kategory option is delited
-        # and a restrachen is tryed
+        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+        """
+        If the value is not pulled, it's done now. If the value is incorrect, the category option is delighted
+        and a restrachen is tryed
+        """
         if not self.connections_regional_set:
             self.connections_regional_set = True
             self.connections_regional = self.connections_regional_pre.result()
+            
             if self.connections_regional[1] == False:
-                if not ("stops_regional" in self.delited_kategorie_opchens):
-                    self.delited_kategorie_opchens.append("stops_regional")
-                self.restor("regional")
+            
+                if not ("stops_regional" in self.delighted_category_options):
+                    self.delighted_category_options.append("stops_regional")
+                self.restore("regional")
 
         return self.connections_regional
 
     def get_connections_nah(self):
-        # if the valuue is not pulled, its done now
-        # if the valuue is incorecht, the kategory option is delited
-        # and a restrachen is tryed
+        ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
+        """
+        If the value is not pulled, its done now.If the value is incorrect, the category option is delighted
+        and a restrachen is tryed
+        """
         if not self.connections_nah_set:
             self.connections_nah_set = True
             self.connections_nah = self.connections_nah_pre.result()
+            
             if self.connections_nah[1] == False:
-                if not ("stops_nah" in self.delited_kategorie_opchens):
-                    self.delited_kategorie_opchens.append("stops_nah")
-                self.restor("nah")
+            
+                if not ("stops_nah" in self.delighted_category_options):
+                    self.delighted_category_options.append("stops_nah")
+                self.restore("nah")
+                
         return self.connections_nah
 
     def get_connections_fern(self):
-        # if the valuue is incorecht, the kategory option is delited
-        # and a restrachen is tryed
+        ## HIER BIN ICH MIR NICHT SICHER.
+        """
+        If the valuue is incorecht, the kategory option is delited and a restrachen is tryed
+        """
         if self.connections_fern[1] == False:
-            if not ("stops_fern" in self.delited_kategorie_opchens):
-                    self.delited_kategorie_opchens.append("stops_fern")
-            self.restor("fern")
+        
+            if not ("stops_fern" in self.delighted_category_options):
+                    self.delighted_category_options.append("stops_fern")
+                    
+            self.restore("fern")
+            
         return self.connections_fern
 
-    def gtfs(self,kategorie):
-        # the gtfs are pulled if needet
-        # if gtfs data is missing, the opchon is closed
-        if kategorie == "latest_nah":
+    def gtfs(self, category):
+        """
+        # The gtfs are pulled if needed. If gtfs data is missing, the option is closed.
+        """
+        if category == "latest_nah":
+        
             if self.gtfs_nah == None:
                 self.gtfs_nah = self.gtfs_nah_pre.result()
+                
                 if self.gtfs_nah == None:
-                    self.delited_kategorie_opchens.append("stops_nah")
+                    self.delighted_category_options.append("stops_nah")
+                    
             return self.gtfs_nah
 
-        if kategorie == "latest_fern":
+        if category == "latest_fern":
+        
             if self.gtfs_fern == None:
-                self.delited_kategorie_opchens.append("stops_fern")
+                self.delighted_category_options.append("stops_fern")
+                
             return self.gtfs_fern
 
-        if kategorie == "latest_regional":
+        if category == "latest_regional":
+        
             if self.gtfs_regional == None:
                 self.gtfs_regional = self.gtfs_regional_pre.result()
+                
                 if self.gtfs_regional == None:
-                    self.delited_kategorie_opchens.append("stops_regional")
+                    self.delighted_category_options.append("stops_regional")
+                    
             return self.gtfs_regional
 
-    def lode_gtfs(self,kategorie):
+    def load_gtfs(self, category):
 
-        #creats pahth
-        pfad_start = os.path.abspath(os.path.join(os.path.dirname( __file__ ), kategorie))+ '\\'
+        # Creates path
+        path_start = os.path.abspath(os.path.join(os.path.dirname( __file__ ), category))+ '\\'
         data_names = ['agency','calendar','calendar_dates','feed_info','routes','stop_times','stops','trips']
         name_dict = {}
 
         gtfs_is_missing_files = False
 
-        # redes in all data
+        # Reads in all the data.
         for name in data_names:
-            pfad = pfad_start + name + '.txt'
-            if exists(pfad):
-                df = pd.read_csv(pfad)
+            path = path_start + name + '.txt'
+            
+            if exists(path):
+                df = pd.read_csv(path)
                 name_dict[name] = df
 
             else:
-                # if data is not found the user is toled about
+                # If data is not found the user is informed.
                 print("Die Datei " + name + " wurde nicht Gefunden")
                 print(os.path.abspath(os.path.join(os.path.dirname( __file__ ), name + '.txt')))
                 gtfs_is_missing_files = True
 
-        # if data is not found the user is toled about
+        # If the data is not found, the user is informed.
         if gtfs_is_missing_files:
             print(" \n \n")
-            print("da die daten von " + kategorie + " nicht geladen werden konten \n Kann man diese auch nicht aus welen")
+            print("da die daten von " + category + " nicht geladen werden konten \n Kann man diese auch nicht aus welen")
             return None
 
         return name_dict
@@ -1186,190 +1298,222 @@ class Data(threading.Thread):
         http://opendatalab.de/projects/geojson-utilities/
         """
         path_to_map = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/landkreise_simplify200.geojson'))
+        
         if exists(path_to_map):
+        
             with open(path_to_map,encoding='utf8') as f:
                 data = geojson.load(f)
                 f.close()
             states = data['features']
+            
             return states
+            
         else:
             print("the landkreise_simplify200.geojson file is missing.")
             print("ists a criticel pat, therfor the program is shatig down.")
             print("the data is awaleble at http://opendatalab.de/projects/geojson-utilities/")
             exit()
 
-    def lode_about_text(self):
-        # Open the 'About' file and print it in a label of a new window.
+    def load_about_text(self):
+        """
+        Opens the 'About' file and prints it in a label of a new window.
+        """
+        
         path_to_about = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/ABOUT.md'))
+        
         if exists(path_to_about):
+        
             with open(path_to_about, encoding='utf8') as about_file:
                 about_text = about_file.read()
                 about_file.close()
+                
             return about_text
         else:
             return "No ABOUT text was found"
 
-    def lode_readme_text(self):
-        # Open the 'ReadMe' file and print it in a label of a new window.
+    def load_readme_text(self):
+        """
+        Opens the 'ReadMe' file and prints it in a label of a new window.
+        """
+        
         path_str = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data")) + "\\" 
         path_to_readme = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/README.md'))
+        
         if exists(path_to_readme):
+        
             with open(path_to_readme, encoding='utf8') as readme_file:
                 readme_text = readme_file.read()
                 readme_file.close()
-                # the dynemic path is inserdet
+                
+                # The dynamic path is inserted
                 readme_text = readme_text.replace("/////", path_str)
                 readme_text_md = markdown.markdown(readme_text)
+                
             return readme_text_md
         else:
             return "No README text was found"
 
     def load_tutorial(self):
-        # Open the 'Tutorial' file and print it in a label of a new window.
+        """
+        Opens the 'Tutorial' file and prints it in a label of a new window.
+        """
+        
         path_str = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data")) + "\\" 
         path_to_tutorial = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/TUTORIAL.md'))
+        
         if exists(path_to_tutorial):
+        
             with open(path_to_tutorial, encoding='utf8') as tutorial_file:
                 tutorial_text = tutorial_file.read()
                 tutorial_file.close()
-                # the dynemic path is inserdet
+                
+                # The dynamic path is inserted
                 tutorial_text = tutorial_text.replace("/////", path_str)
                 tutorial_text_md = markdown.markdown(tutorial_text)
+                
             return tutorial_text_md
         else:
             return "No TUTORIAL text was found"
 
-    def lode_text(self,filename_routes):
-        # Loads the file with the routes
-
+    def load_text(self, filename_routes):
+        """
+        Loads the file with the routes.
+        """
         path_of_routes = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/' + filename_routes))
+        
         if exists(path_of_routes):
             routes = pd.read_csv(path_of_routes, encoding='utf8')
-            # a indechachon if the reading was sucsesfull is includet
+            
+            # An indication, if the reading was successfull, it is included.
             return [routes,True]
         return [None,False]
 
-    def create_trainstachen_info(self,date,trainstachen_name,time_spane,name_dict):
+    def create_train_station_info(self, date, train_station_name, time_span, name_dict):
 
-        time_spane = int(time_spane[0:2])
-        if time_spane == 0:
-            time_spane = 1
+        time_span = int(time_span[0:2])
+        if time_span == 0:
+            time_span = 1
 
         day_given = date[0]
-        hauer = date[1]
-        min = date[2]
+        hour = date[1]
+        minute = date[2]
 
         # Bahnhofs Nahme -->  stop IDs
-        stop_IDs = name_dict["stops"].loc[name_dict["stops"]["stop_name"] == trainstachen_name]['stop_id'].to_numpy()
+        stop_IDs = name_dict["stops"].loc[name_dict["stops"]["stop_name"] == train_station_name]['stop_id'].to_numpy()
+        
         # IDs -->  trip_id 
         trip_id_IDs = set(name_dict["stop_times"].loc[name_dict["stop_times"]["stop_id"].isin(stop_IDs)]['trip_id'].to_numpy())
 
+        # HIER FEHLEN EIN PAAR KOMMENTARE.
+        connections_df_counter = int(0)
+        
+        for trip_id_instance in trip_id_IDs:
 
-        conactions_df_counter = int(0)
-        for trip_id_instanz in trip_id_IDs:
+            trips_trip_id = name_dict["trips"].loc[name_dict["trips"]["trip_id"] == trip_id_instance]
+            service_id_instance = trips_trip_id['service_id'].to_numpy()[0]
+            service_days = name_dict["calendar"].loc[name_dict["calendar"]["service_id"] == service_id_instance]
 
-            trips_trip_id = name_dict["trips"].loc[name_dict["trips"]["trip_id"] == trip_id_instanz]
-            service_id_instanz = trips_trip_id['service_id'].to_numpy()[0]
-            serves_days = name_dict["calendar"].loc[name_dict["calendar"]["service_id"] == service_id_instanz]
-
-            if not serves_days.empty:
+            if not service_days.empty:
                 
-                stop_times_trip_id_instanz = name_dict["stop_times"].loc[name_dict["stop_times"]["trip_id"] == trip_id_instanz]
-                trip_id_stops = stop_times_trip_id_instanz.loc[stop_times_trip_id_instanz["stop_id"].isin(stop_IDs)]
+                stop_times_trip_id_instance = name_dict["stop_times"].loc[name_dict["stop_times"]["trip_id"] == trip_id_instance]
+                trip_id_stops = stop_times_trip_id_instance.loc[stop_times_trip_id_instance["stop_id"].isin(stop_IDs)]
 
                 arrival_time = trip_id_stops['arrival_time'].to_numpy()[0]
-                arrival_time_houer = int(arrival_time[0:2])
-                days_over = int(arrival_time_houer / 24)
+                arrival_time_hour = int(arrival_time[0:2])
+                days_over = int(arrival_time_hour / 24)
 
                 day = day_given
-                time_diferenc = 0
+                time_difference = 0
+                
                 if days_over > 0:
-                    arrival_time_houer = arrival_time_houer - (24 * days_over)
-                    arrival_time_houer_str = str(arrival_time_houer)
-                    if len(arrival_time_houer_str) == 1:
-                        arrival_time_houer_str = "0" + arrival_time_houer_str
-                    arrival_time = arrival_time_houer_str+arrival_time[2:]
+                    arrival_time_hour = arrival_time_hour - (24 * days_over)
+                    arrival_time_hour_str = str(arrival_time_hour)
+                    
+                    if len(arrival_time_hour_str) == 1:
+                        arrival_time_hour_str = "0" + arrival_time_hour_str
+                    arrival_time = arrival_time_hour_str + arrival_time[2:]
                     day = day_given - days_over
-                    if (int(arrival_time[0:2]) < hauer) or (int(arrival_time[0:2]) < hauer) and (int(arrival_time[3:5]) < min):
+                    
+                    if (int(arrival_time[0:2]) < hour) or (int(arrival_time[0:2]) < hour) and (int(arrival_time[3:5]) < minute):
                         day = day + 1
-                        time_diferenc = 24*60
+                        time_difference = 24 * 60
+                        
                     if day < 0:
                         day = day + 7
-                    time_diferenc = time_diferenc + (int(arrival_time[0:2])-hauer)*60 + (int(arrival_time[3:5])-min)
-                else:
-                    time_diferenc = (int(arrival_time[0:2])-hauer)*60 + (int(arrival_time[3:5])-min)
-
-                day_is_serfed = serves_days[calendar.day_name[day].lower()].to_numpy()[0]
-                if day_is_serfed == 1:
+                    time_difference = time_difference + (int(arrival_time[0:2]) - hour) * 60 + (int(arrival_time[3:5]) - minute)
                     
+                else:
+                    time_difference = (int(arrival_time[0:2])- hour) * 60 + (int(arrival_time[3:5])- minute)
 
-                    if time_diferenc > 0 and time_diferenc < time_spane*60:
+                day_is_served = service_days[calendar.day_name[day].lower()].to_numpy()[0]
+                
+                if day_is_served == 1:
 
-                        trip_stachens = stop_times_trip_id_instanz['stop_sequence'].to_numpy()
-                        last_stachen = max(trip_stachens)
+                    if time_difference > 0 and time_difference < time_span * 60:
+
+                        trip_stations = stop_times_trip_id_instance['stop_sequence'].to_numpy()
+                        last_station = max(trip_stations)
                         direction = trips_trip_id['direction_id'].to_numpy()[0]
+                        
                         if direction == 0:
-                            end_station = last_stachen
+                            end_station = last_station
                         else:
                             end_station = 0
-                        end_station_stop_id = stop_times_trip_id_instanz.loc[stop_times_trip_id_instanz["stop_sequence"] == end_station]['stop_id'].to_numpy()[0]
+
+                        end_station_stop_id = stop_times_trip_id_instance.loc[stop_times_trip_id_instance["stop_sequence"] == end_station]['stop_id'].to_numpy()[0]
                         end_station_name = name_dict["stops"].loc[name_dict["stops"]["stop_id"] == end_station_stop_id]['stop_name'].to_numpy()[0]
 
+                        route_id_instance = trips_trip_id['route_id'].to_numpy()[0]
+                        routes_row = name_dict["routes"].loc[name_dict["routes"]["route_id"] == route_id_instance]
 
-                        route_id_instanz = trips_trip_id['route_id'].to_numpy()[0]
-                        routes_row = name_dict["routes"].loc[name_dict["routes"]["route_id"] == route_id_instanz]
-
-                        agency_id_instanz = routes_row['agency_id'].to_numpy()[0]
-                        agency_name_instanz = name_dict["agency"].loc[name_dict["agency"]["agency_id"] == agency_id_instanz]['agency_name'].to_numpy()[0]
+                        agency_id_instance = routes_row['agency_id'].to_numpy()[0]
+                        agency_name_instance = name_dict["agency"].loc[name_dict["agency"]["agency_id"] == agency_id_instance]['agency_name'].to_numpy()[0]
                         route_long_name = routes_row['route_long_name'].to_numpy()[0]
                         departure_time = trip_id_stops['departure_time'].to_numpy()[0]
 
-                        if conactions_df_counter == 0:
-                            conactions_df = pd.DataFrame([[agency_name_instanz, route_long_name,end_station_name,arrival_time,departure_time]], columns=["Betreiber","Zugbezeichnung","Endstation","Einfahrtzeit","Abfahrtzeit"])
+                        if connections_df_counter == 0:
+                            connections_df = pd.DataFrame([[agency_name_instance, route_long_name, end_station_name, arrival_time, departure_time]], columns=["Betreiber","Zugbezeichnung","Endstation","Einfahrtszeit","Abfahrtszeit"])
                         else:
-                            conactions_df.loc[conactions_df_counter] = [agency_name_instanz, route_long_name,end_station_name,arrival_time,departure_time]
-                        conactions_df_counter += 1
+                            connections_df.loc[connections_df_counter] = [agency_name_instance, route_long_name, end_station_name, arrival_time, departure_time]
+                        connections_df_counter += 1
 
-        if conactions_df_counter > 0:
+        if connections_df_counter > 0:
 
-            conactions_df = conactions_df.sort_values(by=['Einfahrtzeit'])
-            actuell_time = str(hauer) + ":" + str(min) + ":00"
+            connections_df = connections_df.sort_values(by=['Einfahrtszeit'])
+            actual_time = str(hour) + ":" + str(minute) + ":00"
 
-            conactions_df_firs = conactions_df.loc[conactions_df["Einfahrtzeit"] >= actuell_time]
-            conactions_df_sec = conactions_df.loc[conactions_df["Einfahrtzeit"] < actuell_time]
+            connections_df_firs = connections_df.loc[connections_df["Einfahrtszeit"] >= actual_time]
+            connections_df_sec = connections_df.loc[connections_df["Einfahrtszeit"] < actual_time]
 
-            conactions_df = pd.concat([conactions_df_firs,conactions_df_sec])
+            connections_df = pd.concat([connections_df_firs,connections_df_sec])
 
-            return conactions_df
+            return connections_df
         else:
-            fetback_df = pd.DataFrame([["Keiene Züge gefunden"]], columns=["Info"])
-            return fetback_df
-
-
-
+            feedback_df = pd.DataFrame([["Keine Züge gefunden"]], columns=["Info"])
+            return feedback_df
 
 
 # Calling the MainWindow, MenuWindowAbout and MenuWindowReadMe classes
 # and display them as windows
 if __name__ == "__main__":
-    all_data = Data()
+    all_data = data()
     all_data.run()
 
     print("baljdbdfbsojlvböadbvöob")
 
-    model = Model(all_data)
+    model = model(all_data)
 
     app = QtWidgets.QApplication(sys.argv)
 
-    window = MainWindow(model)
+    window = mainWindow(model)
     window.setWindowTitle("Deutsches Bahnnetz")
     window.show()
 
-    about_window = MenuWindowAbout(model)
+    about_window = menuWindowAbout(model)
     about_window.setWindowTitle("About - Über dieses Programm")
-    readme_window = MenuWindowReadMe(model)
+    readme_window = menuWindowReadMe(model)
     readme_window.setWindowTitle("Read Me - Wichtig zu wissen")
-    tutorial_window = MenuWindowTutorial(model)
+    tutorial_window = menuWindowTutorial(model)
     tutorial_window.setWindowTitle("Tutorial")
 
     sys.exit(app.exec())
