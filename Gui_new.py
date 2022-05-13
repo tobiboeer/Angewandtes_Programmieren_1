@@ -56,7 +56,6 @@ from PySide6 import QtWidgets
 from PySide6 import QtGui
 from os.path import exists
 from datetime import datetime
-from PySide6.QtUiTools import QUiLoader
 
 
 class myThread(threading.Thread):
@@ -588,11 +587,6 @@ class sideWindow(QtWidgets.QMainWindow):
         
         super().__init__()
         self.main_gui = main_gui
-
-        #loader = QUiLoader()
-        #self.image = loader.load("logo.png", None)
-        
-
         self.setMinimumSize(250, 450)
         
         # -------------- COMBOBOXES ----------------
@@ -609,16 +603,15 @@ class sideWindow(QtWidgets.QMainWindow):
         self.textfield_time = QtWidgets.QTimeEdit()
         self.textfield_time_dif = QtWidgets.QTimeEdit()
         self.textfield_allInfo = QtWidgets.QTextEdit()
-  
+        
         self.text = ""
         self.update_text(" ")
-
         
         # -------------- LABELS  ------------------
         label_button_traffic_style = QtWidgets.QLabel("Bahnart:")
         label_combobox_start = QtWidgets.QLabel("Abfahrbahnhof:")
         label_textfield_date_time = QtWidgets.QLabel("Datum und Zeit der Abfahrt:")
-        self.label_textfield_time_dif = QtWidgets.QLabel("Zeitfenster:")
+        self.label_textfield_time_dif = QtWidgets.QLabel("Zeitfenster")
         label_textfield_allInfo = QtWidgets.QLabel("Besondere Informationen:")
         label_button_request = QtWidgets.QLabel("Daten zum Bahnhof erstellen:")
 
@@ -627,8 +620,8 @@ class sideWindow(QtWidgets.QMainWindow):
         self.button_fernverkehr = QtWidgets.QPushButton("Fernverkehr")
         self.button_regional = QtWidgets.QPushButton("Regional")
         self.button_request = QtWidgets.QPushButton("Anfrage stellen")
-        self.button_request.setFixedSize(100,40)
-
+        # Anpassen des Knopfes, weil er noch zu groß ist.
+        # self.button_request.QtCore.QSize(40,40)
 
         self.button_fernverkehr.clicked.connect(self.click_function_long_distance)
         self.button_nahverkehr.clicked.connect(self.click_function_short_distance)
@@ -660,20 +653,14 @@ class sideWindow(QtWidgets.QMainWindow):
         sub_layout.addLayout(date_time_layout)
         sub_layout.addWidget(self.label_textfield_time_dif)
         sub_layout.addLayout(time_dif_layout)
-        sub_layout.addWidget(label_button_request)
         sub_layout.addLayout(button_request_layout)
         sub_layout.addWidget(label_textfield_allInfo)
         sub_layout.addWidget(self.textfield_allInfo)
         
         window_content = QtWidgets.QWidget()
         window_content.setLayout(sub_layout)
-        window_content.setStyleSheet("background-color: white;")
         self.setCentralWidget(window_content)
         self.set_train_stations_list()
-        
-        #self.setStyleSheet("border: 1px solid black;")
-        
-        
 
     def set_train_station(self, new_station):
         """
@@ -760,7 +747,6 @@ class sideWindow(QtWidgets.QMainWindow):
         minute = int(time_str[3:5])
 
         self.main_gui.model.change_train_station_info(time_span, day, hour, minute, self.start_station)
-
 
 class tableCreator(QtCore.QAbstractTableModel):
     """
