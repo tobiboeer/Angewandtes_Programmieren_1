@@ -143,7 +143,6 @@ class connections(threading.Thread):
         if self.data_type == "long_distance":
             self.name_dict = self.data_class.gtfs_fern
             self.name = 'connections_fern.csv'
-
         if self.data_type == "regional":
             self.name_dict = self.data_class.gtfs_regional
             self.name = 'connections_regional.csv'
@@ -682,7 +681,7 @@ class sideWindow(QtWidgets.QMainWindow):
         Requestes train station information based on the train station,
         the date and the time.
         """
-        time_span = self.textfield_time_dif.time().toString()
+        time_span = int(self.textfield_time_dif.time().toString()[0:2])
         day_str = self.textfield_date.dateTime().toString()
         time_str = self.textfield_time.time().toString()
         days_dic =	{
@@ -1418,36 +1417,42 @@ class data(threading.Thread):
             return [routes,True]
         return [None,False]
 
+    def geting_sevis_days(self,name_dict,trip_id_instance):
+        # geting the sevis id from given trip id
+        trips_trip_id = name_dict["trips"].loc[name_dict["trips"]["trip_id"] == trip_id_instance]
+        service_id_instance = trips_trip_id['service_id'].to_numpy()[0]
+        service_days = name_dict["calendar"].loc[name_dict["calendar"]["service_id"] == service_id_instance]
+        return service_days,trips_trip_id
+
     def create_train_station_info(self, date, train_station_name, time_span, name_dict):
 
-        time_span = int(time_span[0:2])
-        if time_span == 0:
-            time_span = 1
+        # if ther is no time, ther cant be anny trains (driving ?)
+        if time_span <= 0:
+            return pd.DataFrame([["Keine Züge gefunden"]], columns=["Info"])
 
         day_given = date[0]
         hour = date[1]
         minute = date[2]
 
-        # Bahnhofs Nahme -->  stop IDs
-        stop_IDs = name_dict["stops"].loc[name_dict["stops"]["stop_name"] == train_station_name]['stop_id'].to_numpy()
-        
-        # IDs -->  trip_id 
+        # get trip_id_IDs stoping at the treanstachen
+        stop_IDs = name_dict["stops"].loc[name_dict["stops"]["stop_name"] == train_station_name]['stop_id'].to_numpy()        
         trip_id_IDs = set(name_dict["stop_times"].loc[name_dict["stop_times"]["stop_id"].isin(stop_IDs)]['trip_id'].to_numpy())
 
-        # HIER FEHLEN EIN PAAR KOMMENTARE.
+        # counter contanig how many lines are addet on the Dataframe
         connections_df_counter = int(0)
         
         for trip_id_instance in trip_id_IDs:
 
-            trips_trip_id = name_dict["trips"].loc[name_dict["trips"]["trip_id"] == trip_id_instance]
-            service_id_instance = trips_trip_id['service_id'].to_numpy()[0]
-            service_days = name_dict["calendar"].loc[name_dict["calendar"]["service_id"] == service_id_instance]
+            # geting the sevis id from given trip id
+            service_days , trips_trip_id = self.geting_sevis_days(name_dict,trip_id_instance)
 
             if not service_days.empty:
                 
+                # get from the rout the trip ids and ter stop ant the given transtachen
                 stop_times_trip_id_instance = name_dict["stop_times"].loc[name_dict["stop_times"]["trip_id"] == trip_id_instance]
                 trip_id_stops = stop_times_trip_id_instance.loc[stop_times_trip_id_instance["stop_id"].isin(stop_IDs)]
 
+                # determens the arrival time and how many days in the futur this is
                 arrival_time = trip_id_stops['arrival_time'].to_numpy()[0]
                 arrival_time_hour = int(arrival_time[0:2])
                 days_over = int(arrival_time_hour / 24)
@@ -1455,6 +1460,8 @@ class data(threading.Thread):
                 day = day_given
                 time_difference = 0
                 
+                # if the train stop is in the futur, based on the servis day
+                # the previs servis day needs to be chckt
                 if days_over > 0:
                     arrival_time_hour = arrival_time_hour - (24 * days_over)
                     arrival_time_hour_str = str(arrival_time_hour)
