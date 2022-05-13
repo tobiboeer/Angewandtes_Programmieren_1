@@ -621,6 +621,14 @@ class sideWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(window_content)
         self.set_train_stations_list()
 
+    def set_train_station(self, new_station):
+        """
+        Changes the station in the sidebar and requests new station information
+        """
+        self.combobox_start.setCurrentText(new_station)
+        self.abfahrtsbahnhof = new_station
+        self.train_station_request()
+
     def set_text_start_values(self):
         """
         Sets the first strings in the text box.        
@@ -838,6 +846,8 @@ class mainWindow(QtWidgets.QMainWindow):
         Reacts to clicking of the mouse.
         """
         print(whole_station_information + ' geklickt')
+        if whole_station_information in self.model.get_current_stops()["stop_name"].to_numpy():
+            self.side_window_instance.set_train_station(whole_station_information)
 
     def train_station_show(self):
         table_view = QtWidgets.QTableView()
