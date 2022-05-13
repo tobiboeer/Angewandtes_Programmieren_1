@@ -57,13 +57,14 @@ from PySide6 import QtGui
 from os.path import exists
 from datetime import datetime
 
-
+##########################################################################
 class myThread(threading.Thread):
     """
     Creating a multithread.
     """
-    
-    def __init__(self, all_route_ids, parent, amount_of_threads, name_dict_input):
+
+    def __init__(self, all_route_ids, parent, amount_of_threads,\
+         name_dict_input):
         threading.Thread.__init__(self)
         self.name_dict = name_dict_input
         self.all_route_ids = all_route_ids
@@ -72,7 +73,8 @@ class myThread(threading.Thread):
 
     def run(self):
         """
-        Based on the 'route id'. The connections between the train stations are put together.
+        Based on the 'route id'. The connections between the train stations
+        are put together.
         """
         connections = []
 
@@ -228,7 +230,7 @@ class connections(threading.Thread):
         new_df = pd.merge(self.name_dict["stops"],group)
         new_df.rename(columns = {'stop_lat':'Station1_lat', 'stop_lon':'Station1_lon'}, inplace = True)
         new_df = new_df.drop(['stop_name', 'stop_id'], axis=1)
-        new_df.rename(columns = {'stachen_1': 'stop_id'}, inplace = True)
+        new_df.rename(columns = {'station_1': 'stop_id'}, inplace = True)
         new_df = pd.merge(self.name_dict["stops"],new_df)
         new_df = new_df.drop(['stop_name', 'stop_id'], axis=1)
         new_df.rename(columns = {'stop_lat':'Station2_lat', 'stop_lon':'Station2_lon'}, inplace = True)
@@ -393,8 +395,8 @@ class germanyMap(QtWidgets.QGraphicsView):
         """
      
         scene_size = self.sceneRect()
-        dx = (self.width()-4)/scene_size.width()
-        dy = (self.height()-4)/scene_size.height()
+        dx = (self.width()-50)/scene_size.width()
+        dy = (self.height()-50)/scene_size.height()
         self.setTransform(QtGui.QTransform.fromScale(dx, -dy))
 
     def sizeHint(self):
@@ -1193,7 +1195,7 @@ class data(threading.Thread):
         """
         self.delighted_category_options = []
         self.model_set = False
-        self.q_text = " "
+        self.queue_text = " "
 
         # Loads necessary and little data for the first overview.
         self.counts = self.load_map_data()
@@ -1384,7 +1386,7 @@ class data(threading.Thread):
         if self.free_fern == 2:
             self.stops_fern = self.load_text('stops_fern.txt')
             self.connections_fern = self.load_text('connections_fern.csv')
-            self.delited_kategorie_opchens.remove("stops_fern")
+            self.delighted_category_options.remove("stops_fern")
 
     def free_nah_add_1(self):
         """
@@ -1393,8 +1395,8 @@ class data(threading.Thread):
         self.free_nah += 1
         
         if self.free_nah == 2:
-            self.stops_fern = self.lode_text('stops_nah.txt')
-            self.connections_fern = self.lode_text('connections_nah.csv')
+            self.stops_fern = self.load_text('stops_nah.txt')
+            self.connections_fern = self.load_text('connections_nah.csv')
             self.delighted_category_options.remove("stops_nah")
 
     def gtfs_prep(self):
@@ -1825,7 +1827,7 @@ class data(threading.Thread):
             Can be the departuring trains or error messages.
         """
 
-        if train_station_name in gtfs["stops"]["stop_name"].to_numpy():
+        if not (train_station_name in gtfs["stops"]["stop_name"].to_numpy()):
             return pd.DataFrame([["Bahnhof nicht bekannt"]], columns=["Info"])
 
         # If there is no time given, there cant be any trains
