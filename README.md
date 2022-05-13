@@ -26,7 +26,8 @@ To start the program you need to execute the file start_program.py.
 a very long time (around 6 hours). To trigger the calculation you need to start the program
 and click one of the three buttons (Nahverkehr, Fernverkehr, Regional).
 
-**The Nahverkehr data is not included in the GIT repository, because it takes up too much space. But you can easily add it just by adding the directory 'latest_nah' manually. **
+**The Nahverkehr data is not included in the GIT repository, because it takes up too much space.** 
+But you can easily add it just by adding the directory 'latest_nah' manually. 
 
 **Using the Program** 
 
