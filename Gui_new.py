@@ -1417,6 +1417,17 @@ class data(threading.Thread):
             return [routes,True]
         return [None,False]
 
+    def orders_ackording_to_time(self,hour,minute,connections_df):
+        # chanhes the dataframe order baset on the time in "Einfahrtszeit"
+
+        connections_df = connections_df.sort_values(by=['Einfahrtszeit'])
+        actual_time = str(hour) + ":" + str(minute) + ":00"
+
+        connections_df_firs = connections_df.loc[connections_df["Einfahrtszeit"] >= actual_time]
+        connections_df_sec = connections_df.loc[connections_df["Einfahrtszeit"] < actual_time]
+
+        return pd.concat([connections_df_firs,connections_df_sec])
+
     def geting_sevis_days(self,name_dict,trip_id_instance):
         # geting the sevis id from given trip id
         trips_trip_id = name_dict["trips"].loc[name_dict["trips"]["trip_id"] == trip_id_instance]
@@ -1463,68 +1474,72 @@ class data(threading.Thread):
                 # if the train stop is in the futur, based on the servis day
                 # the previs servis day needs to be chckt
                 if days_over > 0:
-                    arrival_time_hour = arrival_time_hour - (24 * days_over)
-                    arrival_time_hour_str = str(arrival_time_hour)
+                    # ariveltime on this day
+                    arrival_time_hour_str = str(arrival_time_hour - (24 * days_over))
                     
+                    # ajustirt the str to tow leters
                     if len(arrival_time_hour_str) == 1:
                         arrival_time_hour_str = "0" + arrival_time_hour_str
+
+                    # re arange the arrival_time string to the given day
                     arrival_time = arrival_time_hour_str + arrival_time[2:]
+
+                    # calculates the servisday thad needs to be checkt
                     day = day_given - days_over
-                    
                     if (int(arrival_time[0:2]) < hour) or (int(arrival_time[0:2]) < hour) and (int(arrival_time[3:5]) < minute):
                         day = day + 1
                         time_difference = 24 * 60
                         
+                    # ajustirt the day bast on a skale 0-6
                     if day < 0:
                         day = day + 7
+
+                    # calculates the time_difference
                     time_difference = time_difference + (int(arrival_time[0:2]) - hour) * 60 + (int(arrival_time[3:5]) - minute)
                     
                 else:
+                    # calculates the time_difference
                     time_difference = (int(arrival_time[0:2])- hour) * 60 + (int(arrival_time[3:5])- minute)
 
                 day_is_served = service_days[calendar.day_name[day].lower()].to_numpy()[0]
                 
-                if day_is_served == 1:
+                # only if the rout is served and the the ariveltime is in the futur
+                if (day_is_served == 1) and (time_difference > 0 and time_difference < time_span * 60):
 
-                    if time_difference > 0 and time_difference < time_span * 60:
+                    # gets the highest stop_sequence, witch is a and stachen
+                    last_station = max(stop_times_trip_id_instance['stop_sequence'].to_numpy())
+                    direction = trips_trip_id['direction_id'].to_numpy()[0]
+                    
+                    # depending on the direction the end atachen is shosen
+                    if direction == 0:
+                        end_station = last_station
+                    else:
+                        end_station = 0
 
-                        trip_stations = stop_times_trip_id_instance['stop_sequence'].to_numpy()
-                        last_station = max(trip_stations)
-                        direction = trips_trip_id['direction_id'].to_numpy()[0]
-                        
-                        if direction == 0:
-                            end_station = last_station
-                        else:
-                            end_station = 0
+                    # gets the name of the destinachen train stachen
+                    end_station_stop_id = stop_times_trip_id_instance.loc[stop_times_trip_id_instance["stop_sequence"] == end_station]['stop_id'].to_numpy()[0]
+                    end_station_name = name_dict["stops"].loc[name_dict["stops"]["stop_id"] == end_station_stop_id]['stop_name'].to_numpy()[0]
 
-                        end_station_stop_id = stop_times_trip_id_instance.loc[stop_times_trip_id_instance["stop_sequence"] == end_station]['stop_id'].to_numpy()[0]
-                        end_station_name = name_dict["stops"].loc[name_dict["stops"]["stop_id"] == end_station_stop_id]['stop_name'].to_numpy()[0]
+                    #gets the row routes of the route id
+                    route_id_instance = trips_trip_id['route_id'].to_numpy()[0]
+                    routes_row = name_dict["routes"].loc[name_dict["routes"]["route_id"] == route_id_instance]
 
-                        route_id_instance = trips_trip_id['route_id'].to_numpy()[0]
-                        routes_row = name_dict["routes"].loc[name_dict["routes"]["route_id"] == route_id_instance]
+                    # retrivs the informachen of the trip 
+                    agency_id_instance = routes_row['agency_id'].to_numpy()[0]
+                    agency_name_instance = name_dict["agency"].loc[name_dict["agency"]["agency_id"] == agency_id_instance]['agency_name'].to_numpy()[0]
+                    route_long_name = routes_row['route_long_name'].to_numpy()[0]
+                    departure_time = trip_id_stops['departure_time'].to_numpy()[0]
 
-                        agency_id_instance = routes_row['agency_id'].to_numpy()[0]
-                        agency_name_instance = name_dict["agency"].loc[name_dict["agency"]["agency_id"] == agency_id_instance]['agency_name'].to_numpy()[0]
-                        route_long_name = routes_row['route_long_name'].to_numpy()[0]
-                        departure_time = trip_id_stops['departure_time'].to_numpy()[0]
+                    # the trip is addes to the dataframe
+                    if connections_df_counter == 0:
+                        connections_df = pd.DataFrame([[agency_name_instance, route_long_name, end_station_name, arrival_time, departure_time]], columns=["Betreiber","Zugbezeichnung","Endstation","Einfahrtszeit","Abfahrtszeit"])
+                    else:
+                        connections_df.loc[connections_df_counter] = [agency_name_instance, route_long_name, end_station_name, arrival_time, departure_time]
+                    connections_df_counter += 1
 
-                        if connections_df_counter == 0:
-                            connections_df = pd.DataFrame([[agency_name_instance, route_long_name, end_station_name, arrival_time, departure_time]], columns=["Betreiber","Zugbezeichnung","Endstation","Einfahrtszeit","Abfahrtszeit"])
-                        else:
-                            connections_df.loc[connections_df_counter] = [agency_name_instance, route_long_name, end_station_name, arrival_time, departure_time]
-                        connections_df_counter += 1
-
+        # reterns Dataframe in new order of time, or a fedbecg Data frame
         if connections_df_counter > 0:
-
-            connections_df = connections_df.sort_values(by=['Einfahrtszeit'])
-            actual_time = str(hour) + ":" + str(minute) + ":00"
-
-            connections_df_firs = connections_df.loc[connections_df["Einfahrtszeit"] >= actual_time]
-            connections_df_sec = connections_df.loc[connections_df["Einfahrtszeit"] < actual_time]
-
-            connections_df = pd.concat([connections_df_firs,connections_df_sec])
-
-            return connections_df
+            return self.orders_ackording_to_time(hour,minute,connections_df)
         else:
             feedback_df = pd.DataFrame([["Keine Züge gefunden"]], columns=["Info"])
             return feedback_df
