@@ -1,7 +1,5 @@
 # README
 
-Please read this window in fullscreen to avoid graphical errors.
-
 **Date:** 13. May 2022 
 
 **Authors:** Fabian Kessener, Tobias Boeer, Timon Fass 
