@@ -292,8 +292,6 @@ class germanyMap(QtWidgets.QGraphicsView):
         """
         Creates a widget for the map.
 
-            mainWindow   :map_gui : mainWindow of the germany map
-
         Parameters
         ----------
         map_gui : mainWindow
@@ -339,6 +337,11 @@ class germanyMap(QtWidgets.QGraphicsView):
     def mousePressEvent(self, event):
         """
         Reacts to clicking of the mouse.
+
+        Parameters
+        ----------
+        event : QMouseEvent
+            clicking of the mouse
         """
         
         item = self.itemAt(event.pos())
@@ -351,6 +354,11 @@ class germanyMap(QtWidgets.QGraphicsView):
     def mouseMoveEvent(self, event):
         """
         Is used to track the items touched by the mouse and change their color.
+
+        Parameters
+        ----------
+        event : QMouseEvent
+            movement of the mouse
         """
         
         item = self.itemAt(event.pos())
@@ -377,8 +385,13 @@ class germanyMap(QtWidgets.QGraphicsView):
     def resizeEvent(self, event):
         """
         Enables the widget to be resized properly.
+
+        Parameters
+        ----------
+        event : QResizeEvent
+            resizes the window
         """
-        
+     
         scene_size = self.sceneRect()
         dx = (self.width()-4)/scene_size.width()
         dy = (self.height()-4)/scene_size.height()
@@ -411,13 +424,14 @@ class germanyMap(QtWidgets.QGraphicsView):
     def draw_route_network(self, train_stations, routes):
         """
         Draws stations and routes to the base scene.
+            
+        Parameters
+        ----------
+        train_stations : dataframe
+            containing names and coordinates of the train stations
 
-        Parameters:
-            train_stations: 
-                Pandas Dataframe containing names and
-                coordinates of the train stations
-            filename_routes: str
-                Name of the file containing the routes
+        filename_routes: String
+            Name of the file containing the routes
         """
 
         self.make_base_scene()
@@ -486,11 +500,14 @@ class menuWindowAbout(QtWidgets.QGraphicsView):
     Creates the window of the 'About' menu in the menubar.
     """
     
-    def __init__(self,model):
+    def __init__(self, model):
         """
         Creates a widget for the About menu.
 
-            model   :model : interaktions classe
+        Parameters
+        ----------
+        model : model
+            interactions class
         """
         
         super().__init__()
@@ -517,11 +534,14 @@ class menuWindowReadMe(QtWidgets.QGraphicsView):
     Creates the window of the 'ReadMe' menu in the menubar.
     """
     
-    def __init__(self,model):
+    def __init__(self, model):
         """
         Creates a widget for the ReadMe menu.
 
-            model   :model : interaktions classe
+        Parameters
+        ----------
+        model : model
+            interactions class
         """
         super().__init__()
         self.model = model
@@ -550,7 +570,10 @@ class menuWindowTutorial(QtWidgets.QGraphicsView):
         """
         Creates a widget for the Tutorial menu.
 
-            model   :model : interaktions classe
+        Parameters
+        ----------
+        model : model
+            interactions class
         """
         
         super().__init__()
@@ -582,7 +605,10 @@ class sideWindow(QtWidgets.QMainWindow):
         Instantiate the main aspects of an interactive planner. 
         It contains the comboboxes, textfields, labels, layouts and buttons. 
 
-            mainWindow   :main_gui : main Window of the gui     
+        Parameters
+        ----------
+        main_gui : mainWindow
+            main window of the GUI     
         """
         
         super().__init__()
@@ -598,7 +624,7 @@ class sideWindow(QtWidgets.QMainWindow):
         self.textfield_date = QtWidgets.QDateEdit()
         start_date = datetime(2022, 0o1, 0o1)
         end_date = datetime(2022, 12, 31)
-        self.textfield_date.setDateRange(start_date,end_date)
+        self.textfield_date.setDateRange(start_date, end_date)
         
         self.textfield_time = QtWidgets.QTimeEdit()
         self.textfield_time_dif = QtWidgets.QTimeEdit()
@@ -606,6 +632,7 @@ class sideWindow(QtWidgets.QMainWindow):
         
         self.text = ""
         self.update_text(" ")
+        self.start_station = " "
         
         # -------------- LABELS  ------------------
         label_button_traffic_style = QtWidgets.QLabel("Bahnart:")
@@ -620,8 +647,7 @@ class sideWindow(QtWidgets.QMainWindow):
         self.button_fernverkehr = QtWidgets.QPushButton("Fernverkehr")
         self.button_regional = QtWidgets.QPushButton("Regional")
         self.button_request = QtWidgets.QPushButton("Anfrage stellen")
-        # Anpassen des Knopfes, weil er noch zu groß ist.
-        # self.button_request.QtCore.QSize(40,40)
+        self.button_request.setFixedSize(100, 40)
 
         self.button_fernverkehr.clicked.connect(self.click_function_long_distance)
         self.button_nahverkehr.clicked.connect(self.click_function_short_distance)
@@ -644,21 +670,22 @@ class sideWindow(QtWidgets.QMainWindow):
         button_request_layout = QtWidgets.QHBoxLayout()
         button_request_layout.addWidget(self.button_request)
 
-        sub_layout = QtWidgets.QVBoxLayout()
-        sub_layout.addWidget(label_button_traffic_style)
-        sub_layout.addLayout(button_layout_traffic)
-        sub_layout.addWidget(label_combobox_start) 
-        sub_layout.addWidget(self.combobox_start)
-        sub_layout.addWidget(label_textfield_date_time)
-        sub_layout.addLayout(date_time_layout)
-        sub_layout.addWidget(self.label_textfield_time_dif)
-        sub_layout.addLayout(time_dif_layout)
-        sub_layout.addLayout(button_request_layout)
-        sub_layout.addWidget(label_textfield_allInfo)
-        sub_layout.addWidget(self.textfield_allInfo)
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(label_button_traffic_style)
+        layout.addLayout(button_layout_traffic)
+        layout.addWidget(label_combobox_start) 
+        layout.addWidget(self.combobox_start)
+        layout.addWidget(label_textfield_date_time)
+        layout.addLayout(date_time_layout)
+        layout.addWidget(self.label_textfield_time_dif)
+        layout.addLayout(time_dif_layout)
+        layout.addWidget(label_button_request)
+        layout.addLayout(button_request_layout)
+        layout.addWidget(label_textfield_allInfo)
+        layout.addWidget(self.textfield_allInfo)
         
         window_content = QtWidgets.QWidget()
-        window_content.setLayout(sub_layout)
+        window_content.setLayout(layout)
         self.setCentralWidget(window_content)
         self.set_train_stations_list()
 
@@ -666,7 +693,10 @@ class sideWindow(QtWidgets.QMainWindow):
         """
         Changes the station in the sidebar and requests new station information
 
-            string   :new_station : name of the selectet trainstachen
+        Parameters
+        ----------
+        new_station : String
+            name of the selected train station
         """
         self.combobox_start.setCurrentText(new_station)
         self.start_station = new_station
@@ -677,7 +707,10 @@ class sideWindow(QtWidgets.QMainWindow):
         Puts the new information into the text and if necessary, deletes the old
         ones.
 
-            string   :new_info : new info
+        Parameters
+        ----------
+        new_info : String
+            new info for the text
         """
         self.text = self.text + new_info + "\n"
         splitted = self.text.splitlines( )
@@ -692,7 +725,10 @@ class sideWindow(QtWidgets.QMainWindow):
         """
         Noted the selected start trainstation and updates the text box.      
 
-            string   :value : name of the selectet trainstachen  
+        Parameters
+        ----------
+        value : String
+            name of the selected train station  
         """
         self.start_station = value
   
@@ -758,43 +794,62 @@ class tableCreator(QtCore.QAbstractTableModel):
         """
         Sets the dataframe for the table view.
 
-            dataframe   :df : train stachen informachen
+        Parameters
+        ----------
+        df : dataframe
+            train station information
         """
         super().__init__()
-        self.dataframe = df
+        self.train_station_info = df
         
         
     def rowCount(self, parent = None): 
         """
         Sets the amount of the rows of the read file.
         """
-        self.number = len(self.dataframe[0:])
+        self.number = len(self.train_station_info[0:])
         return self.number
         
     def columnCount(self, parent = None): 
         """
         Sets the amount of the columns of the read file.
         """
-        return len(self.dataframe.keys())
+        return len(self.train_station_info.keys())
         
     def data(self, index, role = QtCore.Qt.DisplayRole):
         """
         Shows the file components.
+
+        Parameters
+        ----------
+        index : QModelIndex
+        role : int
+
+        According to: Tutorial of Bastian Bechthold
         """
         if role != QtCore.Qt.DisplayRole:
             return None
             
-        value = self.dataframe.iloc[index.row(), index.column()]
+        value = self.train_station_info.iloc[index.row(), index.column()]
         return str(value)
             
     def headerData(self, index, orientation, role = QtCore.Qt.DisplayRole):
         """
         Shows the head of the columns seperately.
+
+        Parameters
+        ----------
+        index : int
+        orientation : Any
+            horizontal or vertical
+        role : ItemDataRole
+
+        According to: Tutorial of Bastian Bechthold
         """
         if role != QtCore.Qt.DisplayRole or orientation != QtCore.Qt.Orientation.Horizontal:
            return None
         
-        return self.dataframe.columns[index] 
+        return self.train_station_info.columns[index] 
  
 class dataTable(QtWidgets.QMainWindow):
     """
@@ -804,7 +859,12 @@ class dataTable(QtWidgets.QMainWindow):
     def __init__(self, main_gui):
         """
         Takes the file components of the 'tableCreator', creates a widget and merges
-        them together. 
+        them together.
+
+        Parameters
+        ----------
+        main_gui : mainWindow
+            contains the main frame of the GUI
         """
         super().__init__()
         self.main_gui = main_gui
@@ -823,6 +883,11 @@ class dataTable(QtWidgets.QMainWindow):
     def set_dataframe(self, train_station_info):
         """
         Sets the dataframe.
+
+        Parameters
+        ----------
+        train_station_info : dataframe
+            contains the train station information
         """
         table_model = tableCreator(train_station_info)
         self.table_view.setModel(table_model)
@@ -835,6 +900,11 @@ class mainWindow(QtWidgets.QMainWindow):
     def __init__(self, model):
         """
         Creates the main frame of the GUI with grid layout and adds all subframes.
+
+        Parameters
+        ----------
+        model : model
+            interactions class
         """
         super().__init__()
 
@@ -883,6 +953,16 @@ class mainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(window_content)
 
     def draw_route_network(self, train_stations, filename_routes):
+        """
+        Draws the route network.
+        
+        Parameters
+        ----------
+        train_stations : dataframe
+            contains station information
+        filename_routes : dataframe
+            contains route information
+        """
         self.germany_map.draw_route_network(train_stations, filename_routes)
         
     def open_about(self):
@@ -907,11 +987,19 @@ class mainWindow(QtWidgets.QMainWindow):
     def click_function(self, whole_station_information):
         """
         Reacts to clicking of the mouse.
+
+        Parameters
+        ----------
+        whole_station_information : dataframe
+            contains the whole information of the stations
         """
         if whole_station_information in self.model.get_current_stops()["stop_name"].to_numpy():
             self.side_window_instance.set_train_station(whole_station_information)
 
     def train_station_show(self):
+        """
+        Enables the train stations as options in the combobox.
+        """
         table_view = QtWidgets.QTableView()
         table_model = tableCreator()
         table_view.setModel(table_model)
@@ -923,12 +1011,17 @@ class mainWindow(QtWidgets.QMainWindow):
         
 class model():
     """
-    modell is 
+    Connects the GUI with the database. 
     """
 
-    def __init__(self,all_data):
+    def __init__(self, all_data):
         """
         Sets the basic values.
+
+        Parameters
+        ----------
+        all_data : data
+            contains all loaded data (every data of all files)
         """
         self.all_data = all_data
         self.all_data.set_model(self)
@@ -936,20 +1029,18 @@ class model():
         self.get_first_data()
 
     def get_first_data(self):
-        # dependig if the data set is corect the set is lodet
-        ## HIER BIN ICH MIR WEGEN DER ÜBERSETZUNG NICHT SICHER.
         """
-        Depending on the data. If the set is correct, it will be loaded.
+        Depending on the data set. If the data is correct, it will be loaded.
         """
 
         if self.all_data.load_first:
-            # set is coreckt and is lodet
-            # Checks for correctness and loads the data.
+           
+            # Checks for correctness and loads the set.
             self.current_stops = self.all_data.get_stops_fern()
             self.current_connections = self.all_data.get_connections_fern()
             self.current_gtfs = self.all_data.gtfs("latest_fern")
         else:
-            #set incoreckt and is blockt
+            
             # The incorrect data set is blocked.
             self.all_data.delighted_category_options.append("stops_fern")
             
@@ -977,8 +1068,16 @@ class model():
                     print("Es sind unvollständige Datensets vorhanden. Daraus folgt eine Einschränkung der Bedienbarkeit.")
         
     def set_main_gui(self, main_gui):
+        """
+        Set main GUI and updates the text field.
+
+        Parameters
+        ----------
+        main_gui : mainWindow
+            contains the main frame of the GUI
+        """
         self.main_gui = main_gui
-        self.all_data.text_feald_update(" ")
+        self.all_data.text_field_update(" ")
 
     def get_current_stops(self):
         return self.current_stops[0]
@@ -989,6 +1088,11 @@ class model():
     def change_current_stops(self, new_type):
         """
         If the category is available, it can be chosen.
+
+        Parameters
+        ----------
+        new_type : String
+            contains the type of train traffic
         """
 
         if not (new_type in self.all_data.delighted_category_options):
@@ -1020,14 +1124,12 @@ class model():
                 self.current_connections = start_values[1]
                 self.current_gtfs = start_values[2]
                 
-                # is tyt to resor data form every kategory, mait not be nasesery most times
-                ## HIER BIN ICH MIR BEI DER ÜBERSETZUNG NICHT SICHER.
-                # Is typed to restore data from every category, might not be necessary mostly.
+                # It tries to restore data from every category, might not be necessary most times.
                 self.all_data.restore("fern")
                 self.all_data.restore("nah")
                 self.all_data.restore("regional")
             else:
-                # The gui loades new data and shows it.
+                # Triggers a GUI update of the route network to the current type of train traffic
                 self.main_gui.draw_route_network(self.get_current_stops(),self.get_connections()) 
         
     def get_about_text(self):
@@ -1045,19 +1147,50 @@ class model():
     def change_train_station_info(self, time_span, day, hour, minute, train_station):
         """
         Calculates new train station data and fills it in.
+
+        Parameters
+        ----------
+        time_span : int
+            time span of the train departuring 
+
+        day : int
+            selected day
+
+        hour : int
+            selected hour
+
+        minute : int
+            selected minute
+
+        train_station: String
+            selected train station
         """
         self.train_station_info = self.all_data.create_train_station_info([day, hour, minute], train_station, time_span, self.current_gtfs)
         self.main_gui.dataTable_instance.set_dataframe(self.train_station_info)
         
-    def text_feald_update(self,new_info):
+    def text_field_update(self,new_info):
+        """
+        Updates the text field.
+
+        Parameters
+        ----------
+        new_info : String
+            new information for the text field 
+        """
         self.main_gui.side_window_instance.update_text(new_info)
 
 class data(threading.Thread):
+    """
+    Works with the data
+    """
 
     def __init__(self):
         threading.Thread.__init__(self)
 
     def run(self):
+        """
+        Loads all necessary data and starts the threads with loading other data.
+        """
         self.delighted_category_options = []
         self.model_set = False
         self.q_text = " "
@@ -1072,7 +1205,7 @@ class data(threading.Thread):
         self.connections_fern = self.load_text('connections_fern.csv')
         self.gtfs_fern = self.load_gtfs("latest_fern")
 
-        # Checks if the first files are ok, or if a different files needed to be chosen.
+        # Checks if the first files are ok, or if different files needed to be chosen.
         self.load_first = True
         if (self.stops_fern[1] == False) or (self.connections_fern[1] == False) or (self.gtfs_fern == None):
             self.load_first = False
@@ -1091,34 +1224,52 @@ class data(threading.Thread):
         threading.Thread(target = self.gtfs_prep).start()
         
         # The time delay is needed, though every running process is started.
-        # thes nesesry becas the modell class myd aces them
-        # HIER BIN ICH MIR BEI DER ÜBERSEETZUNG NICHT SICHER.
-        # This is necessary, becaus the class 'model' made access them.
+        # This is necessary because the class 'model' might access them.
         time.sleep(0.1)
 
-    def set_model(self,model):
+    def set_model(self, model):
+        """
+        Saves the model.
+
+        Parameters
+        ----------
+        model : model
+            interactions class
+        """
         self.model = model
         self.model_set = True
 
-    def text_feald_update(self,new_text):
+    def text_field_update(self, new_text):
+        """
+        Updates the text field or saves it in the queue.
+
+        Parameters
+        ----------
+        new_text : String
+            new text for the text field 
+        """
         if self.model_set == True:
-            if self.q_text != " ":
-                self.model.text_feald_update(self.q_text)
-                self.q_text = " "
-            self.model.text_feald_update(new_text)
+            if self.queue_text != " ":
+                self.model.text_field_update(self.queue_text)
+                self.queue_text = " "
+            self.model.text_field_update(new_text)
         else:
-            self.q_text = self.q_text + "\n" + new_text
+            self.queue_text = self.queue_text + "\n" + new_text
 
     def restore(self, key):
         """
-        HIER NOCH EIN KOMMENTAR WAS DIESE METHODE TUT.
-        """# based on the key, if files are missing they are recreatet and can be uese after that
+        Based on the key, if files are missing they are recreated and can be used after that
+
+        Parameters
+        ----------
+        key : String
+            containing type of train traffic.
+        """
 
         # If the key fits and there is data to be restored.
         if key == "fern" and ("stops_fern" in self.delighted_category_options):
         
-            # If the main data set is there. 
-            #(nedert for restoring)HIER BIN ICH MIR NICHT SICHER, WAS DAS BEDEUTET.
+            # Needed for restoring 
             if not (self.gtfs_fern == None):
             
                 # Value represents how much of the type is correct.
@@ -1162,6 +1313,14 @@ class data(threading.Thread):
                     self.free_regional_add_1()
 
     def restore_train_station_by_type(self, data_type):
+        """
+        Restores the missing train station data.
+
+        Parameters
+        ----------
+        datatype : String
+            containing the type of train traffic
+        """
         if data_type == "fern":
             self.restore_train_station_by_name(self.gtfs_fern, 'stops_fern.txt')
             self.free_fern_add_1()
@@ -1174,25 +1333,40 @@ class data(threading.Thread):
             self.restore_train_station_by_name(self.gtfs_regional, 'stops_regional.txt')
             self.free_regional_add_1()
 
-    def restore_train_station_by_name(self, name_dict, name):
-        # baist of the given data and name, a new data set is created and saived
+    def restore_train_station_by_name(self, dataframe_gtfs, name):
+        """
+        Based of the given data and name, a new data set of the train stations is created and saved
 
-        #gets all train stachn names and drops all mutepils
-        df = pd.DataFrame(name_dict["stops"], columns =['stop_name'])
+        Parameters
+        ----------
+        dataframe_gtfs : dataframe
+            contains the GTFS data
+
+        name : String
+            containing the file name
+        """
+
+        # Gets all train station names and drops multiple ones
+        df = pd.DataFrame(dataframe_gtfs["stops"], columns =['stop_name'])
         df = df.drop_duplicates(subset = ["stop_name"])
-        # based on the index the informachen of the trainstachen is colected
+
+        # Based on the index the information of the train station is collected
         index = df.index
-        df = name_dict["stops"].loc[index]
-        # the (überflüssige) colum is droped
+        df = dataframe_gtfs["stops"].loc[index]
+
+        # The unnecessary column is dropped
         train_station = df.drop(labels=["stop_id"], axis=1)
 
-        # writing the new data set
+        # Writing the new data set
         path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data/" + name))
         pd.DataFrame(train_station).to_csv(path)
 
     def free_regional_add_1(self):
-        # increases the number of restored files by 1.
-        # if all files are restored, the data is riten and the option is reinsated
+        """
+        Increases the number of restored files by 1.
+        If all files are restored, the data is written and the option is reinstated
+        """
+    
         self.free_regional += 1
         
         # The dataset is fully restored and can be loaded and the category is available again.
@@ -1202,6 +1376,9 @@ class data(threading.Thread):
             self.delighted_category_options.remove("stops_regional")
 
     def free_fern_add_1(self):
+        """
+        Compare to free_regional_add_1
+        """
         self.free_fern += 1
         
         if self.free_fern == 2:
@@ -1210,6 +1387,9 @@ class data(threading.Thread):
             self.delited_kategorie_opchens.remove("stops_fern")
 
     def free_nah_add_1(self):
+        """
+        Compare to free_regional_add_1
+        """
         self.free_nah += 1
         
         if self.free_nah == 2:
@@ -1219,8 +1399,8 @@ class data(threading.Thread):
 
     def gtfs_prep(self):
         """
-        Every file gets its own loading thread, which is safer in the variable on the left.
-        """# Every file gets its own loading thread, which is saifed in the variable.
+        Every file gets its own loading thread, which is safed in the variable.
+        """
         with concurrent.futures.ThreadPoolExecutor() as executor:
             self.gtfs_nah_pre = executor.submit(self.load_gtfs, "latest_nah")
             self.gtfs_regional_pre = executor.submit(self.load_gtfs, "latest_regional")
@@ -1230,9 +1410,13 @@ class data(threading.Thread):
             self.stops_nah_pre = executor.submit(self.load_text, "stops_nah.txt")
 
     def get_stops_fern(self):
-        ## HIER BIN ICH MIR BEI DER ÜBERSEETZUNG UNSICHER.
         """
-        If the value is incorrect, the category option is delighted and a (restrachen) ?? is tried
+        If the value is incorrect, the category option is closed and a restoration is tried
+
+        Return
+        ------
+        stops_fern : dataframe
+            containing the train station information
         """
         if self.stops_fern[1] == False:
             if not ("stops_fern" in self.delighted_category_options):
@@ -1242,10 +1426,14 @@ class data(threading.Thread):
         return self.stops_fern
 
     def get_stops_nah(self):
-        ## HIER BIN ICH MIR BEI DER ÜBERSEETZUNG UNSICHER.
         """
-        If the value is not pulled, its done now. if the value is incorecht, the kategory option is closed
-        and a restrachen is tryed
+        If the value is not pulled, its done now. If the value is incorrect, the category option is closed
+        and a restoration is tried.
+
+        Return
+        ------
+        stops_nah : dataframe
+            containing the train station information
         """
         if not self.stops_nah_set:
             self.stops_nah_set = True
@@ -1260,10 +1448,14 @@ class data(threading.Thread):
         return self.stops_nah
 
     def get_stops_regional(self):
-        ## HIER BIN ICH MIR BEI DER ÜBERSEETZUNG UNSICHER.
         """
         If the value is not pulled, its done now. If the value is incorrect, the category option is closed
-        and a restrachen is tryed
+        and a restoration is tried.
+
+        Return
+        ------
+        stops_regional : dataframe
+            containing the train station information
         """
         if not self.stops_regional_set:
             self.stops_regional_set = True
@@ -1278,10 +1470,14 @@ class data(threading.Thread):
         return self.stops_regional
 
     def get_connections_regional(self):
-        ## HIER BIN ICH MIR BEI DER ÜBERSEETZUNG UNSICHER.
         """
-        If the value is not pulled, it's done now. If the value is incorrect, the category option is closed
-        and a restrachen is tryed
+        If the value is not pulled, its done now. If the value is incorrect, the category option is closed
+        and a restoration is tried.
+
+        Return
+        ------
+        connections_regional : dataframe
+            containing the connections between two train station
         """
         if not self.connections_regional_set:
             self.connections_regional_set = True
@@ -1296,10 +1492,14 @@ class data(threading.Thread):
         return self.connections_regional
 
     def get_connections_nah(self):
-        ## HIER BIN ICH MIR BEI DER ÜBERSEETZUNG UNSICHER.
         """
-        If the value is not pulled, its done now.If the value is incorrect, the category option is closed
-        and a restrachen is tryed
+        If the value is not pulled, its done now. If the value is incorrect, the category option is closed
+        and a restoration is tried.
+
+        Return
+        ------
+        connections_nah : dataframe
+            containing the connections between two train stations
         """
         if not self.connections_nah_set:
             self.connections_nah_set = True
@@ -1314,9 +1514,13 @@ class data(threading.Thread):
         return self.connections_nah
 
     def get_connections_fern(self):
-        ## HIER BIN ICH MIR BEI DER ÜBERSEETZUNG UNSICHER.
         """
-        If the valuue is incorecht, the kategory option is closed and a restrachen is tryed
+        If the value is incorrect, the category option is closed and a restoration is tried
+
+        Return
+        ------
+        connections_fern : dataframe
+            containing the connections between two train stations
         """
         if self.connections_fern[1] == False:
         
@@ -1329,8 +1533,22 @@ class data(threading.Thread):
 
     def gtfs(self, category):
         """
-        The gtfs are pulled if needed. If gtfs data is missing, the option is closed.
-        """ # The gtfs are pulled if needed. If gtfs data is missing, the option to uste the given kategorie is closed.
+        The GTFS are pulled if needed. If gtfs data is missing, the option to use the given category is closed.
+
+        Parameters
+        ----------
+        category : String
+            Containing the type of train traffic
+
+        Returns
+        -------
+        gtfs_nah : dataframe
+            containing GTFS data of short distance traffic
+        gtfs_fern : dataframe
+            containing GTFS data of long distance traffic
+        gtfs_regional : dataframe
+            containing GTFS data of regional traffic
+        """ 
         if category == "latest_nah":
         
             if self.gtfs_nah == None:
@@ -1359,11 +1577,24 @@ class data(threading.Thread):
             return self.gtfs_regional
 
     def load_gtfs(self, category):
+        """
+        Loads GTFS data.
+
+        Parameters
+        ----------
+        category : String
+            Containing the type of train traffic
+
+        Returns
+        -------
+        loaded_data : dictionary
+            containing the loaded data
+        """
 
         # Creates path
         path_start = os.path.abspath(os.path.join(os.path.dirname( __file__ ), category))+ '\\'
         data_names = ['agency','calendar','calendar_dates','feed_info','routes','stop_times','stops','trips']
-        name_dict = {}
+        loaded_data = {}
 
         gtfs_is_missing_files = False
 
@@ -1373,7 +1604,7 @@ class data(threading.Thread):
             
             if exists(path):
                 df = pd.read_csv(path)
-                name_dict[name] = df
+                loaded_data[name] = df
 
             else:
                 # If data is not found the user is informed.
@@ -1383,19 +1614,24 @@ class data(threading.Thread):
 
         # If the data is not found, the user is informed.
         if gtfs_is_missing_files:
-            text = "da die daten von " + category + " nicht geladen werden konten \n Kann man diese auch nicht aus welen"
+            text = "Da die Daten der Kategorie " + category + " nicht geladen werden konnten, \n kann diese nicht verwendet werden."
             print(text)
-            self.text_feald_update(text)
+            self.text_field_update(text)
             
             return None
 
-        return name_dict
+        return loaded_data
 
     def load_map_data(self):
         """
         Loads the data of the map of Germany.
         Source of the file:
         http://opendatalab.de/projects/geojson-utilities/
+
+        Return
+        ------
+        data['features'] : dataframe
+            containing the counties of Germany
         """
         path_to_map = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/landkreise_simplify200.geojson'))
         
@@ -1404,22 +1640,26 @@ class data(threading.Thread):
             with open(path_to_map,encoding='utf8') as f:
                 data = geojson.load(f)
                 f.close()
-            states = data['features']
-
-            return states
+            
+            return data['features']
             
         else:
-            text = "the landkreise_simplify200.geojson file is missing."
-            text = text + "\n" + "ists a criticel pat, therfor the program is shatig down."
-            text = text + "\n" + "the data is awaleble at http://opendatalab.de/projects/geojson-utilities/"
-            self.text_feald_update(text)
+            text = "Die Datei landkreise_simplify200.geojson fehlt."
+            text = text + "\n" + "Sie ist essentiell, deswegen wird das Programm abgebrochen."
+            text = text + "\n" + "Datei unter: http://opendatalab.de/projects/geojson-utilities/"
+            self.text_field_update(text)
             print(text)
             exit()
 
     def load_about_text(self):
         """
-        Opens the 'About' file and prints it in a label of a new window.
-        """# lodes the 'About' file and reterns it
+        Loads the 'About' file and returns it.
+
+        Return
+        ------
+        about_text : str
+            containing the ABOUT text.
+        """
         
         path_to_about = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/ABOUT.md'))
         
@@ -1435,9 +1675,13 @@ class data(threading.Thread):
 
     def load_readme_text(self):
         """
-        Opens the 'ReadMe' file and prints it in a label of a new window.
-        """ # Opens the 'ReadMe' file and ajust the path to a dynamic one.
-        #and reterns the result.
+        Loads the 'ReadMe' file and returns it.
+
+        Return
+        ------
+        readme_text_md : str
+            containing the README text.
+        """
         
         path_str = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data")) + "\\" 
         path_to_readme = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/README.md'))
@@ -1458,7 +1702,12 @@ class data(threading.Thread):
 
     def load_tutorial(self):
         """
-        Opens the 'Tutorial' file and prints it in a label of a new window.
+        Loads the 'Tutorial' file and returns it.
+
+        Return
+        ------
+        tutorial_text_md : str
+            containing the TUTORIAL text.
         """
         
         path_str = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data")) + "\\" 
@@ -1480,19 +1729,43 @@ class data(threading.Thread):
 
     def load_text(self, filename_routes):
         """
-        Loads the file with the routes.
-        """# Loads a given file and reterns it.
+        Loads a given file and returns it.
+
+        Return
+        ------
+        List : List
+            contains the routes if accessed and a confirmation of success. 
+        """
         path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Data" + '/' + filename_routes))
         
         if exists(path):
             routes = pd.read_csv(path, encoding='utf8')
             
             # An indication, if the reading was successfull, it is included.
-            return [routes,True]
-        return [None,False]
+            return [routes, True]
+        return [None, False]
 
-    def orders_ackording_to_time(self,hour,minute,connections_df):
-        # chanhes the dataframe order baset on the time in "Einfahrtszeit"
+    def orders_according_to_time(self, hour, minute, connections_df):
+        """
+        Changes the dataframe order based on the time in connections_df.
+
+        Parameters
+        ----------
+
+        hour : int
+            contains the hour of time
+
+        minute : int
+            contains the minute of time
+
+        connections_df : dataframe
+            contains the train station information
+
+        Return
+        ------
+        Dataframe : dataframe
+            contains the train station information
+        """
 
         connections_df = connections_df.sort_values(by=['Einfahrtszeit'])
         actual_time = str(hour) + ":" + str(minute) + ":00"
@@ -1500,18 +1773,62 @@ class data(threading.Thread):
         connections_df_firs = connections_df.loc[connections_df["Einfahrtszeit"] >= actual_time]
         connections_df_sec = connections_df.loc[connections_df["Einfahrtszeit"] < actual_time]
 
-        return pd.concat([connections_df_firs,connections_df_sec])
+        return pd.concat([connections_df_firs, connections_df_sec])
 
-    def geting_sevis_days(self,name_dict,trip_id_instance):
-        # geting the sevis id from given trip id
-        trips_trip_id = name_dict["trips"].loc[name_dict["trips"]["trip_id"] == trip_id_instance]
+    def getting_service_days(self, gtfs, trip_id_instance):
+        """
+        Getting the service id from given trip id
+
+        Parameters
+        ----------
+
+        gtfs : dictionary
+            containing data in dataframes
+
+        trip_id_instance : int
+            contains the id of the trip
+
+        Return
+        ------
+        service_days : dictionary
+            contains the service days
+        trips_trip_id : dictionary
+            contains trips
+        """
+    
+        trips_trip_id = gtfs["trips"].loc[gtfs["trips"]["trip_id"] == trip_id_instance]
         service_id_instance = trips_trip_id['service_id'].to_numpy()[0]
-        service_days = name_dict["calendar"].loc[name_dict["calendar"]["service_id"] == service_id_instance]
-        return service_days,trips_trip_id
+        service_days = gtfs["calendar"].loc[gtfs["calendar"]["service_id"] == service_id_instance]
+        return service_days, trips_trip_id
 
-    def create_train_station_info(self, date, train_station_name, time_span, name_dict):
+    def create_train_station_info(self, date, train_station_name, time_span, gtfs):
+        """
+        Creates a dataframe with train information of the next trains departuring in given train station.
 
-        # if ther is no time, ther cant be anny trains (driving ?)
+        Parameters
+        ----------
+        date : int
+            contains the weekday
+
+        train_station_name : String
+            containing the name of the train station
+
+        time_span : int
+            containing the time span in hours 
+
+        gtfs : dictionary
+            containing data in dataframes
+
+        Return
+        ------
+        dataframe : dataframe
+            Can be the departuring trains or error messages.
+        """
+
+        if train_station_name in gtfs["stops"]["stop_name"].to_numpy():
+            return pd.DataFrame([["Bahnhof nicht bekannt"]], columns=["Info"])
+
+        # If there is no time given, there cant be any trains
         if time_span <= 0:
             return pd.DataFrame([["Keine Züge gefunden"]], columns=["Info"])
 
@@ -1519,25 +1836,25 @@ class data(threading.Thread):
         hour = date[1]
         minute = date[2]
 
-        # get trip_id_IDs stoping at the treanstachen
-        stop_IDs = name_dict["stops"].loc[name_dict["stops"]["stop_name"] == train_station_name]['stop_id'].to_numpy()        
-        trip_id_IDs = set(name_dict["stop_times"].loc[name_dict["stop_times"]["stop_id"].isin(stop_IDs)]['trip_id'].to_numpy())
+        # Get trip_id_IDs stopping at the train station
+        stop_IDs = gtfs["stops"].loc[gtfs["stops"]["stop_name"] == train_station_name]['stop_id'].to_numpy()        
+        trip_id_IDs = set(gtfs["stop_times"].loc[gtfs["stop_times"]["stop_id"].isin(stop_IDs)]['trip_id'].to_numpy())
 
-        # counter contanig how many lines are addet on the Dataframe
+        # Counter containing how many lines are added to the Dataframe
         connections_df_counter = int(0)
         
         for trip_id_instance in trip_id_IDs:
 
-            # geting the sevis id from given trip id
-            service_days , trips_trip_id = self.geting_sevis_days(name_dict,trip_id_instance)
+            # Geting the service id from given trip id
+            service_days , trips_trip_id = self.getting_service_days(gtfs,trip_id_instance)
 
             if not service_days.empty:
                 
-                # get from the rout the trip ids and ter stop ant the given transtachen
-                stop_times_trip_id_instance = name_dict["stop_times"].loc[name_dict["stop_times"]["trip_id"] == trip_id_instance]
+                # Get the trip ids and their stop and the given train station from the route
+                stop_times_trip_id_instance = gtfs["stop_times"].loc[gtfs["stop_times"]["trip_id"] == trip_id_instance]
                 trip_id_stops = stop_times_trip_id_instance.loc[stop_times_trip_id_instance["stop_id"].isin(stop_IDs)]
 
-                # determens the arrival time and how many days in the futur this is
+                # Determines the arrival time and how many days in the future this is
                 arrival_time = trip_id_stops['arrival_time'].to_numpy()[0]
                 arrival_time_hour = int(arrival_time[0:2])
                 days_over = int(arrival_time_hour / 24)
@@ -1545,75 +1862,76 @@ class data(threading.Thread):
                 day = day_given
                 time_difference = 0
                 
-                # if the train stop is in the futur, based on the servis day
-                # the previs servis day needs to be chckt
+                # If the train stop is in the future, based on the service day
+                # the previous service day needs to be checked
                 if days_over > 0:
-                    # ariveltime on this day
+
+                    # Arrival time on this day
                     arrival_time_hour_str = str(arrival_time_hour - (24 * days_over))
                     
-                    # ajustirt the str to tow leters
+                    # Adjusts the str to two letters
                     if len(arrival_time_hour_str) == 1:
                         arrival_time_hour_str = "0" + arrival_time_hour_str
 
-                    # re arange the arrival_time string to the given day
+                    # Rearrange the arrival_time string to the given day
                     arrival_time = arrival_time_hour_str + arrival_time[2:]
 
-                    # calculates the servisday thad needs to be checkt
+                    # Calculates the service day, that needs to be checked
                     day = day_given - days_over
                     if (int(arrival_time[0:2]) < hour) or (int(arrival_time[0:2]) < hour) and (int(arrival_time[3:5]) < minute):
                         day = day + 1
                         time_difference = 24 * 60
                         
-                    # ajustirt the day bast on a skale 0-6
+                    # Adjusts the day based on a scale 0-6
                     if day < 0:
                         day = day + 7
 
-                    # calculates the time_difference
+                    # Calculates the time_difference between arrival time and given time 
                     time_difference = time_difference + (int(arrival_time[0:2]) - hour) * 60 + (int(arrival_time[3:5]) - minute)
                     
                 else:
-                    # calculates the time_difference
+                    # Calculates the time_difference between arrival time and given time
                     time_difference = (int(arrival_time[0:2])- hour) * 60 + (int(arrival_time[3:5])- minute)
 
                 day_is_served = service_days[calendar.day_name[day].lower()].to_numpy()[0]
                 
-                # only if the rout is served and the the ariveltime is in the futur
+                # Only if the route is served and the arival time is in the future
                 if (day_is_served == 1) and (time_difference > 0 and time_difference < time_span * 60):
 
-                    # gets the highest stop_sequence, witch is a and stachen
+                    # Gets the highest stop_sequence, which is an end station
                     last_station = max(stop_times_trip_id_instance['stop_sequence'].to_numpy())
                     direction = trips_trip_id['direction_id'].to_numpy()[0]
                     
-                    # depending on the direction the end atachen is shosen
+                    # Depending on the direction the end station is chosen
                     if direction == 0:
                         end_station = last_station
                     else:
                         end_station = 0
 
-                    # gets the name of the destinachen train stachen
+                    # Gets the name of the destination train station
                     end_station_stop_id = stop_times_trip_id_instance.loc[stop_times_trip_id_instance["stop_sequence"] == end_station]['stop_id'].to_numpy()[0]
-                    end_station_name = name_dict["stops"].loc[name_dict["stops"]["stop_id"] == end_station_stop_id]['stop_name'].to_numpy()[0]
+                    end_station_name = gtfs["stops"].loc[gtfs["stops"]["stop_id"] == end_station_stop_id]['stop_name'].to_numpy()[0]
 
-                    #gets the row routes of the route id
+                    # Gets the row routes of the route id
                     route_id_instance = trips_trip_id['route_id'].to_numpy()[0]
-                    routes_row = name_dict["routes"].loc[name_dict["routes"]["route_id"] == route_id_instance]
+                    routes_row = gtfs["routes"].loc[gtfs["routes"]["route_id"] == route_id_instance]
 
-                    # retrivs the informachen of the trip 
+                    # Retrieves the information of the trip 
                     agency_id_instance = routes_row['agency_id'].to_numpy()[0]
-                    agency_name_instance = name_dict["agency"].loc[name_dict["agency"]["agency_id"] == agency_id_instance]['agency_name'].to_numpy()[0]
+                    agency_name_instance = gtfs["agency"].loc[gtfs["agency"]["agency_id"] == agency_id_instance]['agency_name'].to_numpy()[0]
                     route_long_name = routes_row['route_long_name'].to_numpy()[0]
                     departure_time = trip_id_stops['departure_time'].to_numpy()[0]
 
-                    # the trip is addes to the dataframe
+                    # The trip is added to the dataframe
                     if connections_df_counter == 0:
                         connections_df = pd.DataFrame([[agency_name_instance, route_long_name, end_station_name, arrival_time, departure_time]], columns=["Betreiber","Zugbezeichnung","Endstation","Einfahrtszeit","Abfahrtszeit"])
                     else:
                         connections_df.loc[connections_df_counter] = [agency_name_instance, route_long_name, end_station_name, arrival_time, departure_time]
                     connections_df_counter += 1
 
-        # reterns Dataframe in new order of time, or a fedbecg Data frame
+        # Returns dataframe in new order of the time, or a feedback dataframe
         if connections_df_counter > 0:
-            return self.orders_ackording_to_time(hour,minute,connections_df)
+            return self.orders_according_to_time(hour,minute,connections_df)
         else:
             feedback_df = pd.DataFrame([["Keine Züge gefunden"]], columns=["Info"])
             return feedback_df
