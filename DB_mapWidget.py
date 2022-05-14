@@ -207,7 +207,7 @@ class germanyMap(QtWidgets.QGraphicsView):
             QtCore.Qt.BrushStyle.SolidPattern)
 
         self.line_pen = QtGui.QPen("orange")
-        self.line_pen.setWidthF(0.02)
+        self.line_pen.setWidthF(0.01)
 
     def draw_route_network(self, train_stations, routes):
         """
