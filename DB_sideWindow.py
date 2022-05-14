@@ -152,14 +152,17 @@ class sideWindow(QtWidgets.QMainWindow):
         new_info : String
             new info for the text
         """
-        self.text = self.text + new_info + "\n"
-        splitted = self.text.splitlines( )
-        lin_sub = len(splitted) - 10
-        if len(splitted) > 10:
-            self.text = ""
-            for i in range(10):
-                self.text = self.text + splitted[i+lin_sub] + "\n"
-        self.textfield_allInfo.setText(self.text)
+        if self.text.replace(" ", "") == "":
+            self.text = new_info
+        else:
+            self.text = self.text + new_info + "\n"
+            splitted = self.text.splitlines( )
+            lin_sub = len(splitted) - 10
+            if len(splitted) > 10:
+                self.text = ""
+                for i in range(10):
+                    self.text = self.text + splitted[i+lin_sub] + "\n"
+            self.textfield_allInfo.setText(self.text)
         
     def change_start_station(self, value):
         """

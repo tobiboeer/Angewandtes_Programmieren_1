@@ -89,6 +89,13 @@ class data(threading.Thread):
         # access them.
         time.sleep(0.1)
 
+    def delighted_category_options_append(self,name):#------------------------------------------------Die gesamte kalsse
+        self.delighted_category_options.append(name)
+        text = "Daten aus der klasse " + name + " sind nicht vorhanden."
+        text = text + "Es wirt versucht diese wieder her zu seellen." #--------------------------------------
+        text = text + "Bis hadin ist diese klasse gespärt"
+        self.text_field_update(text) #--------------------------------------------------------
+
     def set_model(self, model):
         """
         Saves the model.
@@ -116,7 +123,10 @@ class data(threading.Thread):
                 self.queue_text = " "
             self.model.text_field_update(new_text)
         else:
-            self.queue_text = self.queue_text + "\n" + new_text
+            if self.queue_text.replace(" ", "") == "":
+                self.queue_text = new_text
+            else:
+                self.queue_text = self.queue_text + "\n" + new_text
 
     def restore(self, key):
         """
@@ -249,6 +259,8 @@ class data(threading.Thread):
             self.connections_regional = self.load_text \
                 ('connections_regional.csv')
             self.delighted_category_options.remove("stops_regional")
+            text = "Die regional katigorie ist wiede auswälbar" #--------------------------------------
+            self.text_field_update(text) #--------------------------------------------------------
 
     def free_fern_add_1(self):
         """
@@ -260,17 +272,21 @@ class data(threading.Thread):
             self.stops_fern = self.load_text('stops_fern.txt')
             self.connections_fern = self.load_text('connections_fern.csv')
             self.delighted_category_options.remove("stops_fern")
+            text = "Die fern katigorie ist wiede auswälbar" #--------------------------------------
+            self.text_field_update(text) #--------------------------------------------------------
 
     def free_nah_add_1(self):
         """
         Compare to free_regional_add_1
         """
         self.free_nah += 1
-        
+
         if self.free_nah == 2:
             self.stops_fern = self.load_text('stops_nah.txt')
             self.connections_fern = self.load_text('connections_nah.csv')
             self.delighted_category_options.remove("stops_nah")
+            text = "Die nah katigorie ist wiede auswälbar" #--------------------------------------
+            self.text_field_update(text) #--------------------------------------------------------
 
     def gtfs_prep(self):
         """
@@ -283,7 +299,7 @@ class data(threading.Thread):
             self.gtfs_regional_pre = executor.submit \
                 (self.load_gtfs, "latest_regional")
             self.connections_nah_pre = executor.submit \
-                (self.load_text, "connections_og.csv")
+                (self.load_text, "connections_nah.csv")
             self.connections_regional_pre = executor.submit \
                 (self.load_text, "connections_regional.csv")
             self.stops_regional_pre = executor.submit \
@@ -303,7 +319,7 @@ class data(threading.Thread):
         """
         if self.stops_fern[1] == False:
             if not ("stops_fern" in self.delighted_category_options):
-                self.delighted_category_options.append("stops_fern")
+                self.delighted_category_options_append("stops_fern")
             self.restore("fern")
 
         return self.stops_fern
@@ -326,7 +342,7 @@ class data(threading.Thread):
             if self.stops_nah[1] == False:
             
                 if not ("stops_nah" in self.delighted_category_options):
-                    self.delighted_category_options.append("stops_nah")
+                    self.delighted_category_options_append("stops_nah")
                 self.restore("nah")
                 
         return self.stops_nah
@@ -350,7 +366,7 @@ class data(threading.Thread):
             
                 if not ("stops_regional" in \
                     self.delighted_category_options):
-                    self.delighted_category_options.append \
+                    self.delighted_category_options_append \
                         ("stops_regional")
                 self.restore("regional")
 
@@ -376,7 +392,7 @@ class data(threading.Thread):
             
                 if not ("stops_regional" in \
                     self.delighted_category_options):
-                    self.delighted_category_options.append \
+                    self.delighted_category_options_append \
                         ("stops_regional")
                 self.restore("regional")
 
@@ -400,7 +416,7 @@ class data(threading.Thread):
             if self.connections_nah[1] == False:
             
                 if not ("stops_nah" in self.delighted_category_options):
-                    self.delighted_category_options.append("stops_nah")
+                    self.delighted_category_options_append("stops_nah")
                 self.restore("nah")
                 
         return self.connections_nah
@@ -418,7 +434,7 @@ class data(threading.Thread):
         if self.connections_fern[1] == False:
         
             if not ("stops_fern" in self.delighted_category_options):
-                    self.delighted_category_options.append("stops_fern")
+                    self.delighted_category_options_append("stops_fern")
                     
             self.restore("fern")
             
@@ -449,14 +465,14 @@ class data(threading.Thread):
                 self.gtfs_nah = self.gtfs_nah_pre.result()
                 
                 if self.gtfs_nah == None:
-                    self.delighted_category_options.append("stops_nah")
+                    self.delighted_category_options_append("stops_nah")
                     
             return self.gtfs_nah
 
         if category == "latest_fern":
         
             if self.gtfs_fern == None:
-                self.delighted_category_options.append("stops_fern")
+                self.delighted_category_options_append("stops_fern")
                 
             return self.gtfs_fern
 
@@ -466,9 +482,9 @@ class data(threading.Thread):
                 self.gtfs_regional = self.gtfs_regional_pre.result()
                 
                 if self.gtfs_regional == None:
-                    self.delighted_category_options.append \
+                    self.delighted_category_options_append \
                     ("stops_regional")
-                    
+
             return self.gtfs_regional
 
     def load_gtfs(self, category):
@@ -576,6 +592,8 @@ class data(threading.Thread):
                 
             return about_text
         else:
+            text = "Die About konnte nicht geladen werden" #--------------------------------------
+            self.text_field_update(text) #--------------------------------------------------------
             return "No ABOUT text was found"
 
     def load_readme_text(self):
@@ -605,6 +623,8 @@ class data(threading.Thread):
                 
             return readme_text_md
         else:
+            text = "Die README konnte nicht geladen werden" #--------------------------------------
+            self.text_field_update(text) #--------------------------------------------------------
             return "No README text was found"
 
     def load_tutorial(self):
@@ -634,6 +654,8 @@ class data(threading.Thread):
                 
             return tutorial_text_md
         else:
+            text = "Die Tutorial Datei konnte nicht geladen werden" #--------------------------------------
+            self.text_field_update(text) #-----------------------------------------------------------------
             return "No TUTORIAL text was found"
 
     def load_text(self, filename_routes):
@@ -654,6 +676,8 @@ class data(threading.Thread):
             # An indication, if the reading 
             # was successfull, it is included.
             return [routes, True]
+        text = "Die " + filename_routes + " konnte nicht geladen werden" #--------------------------------------
+        self.text_field_update(text) #--------------------------------------------------------
         return [None, False]
 
     def orders_according_to_time(self, hour, minute, connections_df):

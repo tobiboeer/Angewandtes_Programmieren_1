@@ -56,9 +56,8 @@ class model():
                 .get_connections_fern()
             self.current_gtfs = self.all_data.gtfs("latest_fern")
         else:
-            
             # The incorrect data set is blocked.
-            self.all_data.delighted_category_options.append("stops_fern")
+            self.all_data.delighted_category_options_append("stops_fern")
             
             # Tries to restore the lost data.
             if not (self.all_data.gtfs("latest_fern") == None):
@@ -74,7 +73,7 @@ class model():
             if (self.current_stops[1] == False) or (self \
                 .current_connections[1] == False) or (self.current_gtfs \
                     == None):
-                self.all_data.delighted_category_options.append \
+                self.all_data.delighted_category_options_append \
                     ("stops_regional")
                 if not (self.all_data.gtfs("latest_regional") == None):
                     self.all_data.restore("regional")
@@ -85,8 +84,8 @@ class model():
                 if (self.current_stops[1] == False) or \
                     (self.current_connections[1] == False) or \
                         (self.current_gtfs == None):
-                    self.all_data.delighted_category_options \
-                        .append("stops_nah")
+                    self.all_data.delighted_category_options_append \
+                        ("stops_nah")
                     if not (self.all_data.gtfs("latest_nah") == None):
                         self.all_data.restore("nah")
                     print("Es sind unvollständige Datensets " + \
@@ -160,11 +159,15 @@ class model():
                 self.all_data.restore("fern")
                 self.all_data.restore("nah")
                 self.all_data.restore("regional")
+
             else:
                 # Triggers a GUI update of the route network to 
                 # the current type of train traffic
                 self.main_gui.draw_route_network(self \
                     .get_current_stops(),self.get_connections()) 
+        else :
+            self.main_gui.draw_route_network(self \
+                    .get_current_stops(),self.get_connections())
         
     def get_about_text(self):
         return self.all_data.about_text

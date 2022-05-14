@@ -34,7 +34,7 @@ class myThread(threading.Thread):
     """
     
     def __init__(self, all_route_ids, parent, amount_of_threads, \
-        name_dict_input):
+        name_dict_input):#-----------------------------------------------------------------------------------
         threading.Thread.__init__(self)
         self.name_dict = name_dict_input
         self.all_route_ids = all_route_ids
@@ -48,7 +48,7 @@ class myThread(threading.Thread):
         """
         connections = []
 
-        for done, route_id in enumerate(self.all_route_ids):
+        for route_id in self.all_route_ids:
         
             # Gets all the trip id's from the 'route id'.
             trip_id_example_list = self.name_dict["trips"].loc[self. \
@@ -87,7 +87,7 @@ class myThread(threading.Thread):
         station_2 = list(group["station_2"].to_numpy())
         connections = [station_1,station_2]
         
-        print(" Verbindungen im Thread erstellt.")
+        print(" Verbindungen im Thread erstellt.")  #------------------------------------------
 
         # Writes to the main class
         while True:
@@ -141,7 +141,7 @@ class connections(threading.Thread):
         self.threads_done = 0
         self.add_connections_active = 0
         self.connections = [[],[]]
-        
+
         # Gets the route id's to get the connections.
         all_route_ids = self.name_dict["routes"]["route_id"].to_numpy()
 
@@ -211,11 +211,6 @@ class connections(threading.Thread):
             'stop_lon':'Station1_lon'}, inplace = True)
         new_df = new_df.drop(['stop_name', 'stop_id'], axis=1)
         new_df.rename(columns = {'station_1': 'stop_id'}, inplace = True)
-        print(new_df)
-
-        print("----------------------")
-
-        print(self.name_dict["stops"])
         new_df = pd.merge(self.name_dict["stops"],new_df)
         new_df = new_df.drop(['stop_name', 'stop_id'], axis=1)
         new_df.rename(columns = {'stop_lat':'Station2_lat', \
