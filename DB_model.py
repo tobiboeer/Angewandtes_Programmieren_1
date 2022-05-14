@@ -37,6 +37,8 @@ class model():
         all_data : data
             contains all loaded data (every data of all files)
         """
+        self.main_gui_set = False
+        self.text_queue = " "
         self.all_data = all_data
         self.all_data.set_model(self)
         self.train_station_info = None
@@ -101,7 +103,9 @@ class model():
         main_gui : mainWindow
             contains the main frame of the GUI
         """
+        self.main_gui_set = True
         self.main_gui = main_gui
+        self.text_field_update(" ")
         self.all_data.text_field_update(" ")
 
     def get_current_stops(self):
@@ -218,7 +222,17 @@ class model():
         new_info : String
             new information for the text field 
         """
-        self.main_gui.side_window_instance.update_text(new_info)
+        if self.main_gui_set == True:
+            if self.text_queue.replace(" ", "") == "":
+                self.main_gui.side_window_instance.update_text(new_info)
+            else:   
+                self.main_gui.side_window_instance.update_text((self.text_queue + "\n" + new_info))
+                self.text_queue = " "
+        else:
+            if self.text_queue.replace(" ", "") == "":
+                self.text_queue = new_info
+            else:
+                self.text_queue = self.text_queue + "\n" + new_info
 
 
 
