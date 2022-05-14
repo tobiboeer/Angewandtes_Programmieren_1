@@ -49,7 +49,7 @@ class data(threading.Thread):
         Loads all necessary data and starts the threads 
         with loading other data.
         """
-        self.delighted_category_options = []
+        self.closed_category_options = []
         self.model_set = False
         self.queue_text = " "
 
@@ -89,12 +89,21 @@ class data(threading.Thread):
         # access them.
         time.sleep(0.1)
 
-    def delighted_category_options_append(self,name):#------------------------------------------------Die gesamte kalsse
-        self.delighted_category_options.append(name)
-        text = "Daten aus der klasse " + name + " sind nicht vorhanden."
-        text = text + "Es wirt versucht diese wieder her zu seellen." #--------------------------------------
-        text = text + "Bis hadin ist diese klasse gespärt"
-        self.text_field_update(text) #--------------------------------------------------------
+    def closed_category_options_append(self,name):
+        """
+        Gives feedback, if category option is closed.
+
+        Parameters
+        ----------
+
+        name : String
+            containing the name of the category.
+        """
+        self.closed_category_options.append(name)
+        text = "Daten aus der Klasse " + name + " sind nicht vorhanden."
+        text = text + "Es wird versucht diese wieder herzustellen." 
+        text = text + "Bis dahin ist diese Klasse gesperrt."
+        self.text_field_update(text) 
 
     def set_model(self, model):
         """
@@ -141,7 +150,7 @@ class data(threading.Thread):
 
         # If the key fits and there is data to be restored.
         if key == "fern" and ("stops_fern" \
-            in self.delighted_category_options):
+            in self.closed_category_options):
         
             # Needed for restoring 
             if not (self.gtfs_fern == None):
@@ -162,7 +171,7 @@ class data(threading.Thread):
                     self.free_fern_add_1()
 
         if key == "nah" and ("stops_nah" \
-            in self.delighted_category_options):
+            in self.closed_category_options):
             if not (self.gtfs_nah == None):
                 self.free_nah = 0
                 if self.connections_nah[1] == False:
@@ -175,7 +184,7 @@ class data(threading.Thread):
                     self.free_nah_add_1()
 
         if key == "regional" and ("stops_regional" \
-            in self.delighted_category_options):
+            in self.closed_category_options):
         
             if not (self.gtfs_regional == None):
                 self.free_regional = 0
@@ -258,9 +267,9 @@ class data(threading.Thread):
             self.stops_regional = self.load_text('stops_regional.txt')
             self.connections_regional = self.load_text \
                 ('connections_regional.csv')
-            self.delighted_category_options.remove("stops_regional")
-            text = "Die regional katigorie ist wiede auswälbar" #--------------------------------------
-            self.text_field_update(text) #--------------------------------------------------------
+            self.closed_category_options.remove("stops_regional")
+            text = "Regional ist wieder auswählbar." 
+            self.text_field_update(text) 
 
     def free_fern_add_1(self):
         """
@@ -271,9 +280,9 @@ class data(threading.Thread):
         if self.free_fern == 2:
             self.stops_fern = self.load_text('stops_fern.txt')
             self.connections_fern = self.load_text('connections_fern.csv')
-            self.delighted_category_options.remove("stops_fern")
-            text = "Die fern katigorie ist wiede auswälbar" #--------------------------------------
-            self.text_field_update(text) #--------------------------------------------------------
+            self.closed_category_options.remove("stops_fern")
+            text = "Fernverkehr ist wieder auswählbar." 
+            self.text_field_update(text) 
 
     def free_nah_add_1(self):
         """
@@ -284,9 +293,9 @@ class data(threading.Thread):
         if self.free_nah == 2:
             self.stops_fern = self.load_text('stops_nah.txt')
             self.connections_fern = self.load_text('connections_nah.csv')
-            self.delighted_category_options.remove("stops_nah")
-            text = "Die nah katigorie ist wiede auswälbar" #--------------------------------------
-            self.text_field_update(text) #--------------------------------------------------------
+            self.closed_category_options.remove("stops_nah")
+            text = "Nahverkehr ist wieder auswählbar." 
+            self.text_field_update(text) 
 
     def gtfs_prep(self):
         """
@@ -318,8 +327,8 @@ class data(threading.Thread):
             containing the train station information
         """
         if self.stops_fern[1] == False:
-            if not ("stops_fern" in self.delighted_category_options):
-                self.delighted_category_options_append("stops_fern")
+            if not ("stops_fern" in self.closed_category_options):
+                self.closed_category_options_append("stops_fern")
             self.restore("fern")
 
         return self.stops_fern
@@ -341,8 +350,8 @@ class data(threading.Thread):
             
             if self.stops_nah[1] == False:
             
-                if not ("stops_nah" in self.delighted_category_options):
-                    self.delighted_category_options_append("stops_nah")
+                if not ("stops_nah" in self.closed_category_options):
+                    self.closed_category_options_append("stops_nah")
                 self.restore("nah")
                 
         return self.stops_nah
@@ -365,8 +374,8 @@ class data(threading.Thread):
             if self.stops_regional[1] == False:
             
                 if not ("stops_regional" in \
-                    self.delighted_category_options):
-                    self.delighted_category_options_append \
+                    self.closed_category_options):
+                    self.closed_category_options_append \
                         ("stops_regional")
                 self.restore("regional")
 
@@ -391,8 +400,8 @@ class data(threading.Thread):
             if self.connections_regional[1] == False:
             
                 if not ("stops_regional" in \
-                    self.delighted_category_options):
-                    self.delighted_category_options_append \
+                    self.closed_category_options):
+                    self.closed_category_options_append \
                         ("stops_regional")
                 self.restore("regional")
 
@@ -415,8 +424,8 @@ class data(threading.Thread):
             
             if self.connections_nah[1] == False:
             
-                if not ("stops_nah" in self.delighted_category_options):
-                    self.delighted_category_options_append("stops_nah")
+                if not ("stops_nah" in self.closed_category_options):
+                    self.closed_category_options_append("stops_nah")
                 self.restore("nah")
                 
         return self.connections_nah
@@ -433,8 +442,8 @@ class data(threading.Thread):
         """
         if self.connections_fern[1] == False:
         
-            if not ("stops_fern" in self.delighted_category_options):
-                    self.delighted_category_options_append("stops_fern")
+            if not ("stops_fern" in self.closed_category_options):
+                    self.closed_category_options_append("stops_fern")
                     
             self.restore("fern")
             
@@ -465,14 +474,14 @@ class data(threading.Thread):
                 self.gtfs_nah = self.gtfs_nah_pre.result()
                 
                 if self.gtfs_nah == None:
-                    self.delighted_category_options_append("stops_nah")
+                    self.closed_category_options_append("stops_nah")
                     
             return self.gtfs_nah
 
         if category == "latest_fern":
         
             if self.gtfs_fern == None:
-                self.delighted_category_options_append("stops_fern")
+                self.closed_category_options_append("stops_fern")
                 
             return self.gtfs_fern
 
@@ -482,7 +491,7 @@ class data(threading.Thread):
                 self.gtfs_regional = self.gtfs_regional_pre.result()
                 
                 if self.gtfs_regional == None:
-                    self.delighted_category_options_append \
+                    self.closed_category_options_append \
                     ("stops_regional")
 
             return self.gtfs_regional
@@ -592,9 +601,9 @@ class data(threading.Thread):
                 
             return about_text
         else:
-            text = "Die About konnte nicht geladen werden" #--------------------------------------
-            self.text_field_update(text) #--------------------------------------------------------
-            return "No ABOUT text was found"
+            text = "ABOUT.md konnte nicht geladen werden." 
+            self.text_field_update(text) 
+            return "No ABOUT text was found."
 
     def load_readme_text(self):
         """
@@ -623,8 +632,8 @@ class data(threading.Thread):
                 
             return readme_text_md
         else:
-            text = "Die README konnte nicht geladen werden" #--------------------------------------
-            self.text_field_update(text) #--------------------------------------------------------
+            text = "README.md konnte nicht geladen werden." 
+            self.text_field_update(text) 
             return "No README text was found"
 
     def load_tutorial(self):
@@ -654,8 +663,8 @@ class data(threading.Thread):
                 
             return tutorial_text_md
         else:
-            text = "Die Tutorial Datei konnte nicht geladen werden" #--------------------------------------
-            self.text_field_update(text) #-----------------------------------------------------------------
+            text = "TUTORIAL.md konnte nicht geladen werden." 
+            self.text_field_update(text)
             return "No TUTORIAL text was found"
 
     def load_text(self, filename_routes):
@@ -676,8 +685,8 @@ class data(threading.Thread):
             # An indication, if the reading 
             # was successfull, it is included.
             return [routes, True]
-        text = "Die " + filename_routes + " konnte nicht geladen werden" #--------------------------------------
-        self.text_field_update(text) #--------------------------------------------------------
+        text = filename_routes + " konnte nicht geladen werden."
+        self.text_field_update(text)
         return [None, False]
 
     def orders_according_to_time(self, hour, minute, connections_df):

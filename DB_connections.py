@@ -34,7 +34,27 @@ class myThread(threading.Thread):
     """
     
     def __init__(self, all_route_ids, parent, amount_of_threads, \
-        name_dict_input):#-----------------------------------------------------------------------------------
+        name_dict_input):
+        """
+        Initializes a thread, which gets the train station \
+            connections based on the route ids.
+
+        Parameters
+        ----------
+
+        all_route_ids : List
+            containing all route ids
+
+        parent : connections
+            class, which distributes tasks to myThread objects
+
+        amount_of_threads : int
+            contains the amount of threads
+
+        name_dict_input : dictionary
+            containing GTFS data  
+        """
+
         threading.Thread.__init__(self)
         self.name_dict = name_dict_input
         self.all_route_ids = all_route_ids
@@ -85,9 +105,7 @@ class myThread(threading.Thread):
         # Reassembles the list.
         station_1 = list(group["station_1"].to_numpy())
         station_2 = list(group["station_2"].to_numpy())
-        connections = [station_1,station_2]
-        
-        print(" Verbindungen im Thread erstellt.")  #------------------------------------------
+        connections = [station_1, station_2]
 
         # Writes to the main class
         while True:
@@ -98,6 +116,7 @@ class myThread(threading.Thread):
         # If all threads are done the main code can be run.
         self.parent.threads_done += 1
         if self.parent.threads_done == self.amount_of_threads:
+            print("Thread " + self.parent.threads_done + " finished.")
             self.parent.keep_going()
 
 class connections(threading.Thread):

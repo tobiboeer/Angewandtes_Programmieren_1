@@ -57,7 +57,7 @@ class model():
             self.current_gtfs = self.all_data.gtfs("latest_fern")
         else:
             # The incorrect data set is blocked.
-            self.all_data.delighted_category_options_append("stops_fern")
+            self.all_data.closed_category_options_append("stops_fern")
             
             # Tries to restore the lost data.
             if not (self.all_data.gtfs("latest_fern") == None):
@@ -73,7 +73,7 @@ class model():
             if (self.current_stops[1] == False) or (self \
                 .current_connections[1] == False) or (self.current_gtfs \
                     == None):
-                self.all_data.delighted_category_options_append \
+                self.all_data.closed_category_options_append \
                     ("stops_regional")
                 if not (self.all_data.gtfs("latest_regional") == None):
                     self.all_data.restore("regional")
@@ -84,7 +84,7 @@ class model():
                 if (self.current_stops[1] == False) or \
                     (self.current_connections[1] == False) or \
                         (self.current_gtfs == None):
-                    self.all_data.delighted_category_options_append \
+                    self.all_data.closed_category_options_append \
                         ("stops_nah")
                     if not (self.all_data.gtfs("latest_nah") == None):
                         self.all_data.restore("nah")
@@ -120,7 +120,7 @@ class model():
             contains the type of train traffic
         """
 
-        if not (new_type in self.all_data.delighted_category_options):
+        if not (new_type in self.all_data.closed_category_options):
         
             # Saves the current status as a backup
             start_values = [self.current_stops,self \

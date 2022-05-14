@@ -93,7 +93,7 @@ class sideWindow(QtWidgets.QMainWindow):
             (self.click_function_regional)
         self.button_request.clicked.connect(self.train_station_request)
 
-        # -------------- LAYOUTS ------------------------------------
+        # -------------- LAYOUTS ------------------
         button_layout_traffic = QtWidgets.QHBoxLayout()
         button_layout_traffic.addWidget(self.button_nahverkehr)
         button_layout_traffic.addWidget(self.button_fernverkehr)
