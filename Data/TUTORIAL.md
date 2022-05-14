@@ -28,14 +28,23 @@ The search is easier if you type the searched station in. In this case we will c
 
 ![ScreenShot](/////Dropdown.png)<br/>
 <br/>
+Stations can also be selected by clicking on them in the map directly. <br/>
+![ScreenShot](/////Clicking.png)<br/>
+<br/>
 You can also choose a date and a time. This will limit your search results. To this week day, time and time span
 around the time, by putting an hour number in the field 'Zeitfenster'. <br/>
+In the example the chosen information are from Friday the 13th of May 2022 at 11am for the next 10 hours till 9pm.<br/> 
 ![ScreenShot](/////example.png)<br/>
 <br/>
 ### Get information<br/> 
 The information of these trains will be shown in the table below the map if you click the button 'Anfrage stellen'.<br/>
 
 ![ScreenShot](/////Table.png)<br/>
+<br/>
+If files starting with 'stops', 'connections' are missing in the 'Data' directory, the program informs the user in the 
+text field 'Besondere Informationen:' and restores the data. <br/>
+In the example down below this happens for 'stops_regional'.<br/>
+![ScreenShot](/////Infofenster.png)<br/>
 <br/>
 # Help Menu<br/>
 The menu bar on the top left corner allows you to view the 'About/Licence' menu, the 'ReadMe' and this tutorial.<br/> 
