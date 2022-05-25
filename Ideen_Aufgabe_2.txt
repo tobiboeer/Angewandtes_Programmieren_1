@@ -1,0 +1,19 @@
+Ideen für die 2. Programmieraufgabe: 
+
+Gefordert:
+- Eine Applikation, bei der man zwischen 2 bestehenden Bahnhöfen 
+  eine Reise planen kann.
+  
+Interessante Features:
+	Das geforderte Programm in einem Webbrowser erstellen. 
+	
+	Es soll über einen Knopf möglich sein mehr als eine 
+	weitere Haltestation auszuwählen.
+	
+	Informationsreiter mit aktuellen Nachrichten, 
+	wie dem Wetter oder Schlagzeilen und einer Uhr.
+	
+	Als lustiges Gadget mit bahn.de verbinden.
+	
+	
+	
